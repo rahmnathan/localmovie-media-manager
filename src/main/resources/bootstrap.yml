@@ -1,0 +1,15 @@
+vault.pki:
+  enabled: false
+  commonName: localmovies
+  role: localmovies
+
+spring:
+  application.name: server
+  cloud.vault:
+    enabled: false
+    host: 192.168.1.8
+    port: 8200
+    scheme: https
+    authentication: TOKEN
+    generic.backend: localmovies
+    token: <token>

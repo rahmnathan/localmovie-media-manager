@@ -1,0 +1,13 @@
+module local.movie.service {
+    exports com.github.rahmnathan.localmovie.service.boundary;
+    exports com.github.rahmnathan.localmovie.service.data;
+    requires spring.context;
+    requires spring.beans;
+    requires local.movie.info.persistence;
+    requires directory.monitor;
+    requires movie.info.api;
+    requires guava;
+    requires movie.info.omdb;
+    requires javaee.api;
+    requires slf4j.api;
+}

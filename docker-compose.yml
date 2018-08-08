@@ -1,0 +1,5 @@
+version: '3'
+
+services:
+  localmovie-media-manager:
+    image: 192.168.1.8:5000/localmovie-media-manager:latest
