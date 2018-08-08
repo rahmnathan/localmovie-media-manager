@@ -1,11 +1,11 @@
 {
   "concurrent.conversion.limit": 3,
-  "endpoints.health.enabled": true,
+  "endpoints.prometheus.enabled": true,
   "ffmpeg.location": "/usr/bin/ffmpeg",
   "ffprobe.location": "/usr/bin/ffprobe",
   "logging.pattern.level": "%5p %mdc",
   "media.path": "/opt/localmovies/data/internal/LocalMedia/,/opt/localmovies/data/external1/LocalMedia/",
-  "omdb.api.key": "a825746e",
+  "omdb.api.key": "",
   "push.notification.key": "",
   "spring.datasource.password": "",
   "spring.datasource.url": "jdbc:postgresql://postgres-postgresql.default:5432/localmovies",
@@ -13,5 +13,8 @@
   "spring.jpa.database-platform": "org.hibernate.dialect.PostgreSQLDialect",
   "spring.jpa.hibernate.ddl-auto": "validate",
   "spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation": true,
-  "spring.jpa.show-sql": "false"
+  "spring.jpa.show-sql": "false",
+  "management.endpoints.web.exposure.include": "*",
+  "server.port": "8449",
+  "jedis.host": "redis-master"
 }
