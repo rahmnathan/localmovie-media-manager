@@ -1,10 +1,10 @@
 vault.pki:
   enabled: false
-  commonName: localmovies
-  role: localmovies
+  commonName: localmovie-media-manager
+  role: localmovie-media-manager
 
 spring:
-  application.name: server
+  application.name: localmovie-media-manager
   cloud.vault:
     enabled: false
     host: 192.168.1.8
