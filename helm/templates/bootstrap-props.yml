@@ -7,7 +7,7 @@ data:
  bootstrap.properties: |
   vault.pki.enabled: true
   vault.pki.commonName: localmovie-media-manager
-  vault.pki.role: localmovie-media-manager
+  vault.pki.role: localmovies
   spring.application.name: localmovie-media-manager
   spring.cloud.vault.enabled: true
   spring.cloud.vault.host: 192.168.1.8
