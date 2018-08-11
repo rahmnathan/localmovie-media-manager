@@ -5,9 +5,9 @@ import com.github.rahmnathan.google.pushnotification.data.PushNotification;
 import com.github.rahmnathan.localmovie.media.manager.repository.AndroidPushTokenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class PushNotificationHandler {
     private final Logger logger = LoggerFactory.getLogger(PushNotificationHandler.class);
     private final FirebaseNotificationService notificationService;

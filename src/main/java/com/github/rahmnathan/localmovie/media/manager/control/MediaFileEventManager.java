@@ -13,26 +13,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
-@Component
+@Service
 public class MediaFileEventManager implements DirectoryMonitorObserver {
     private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovies.conversions.active", new AtomicInteger(0));
     private final Logger logger = LoggerFactory.getLogger(MediaFileEventManager.class);
     private volatile Set<String> activeConversions = ConcurrentHashMap.newKeySet();
-    private final List<MediaFileEvent> mediaFileEvents = new ArrayList<>();
     private final PushNotificationHandler notificationHandler;
     private final MediaDataService metadataService;
     private final MediaEventRepository eventRepository;
@@ -50,13 +46,16 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         this.eventRepository = eventRepository;
         this.cacheService = cacheService;
 
-        eventRepository.findAll().forEach(mediaFileEvents::add);
-
         try {
             this.ffprobe = new FFprobe(ffprobeLocation);
         } catch (IOException e){
             logger.error("Failed to instantiate MediaFileEventManager", e);
         }
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void initializeCache(){
+        eventRepository.findAll().forEach(cacheService::addEvent);
     }
 
     @Override
@@ -106,7 +105,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     private void addEvent(WatchEvent watchEvent, MediaFile mediaFile, String resultFilePath){
         logger.info("Adding event to repository.");
         MediaFileEvent event = new MediaFileEvent(MovieEvent.valueOf(watchEvent.kind().name()).getMovieEventString(), mediaFile, resultFilePath.split("/LocalMedia/")[1]);
-        mediaFileEvents.add(event);
+        cacheService.addEvent(event);
         eventRepository.save(event);
     }
 

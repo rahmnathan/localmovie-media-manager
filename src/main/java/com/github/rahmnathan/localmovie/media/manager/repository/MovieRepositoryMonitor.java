@@ -6,10 +6,9 @@ import com.github.rahmnathan.omdb.exception.MovieProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.ManagedBean;
-
-@ManagedBean
+@Service
 public class MovieRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MovieRepositoryMonitor.class.getName());
     private final MovieRepository movieRepository;

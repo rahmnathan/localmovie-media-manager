@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rahmnathan.localmovie.domain.MediaFile;
+import com.github.rahmnathan.localmovie.domain.MediaFileEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.github.rahmnathan.localmovie.domain.CachePrefix.FILE_LIST;
+import static com.github.rahmnathan.localmovie.domain.CachePrefix.MEDIA_EVENTS;
 import static com.github.rahmnathan.localmovie.domain.CachePrefix.MEDIA_FILE;
 
 @Service
@@ -72,5 +74,13 @@ public class MediaCacheService {
         return Arrays.stream(dirs)
                 .limit(dirs.length - 1)
                 .collect(Collectors.joining(File.separator));
+    }
+
+    public void addEvent(MediaFileEvent mediaFileEvent){
+        try{
+            jedis.set(MEDIA_EVENTS.name() + mediaFileEvent.getTimestamp(), OBJECT_MAPPER.writeValueAsString(mediaFileEvent));
+        } catch (IOException e){
+            logger.error("Failure marshalling file paths for cache.", e);
+        }
     }
 }
