@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.media.manager.config;
+package com.github.rahmnathan.localmovie.media.manager.config.vault;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;

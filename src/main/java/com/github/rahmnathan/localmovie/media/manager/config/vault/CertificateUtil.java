@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.media.manager.config;
+package com.github.rahmnathan.localmovie.media.manager.config.vault;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
@@ -133,51 +133,47 @@ class CertificateUtil {
         @JsonProperty("expires")
         private long expires;
 
-        public String getCertificate() {
+        String getCertificate() {
             return certificate;
         }
 
-        public String getSerialNumber() {
+        String getSerialNumber() {
             return serialNumber;
         }
 
-        public String getIssuingCaCertificate() {
+        String getIssuingCaCertificate() {
             return issuingCaCertificate;
         }
 
-        public String getPrivateKey() {
+        String getPrivateKey() {
             return privateKey;
         }
 
-        public long getTimeRequested() {
-            return timeRequested;
-        }
-
-        public long getExpires() {
+        long getExpires() {
             return expires;
         }
 
-        public void setCertificate(String certificate) {
+        void setCertificate(String certificate) {
             this.certificate = certificate;
         }
 
-        public void setSerialNumber(String serialNumber) {
+        void setSerialNumber(String serialNumber) {
             this.serialNumber = serialNumber;
         }
 
-        public void setIssuingCaCertificate(String issuingCaCertificate) {
+        void setIssuingCaCertificate(String issuingCaCertificate) {
             this.issuingCaCertificate = issuingCaCertificate;
         }
 
-        public void setPrivateKey(String privateKey) {
+        void setPrivateKey(String privateKey) {
             this.privateKey = privateKey;
         }
 
-        public void setTimeRequested(long timeRequested) {
+        void setTimeRequested(long timeRequested) {
             this.timeRequested = timeRequested;
         }
 
-        public void setExpires(long expires) {
+        void setExpires(long expires) {
             this.expires = expires;
         }
     }

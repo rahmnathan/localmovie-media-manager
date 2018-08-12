@@ -30,7 +30,7 @@ public class MediaCacheService {
         this.jedis = new Jedis(jedisHost);
     }
 
-    public void addMedia(MediaFile mediaFile){
+    void addMedia(MediaFile mediaFile){
         try {
             logger.info("Adding media file to cache. Key {} Value {}", mediaFile.getPath(), mediaFile);
             jedis.set(MEDIA_FILE + mediaFile.getPath(), OBJECT_MAPPER.writeValueAsString(mediaFile));
@@ -39,7 +39,7 @@ public class MediaCacheService {
         }
     }
 
-    public Set<String> listFiles(String path) {
+    private Set<String> listFiles(String path) {
         try {
             return OBJECT_MAPPER.readValue(jedis.get(FILE_LIST + path), Set.class);
         } catch (IOException e){
@@ -48,7 +48,7 @@ public class MediaCacheService {
         }
     }
 
-    public void putFiles(String path, Set<String> filePaths){
+    void putFiles(String path, Set<String> filePaths){
         try{
             logger.info("Adding files to cache. Key {} Value {}", path, filePaths);
             jedis.set(FILE_LIST + path, OBJECT_MAPPER.writeValueAsString(filePaths));
@@ -57,14 +57,14 @@ public class MediaCacheService {
         }
     }
 
-    public void addFile(String relativePath) {
+    void addFile(String relativePath) {
         logger.info("Adding file to fileListCache: {}", relativePath);
         Set<String> fileSet = listFiles(upOneDir(relativePath));
         fileSet.add(relativePath);
         putFiles(relativePath, fileSet);
     }
 
-    public void removeFile(String relativePath) {
+    void removeFile(String relativePath) {
         logger.info("Removing file to fileListCache: {}", relativePath);
         Set<String> fileSet = listFiles(upOneDir(relativePath));
         fileSet.remove(relativePath);
@@ -78,7 +78,7 @@ public class MediaCacheService {
                 .collect(Collectors.joining(File.separator));
     }
 
-    public void addEvent(MediaFileEvent mediaFileEvent){
+    void addEvent(MediaFileEvent mediaFileEvent){
         try{
             jedis.set(MEDIA_EVENTS.name() + mediaFileEvent.getTimestamp(), OBJECT_MAPPER.writeValueAsString(mediaFileEvent));
         } catch (IOException e){
