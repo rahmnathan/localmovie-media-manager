@@ -44,7 +44,7 @@ public class MovieRepositoryMonitor {
         return Movie.Builder.newInstance()
                 .setGenre(newMovie.getGenre() != null && !newMovie.getGenre().equals("null") ? newMovie.getGenre() : existingMovie.getGenre())
                 .setImage(newMovie.getImage() != null && !newMovie.getImage().equals("null") ? newMovie.getImage() : existingMovie.getImage())
-                .setIMDBRating(newMovie.getIMDBRating() != null && !newMovie.getIMDBRating().equals("null") ? newMovie.getIMDBRating() : existingMovie.getIMDBRating())
+                .setIMDBRating(newMovie.getImdbRating() != null && !newMovie.getImdbRating().equals("null") ? newMovie.getImdbRating() : existingMovie.getImdbRating())
                 .setMetaRating(newMovie.getMetaRating() != null && !newMovie.getMetaRating().equals("null")? newMovie.getMetaRating() : existingMovie.getMetaRating())
                 .setReleaseYear(newMovie.getReleaseYear() != null && !newMovie.getReleaseYear().equals("null") ? newMovie.getReleaseYear() : existingMovie.getReleaseYear())
                 .setTitle(newMovie.getTitle() != null && !newMovie.getTitle().equals("null") ? newMovie.getTitle() : existingMovie.getTitle())
