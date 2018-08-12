@@ -68,6 +68,6 @@ public class MediaDataService {
         logger.info("{} - Parent resolved to: {}", path, file.getPath());
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
-        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, PathUtils.getTitle(filename));
+        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, PathUtils.getTitle(filename), path);
     }
 }
