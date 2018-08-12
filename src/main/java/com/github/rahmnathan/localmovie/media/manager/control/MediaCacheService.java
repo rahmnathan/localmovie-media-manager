@@ -32,6 +32,7 @@ public class MediaCacheService {
 
     public void addMedia(MediaFile mediaFile){
         try {
+            logger.info("Adding media file to cache. Key {} Value {}", mediaFile.getPath(), mediaFile);
             jedis.set(MEDIA_FILE + mediaFile.getPath(), OBJECT_MAPPER.writeValueAsString(mediaFile));
         } catch (IOException e){
             logger.error("Failure storing mediaFile in cache.", e);
@@ -49,6 +50,7 @@ public class MediaCacheService {
 
     public void putFiles(String path, Set<String> filePaths){
         try{
+            logger.info("Adding files to cache. Key {} Value {}", path, filePaths);
             jedis.set(FILE_LIST + path, OBJECT_MAPPER.writeValueAsString(filePaths));
         } catch (IOException e){
             logger.error("Failure marshalling file paths for cache.", e);
