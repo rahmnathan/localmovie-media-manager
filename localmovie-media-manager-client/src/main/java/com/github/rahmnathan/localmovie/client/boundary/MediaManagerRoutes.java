@@ -27,7 +27,7 @@ class MediaManagerRoutes {
                 public void configure() {
                     from(ANDROID_PUSH_CLIENT_ROUTE)
                             .marshal().json(JsonLibrary.Jackson)
-                            .setHeader(Exchange.HTTP_URI, constant(ANDROID_PUSH_ENDPOINT))
+                            .setHeader(Exchange.HTTP_PATH, constant(ANDROID_PUSH_ENDPOINT))
                             .to(processUrl(clientConfig.getMediaManagerUrl()))
                             .end();
                 }
