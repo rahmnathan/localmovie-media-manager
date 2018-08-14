@@ -20,6 +20,6 @@ public class MediaManagerClient {
 
     public void addPushToken(AndroidPushClient pushClient){
         logger.info("Request received to upsert pushClient: {}", pushClient);
-        template.sendBody(ANDROID_PUSH_CLIENT_ROUTE, pushClient);
+        template.asyncRequestBody(ANDROID_PUSH_CLIENT_ROUTE, pushClient);
     }
 }
