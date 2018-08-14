@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 class MediaManagerRoutes {
     private final Logger logger = LoggerFactory.getLogger(MediaManagerRoutes.class);
     private static final String ANDROID_PUSH_ENDPOINT = "/api/v1/client/Android";
-    static final String ANDROID_PUSH_CLIENT_ROUTE = "androidPushRoute";
+    static final String ANDROID_PUSH_CLIENT_ROUTE = "direct:androidPushRoute";
     private final MediaClientConfig clientConfig;
     private final CamelContext context;
 
