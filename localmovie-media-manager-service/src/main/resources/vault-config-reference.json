@@ -10,10 +10,12 @@
   "omdb.api.key": "",
   "push.notification.key": "",
   "server.port": "8449",
+  "server.ssl.enabled": "false",
   "spring.datasource.password": "",
   "spring.datasource.url": "jdbc:postgresql://postgres-postgresql.default:5432/localmovies",
   "spring.datasource.username": "localmovies",
   "spring.jpa.database-platform": "org.hibernate.dialect.PostgreSQLDialect",
   "spring.jpa.hibernate.ddl-auto": "validate",
   "spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation": true,
+  "spring.jpa.show-sql": "false"
 }
