@@ -2,10 +2,13 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.google.pushnotification.boundary.FirebaseNotificationService;
 import com.github.rahmnathan.google.pushnotification.data.PushNotification;
+import com.github.rahmnathan.localmovie.domain.AndroidPushClient;
 import com.github.rahmnathan.localmovie.media.manager.repository.AndroidPushTokenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class PushNotificationHandler {
@@ -30,5 +33,17 @@ public class PushNotificationHandler {
 
             notificationService.sendPushNotification(pushNotification);
         });
+    }
+
+    public void addPushToken(AndroidPushClient pushClient) {
+        Optional<AndroidPushClient> optionalPushClient = pushTokenRepository.findById(pushClient.getDeviceId());
+        if (optionalPushClient.isPresent()) {
+            AndroidPushClient managedPushClient = optionalPushClient.get();
+            if (!managedPushClient.getPushToken().equals(pushClient.getPushToken())) {
+                managedPushClient.setPushToken(pushClient.getPushToken());
+            }
+        } else {
+            pushTokenRepository.save(pushClient);
+        }
     }
 }
