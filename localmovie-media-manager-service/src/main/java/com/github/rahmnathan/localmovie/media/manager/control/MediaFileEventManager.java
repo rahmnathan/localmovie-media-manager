@@ -70,14 +70,9 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                 if (Files.isRegularFile(absolutePath) && ffprobe != null) {
-                    try {
-                        activeConversionGauge.getAndIncrement();
-                        resultFilePath = launchVideoConverter(resultFilePath).get();
-                    } catch (InterruptedException | ExecutionException e){
-                        logger.error("Failuring launching video converter", e);
-                    } finally {
-                        activeConversionGauge.getAndDecrement();
-                    }
+                    activeConversionGauge.getAndIncrement();
+                    resultFilePath = launchVideoConverter(resultFilePath);
+                    activeConversionGauge.getAndDecrement();
                 }
 
                 cacheService.addFile(relativePath);
@@ -109,7 +104,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         eventRepository.save(event);
     }
 
-    private CompletableFuture<String> launchVideoConverter(String inputFilePath){
+    private String launchVideoConverter(String inputFilePath){
         // I need to find a way to wait until a file is fully written before converting it
         try {
             Thread.sleep(7000);
@@ -121,6 +116,12 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         SimpleConversionJob conversionJob = new SimpleConversionJob(ffprobe, new File(resultFilePath), new File(inputFilePath));
 
         logger.info("Launching video converter.");
-        return CompletableFuture.supplyAsync(new VideoController(conversionJob, activeConversions), executorService);
+        try {
+            CompletableFuture.supplyAsync(new VideoController(conversionJob, activeConversions), executorService).get();
+            return resultFilePath;
+        } catch (InterruptedException | ExecutionException e){
+            logger.error("Failure converting video.", e);
+            return inputFilePath;
+        }
     }
 }

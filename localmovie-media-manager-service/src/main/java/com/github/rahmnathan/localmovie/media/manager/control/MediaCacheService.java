@@ -59,16 +59,18 @@ public class MediaCacheService {
 
     void addFile(String relativePath) {
         logger.info("Adding file to fileListCache: {}", relativePath);
-        Set<String> fileSet = listFiles(upOneDir(relativePath));
+        String parentDir = upOneDir(relativePath);
+        Set<String> fileSet = listFiles(parentDir);
         fileSet.add(relativePath);
-        putFiles(relativePath, fileSet);
+        putFiles(parentDir, fileSet);
     }
 
     void removeFile(String relativePath) {
         logger.info("Removing file to fileListCache: {}", relativePath);
-        Set<String> fileSet = listFiles(upOneDir(relativePath));
+        String parentDir = upOneDir(relativePath);
+        Set<String> fileSet = listFiles(parentDir);
         fileSet.remove(relativePath);
-        putFiles(relativePath, fileSet);
+        putFiles(parentDir, fileSet);
     }
 
     private String upOneDir(String path) {
