@@ -64,14 +64,14 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         MDC.put("Path", relativePath);
         logger.info("Detected movie event.");
 
-        String resultFilePath = absolutePath.toString();
-        if(!activeConversions.contains(resultFilePath)) {
+        String absoluteFilePath = absolutePath.toString();
+        if(!activeConversions.contains(absoluteFilePath)) {
             MediaFile mediaFile = null;
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                 if (Files.isRegularFile(absolutePath) && ffprobe != null) {
                     activeConversionGauge.getAndIncrement();
-                    resultFilePath = launchVideoConverter(resultFilePath);
+                    relativePath = launchVideoConverter(absoluteFilePath);
                     activeConversionGauge.getAndDecrement();
                 }
 
@@ -82,7 +82,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
                 cacheService.removeFile(relativePath);
             }
 
-            addEvent(event, mediaFile, resultFilePath);
+            addEvent(event, mediaFile, relativePath);
         }
     }
 
@@ -99,7 +99,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
 
     private void addEvent(WatchEvent watchEvent, MediaFile mediaFile, String resultFilePath){
         logger.info("Adding event to repository.");
-        MediaFileEvent event = new MediaFileEvent(MovieEvent.valueOf(watchEvent.kind().name()).getMovieEventString(), mediaFile, resultFilePath.split("/LocalMedia/")[1]);
+        MediaFileEvent event = new MediaFileEvent(MovieEvent.valueOf(watchEvent.kind().name()).getMovieEventString(), mediaFile, resultFilePath);
         cacheService.addEvent(event);
         eventRepository.save(event);
     }
@@ -118,10 +118,10 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         logger.info("Launching video converter.");
         try {
             CompletableFuture.supplyAsync(new VideoController(conversionJob, activeConversions), executorService).get();
-            return resultFilePath;
+            return resultFilePath.split("/LocalMedia/")[1];
         } catch (InterruptedException | ExecutionException e){
             logger.error("Failure converting video.", e);
-            return inputFilePath;
+            return inputFilePath.split("/LocalMedia/")[1];
         }
     }
 }
