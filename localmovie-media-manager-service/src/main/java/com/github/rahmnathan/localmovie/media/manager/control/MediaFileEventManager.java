@@ -100,8 +100,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     private void addEvent(WatchEvent watchEvent, MediaFile mediaFile, String resultFilePath){
         logger.info("Adding event to repository.");
         MediaFileEvent event = new MediaFileEvent(MovieEvent.valueOf(watchEvent.kind().name()).getMovieEventString(), mediaFile, resultFilePath);
-        cacheService.addEvent(event);
-        eventRepository.save(event);
+        cacheService.addEvent(eventRepository.saveAndFlush(event));
     }
 
     private String launchVideoConverter(String inputFilePath){

@@ -1,6 +1,8 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.domain.MediaFileEvent;
 import org.slf4j.Logger;
@@ -23,17 +25,20 @@ import static com.github.rahmnathan.localmovie.domain.CachePrefix.MEDIA_FILE;
 @Service
 public class MediaCacheService {
     private final Logger logger = LoggerFactory.getLogger(MediaCacheService.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final JedisPool jedisPool;
 
     public MediaCacheService(@Value("${jedis.host}") String jedisHost) {
         this.jedisPool = new JedisPool(new JedisPoolConfig(), jedisHost);
+        this.objectMapper = new ObjectMapper()
+                .registerModule(new ParameterNamesModule())
+                .registerModule(new JavaTimeModule());
     }
 
     void addMedia(MediaFile mediaFile) {
         try (Jedis jedis = jedisPool.getResource()) {
             logger.info("Adding media file to cache. Key {} Value {}", mediaFile.getPath(), mediaFile);
-            jedis.set(MEDIA_FILE + mediaFile.getPath(), OBJECT_MAPPER.writeValueAsString(mediaFile));
+            jedis.set(MEDIA_FILE + mediaFile.getPath(), objectMapper.writeValueAsString(mediaFile));
         } catch (IOException e) {
             logger.error("Failure storing mediaFile in cache.", e);
         }
@@ -41,7 +46,7 @@ public class MediaCacheService {
 
     private Set<String> listFiles(String path) {
         try (Jedis jedis = jedisPool.getResource()) {
-            return OBJECT_MAPPER.readValue(jedis.get(FILE_LIST + path), Set.class);
+            return objectMapper.readValue(jedis.get(FILE_LIST + path), Set.class);
         } catch (IOException e) {
             logger.error("Failure unmarshalling file list from cache.", e);
             return new HashSet<>();
@@ -51,7 +56,7 @@ public class MediaCacheService {
     void putFiles(String path, Set<String> filePaths) {
         try (Jedis jedis = jedisPool.getResource()) {
             logger.info("Adding files to cache. Key {} Value {}", path, filePaths);
-            jedis.set(FILE_LIST + path, OBJECT_MAPPER.writeValueAsString(filePaths));
+            jedis.set(FILE_LIST + path, objectMapper.writeValueAsString(filePaths));
         } catch (IOException e) {
             logger.error("Failure marshalling file paths for cache.", e);
         }
@@ -87,7 +92,7 @@ public class MediaCacheService {
             logger.info("Adding MediaFileEvent to cache: {}", mediaFileEvent);
             List<MediaFileEvent> existingEvents = getMediaFileEvents();
             existingEvents.add(mediaFileEvent);
-            jedis.set(MEDIA_EVENTS.name(), OBJECT_MAPPER.writeValueAsString(existingEvents));
+            jedis.set(MEDIA_EVENTS.name(), objectMapper.writeValueAsString(existingEvents));
         } catch (IOException e) {
             logger.error("Failure marshalling file paths for cache.", e);
         }
@@ -97,7 +102,7 @@ public class MediaCacheService {
         try (Jedis jedis = jedisPool.getResource()) {
             String cacheResponse = jedis.get(MEDIA_EVENTS.name());
             if (cacheResponse != null) {
-                return OBJECT_MAPPER.readValue(cacheResponse, List.class);
+                return objectMapper.readValue(cacheResponse, List.class);
             }
         } catch (IOException e) {
             logger.error("Failure getting events from cache.", e);
