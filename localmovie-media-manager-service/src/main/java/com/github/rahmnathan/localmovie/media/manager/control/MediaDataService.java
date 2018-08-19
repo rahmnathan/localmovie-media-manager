@@ -56,8 +56,7 @@ public class MediaDataService {
         });
 
         MediaFile mediaFile = builder.build();
-        repository.save(mediaFile);
-        return mediaFile;
+        return repository.save(mediaFile);
     }
 
     private MediaFile loadSeriesParentInfo(String path) {
