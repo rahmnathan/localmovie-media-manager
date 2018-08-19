@@ -46,11 +46,13 @@ public class MediaCacheService {
 
     private Set<String> listFiles(String path) {
         try (Jedis jedis = jedisPool.getResource()) {
-            return objectMapper.readValue(jedis.get(FILE_LIST + path), Set.class);
+            String cacheResponse = jedis.get(FILE_LIST + path);
+            if(cacheResponse != null)
+                return objectMapper.readValue(cacheResponse, Set.class);
         } catch (IOException e) {
             logger.error("Failure unmarshalling file list from cache.", e);
-            return new HashSet<>();
         }
+        return new HashSet<>();
     }
 
     void putFiles(String path, Set<String> filePaths) {
