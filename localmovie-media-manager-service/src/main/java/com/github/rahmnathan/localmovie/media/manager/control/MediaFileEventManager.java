@@ -17,6 +17,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -59,6 +60,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     }
 
     @Override
+    @Transactional
     public void directoryModified(WatchEvent event, Path absolutePath) {
         String relativePath = absolutePath.toString().split("/LocalMedia/")[1];
         MDC.put("Path", relativePath);
@@ -116,11 +118,12 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
 
         logger.info("Launching video converter.");
         try {
-            CompletableFuture.supplyAsync(new VideoController(conversionJob, activeConversions), executorService).get();
-            return resultFilePath.split("/LocalMedia/")[1];
+            resultFilePath = CompletableFuture.supplyAsync(new VideoController(conversionJob, activeConversions), executorService).get();
         } catch (InterruptedException | ExecutionException e){
             logger.error("Failure converting video.", e);
-            return inputFilePath.split("/LocalMedia/")[1];
+            resultFilePath = inputFilePath;
         }
+
+        return resultFilePath.split("/LocalMedia/")[1];
     }
 }
