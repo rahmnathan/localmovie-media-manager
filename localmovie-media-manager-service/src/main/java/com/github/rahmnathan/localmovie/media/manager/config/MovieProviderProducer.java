@@ -21,6 +21,7 @@ public class MovieProviderProducer {
 
     @Bean
     public OmdbMovieProvider createMovieProvider(){
+        context.setUseMDCLogging(true);
         return new OmdbMovieProvider(context, template, apiKey);
     }
 }
