@@ -71,6 +71,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
             MediaFile mediaFile = null;
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                waitForWriteComplete(absolutePath);
                 if (Files.isRegularFile(absolutePath) && ffprobe != null) {
                     activeConversionGauge.getAndIncrement();
                     relativePath = launchVideoConverter(absoluteFilePath);
@@ -85,6 +86,25 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
             }
 
             addEvent(event, mediaFile, relativePath);
+        }
+    }
+
+    private void waitForWriteComplete(Path filePath){
+        while(true) {
+            File file = filePath.toFile();
+            long beforeLastModified = file.lastModified();
+
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e){
+                logger.error("Failure waiting for file to finish writing", e);
+            }
+
+            long afterLastModified = file.lastModified();
+
+            if(beforeLastModified == afterLastModified){
+                return;
+            }
         }
     }
 
@@ -106,14 +126,8 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     }
 
     private String launchVideoConverter(String inputFilePath){
-        // I need to find a way to wait until a file is fully written before converting it
-        try {
-            Thread.sleep(7000);
-        } catch (InterruptedException e){
-            logger.error("Failed sleep", e);
-        }
-
-        String resultFilePath = inputFilePath.substring(0, inputFilePath.lastIndexOf('.')) + ".mp4";
+        String outputExtension = inputFilePath.endsWith(".mp4") ? ".mkv" : ".mp4";
+        String resultFilePath = inputFilePath.substring(0, inputFilePath.lastIndexOf('.')) + outputExtension;
         SimpleConversionJob conversionJob = new SimpleConversionJob(ffprobe, new File(resultFilePath), new File(inputFilePath));
 
         logger.info("Launching video converter.");
