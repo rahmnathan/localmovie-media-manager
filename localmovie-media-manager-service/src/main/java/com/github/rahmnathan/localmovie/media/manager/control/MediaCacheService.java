@@ -57,7 +57,7 @@ public class MediaCacheService {
 
     void putFiles(String path, Set<String> filePaths) {
         try (Jedis jedis = jedisPool.getResource()) {
-            logger.info("Adding files to cache. Key {} Value {}", path, filePaths);
+            logger.debug("Adding files to cache. Key {} Value {}", path, filePaths);
             jedis.set(FILE_LIST + path, objectMapper.writeValueAsString(filePaths));
         } catch (IOException e) {
             logger.error("Failure marshalling file paths for cache.", e);
@@ -68,9 +68,7 @@ public class MediaCacheService {
         logger.info("Adding file to fileListCache: {}", relativePath);
         String parentDir = upOneDir(relativePath);
         Set<String> fileSet = listFiles(parentDir);
-        logger.info("Existing file list. Key: {} Value: {}", parentDir, fileSet);
         fileSet.add(relativePath);
-        logger.info("New file list. Key: {} Value: {}", parentDir, fileSet);
         putFiles(parentDir, fileSet);
     }
 
