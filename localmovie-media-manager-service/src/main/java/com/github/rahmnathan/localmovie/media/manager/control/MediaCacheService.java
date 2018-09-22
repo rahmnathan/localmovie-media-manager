@@ -44,6 +44,7 @@ public class MediaCacheService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Set<String> listFiles(String path) {
         try (Jedis jedis = jedisPool.getResource()) {
             String cacheResponse = jedis.get(FILE_LIST + path);
@@ -98,6 +99,7 @@ public class MediaCacheService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private List<MediaFileEvent> getMediaFileEvents() {
         try (Jedis jedis = jedisPool.getResource()) {
             String cacheResponse = jedis.get(MEDIA_EVENTS.name());
