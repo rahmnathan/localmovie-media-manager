@@ -9,7 +9,6 @@ module local.movie.service {
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.module.paramnames;
     requires com.fasterxml.jackson.datatype.jsr310;
-    requires omdb.client;
     requires spring.boot;
     requires ffmpeg;
     requires micrometer.core;
@@ -24,4 +23,5 @@ module local.movie.service {
     requires spring.boot.autoconfigure;
     requires spring.vault.core;
     requires jackson.annotations;
+    requires movie.info.omdb;
 }
