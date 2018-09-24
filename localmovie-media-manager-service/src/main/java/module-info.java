@@ -1,7 +1,6 @@
 module local.movie.service {
     requires spring.context;
     requires spring.beans;
-    requires directory.monitor;
     requires guava;
     requires slf4j.api;
     requires localmovie.domain;
@@ -13,7 +12,6 @@ module local.movie.service {
     requires ffmpeg;
     requires micrometer.core;
     requires javax.transaction.api;
-    requires cast.video.converter.handbrake;
     requires google.pushnotification;
     requires spring.web;
     requires camel.core;
@@ -24,4 +22,6 @@ module local.movie.service {
     requires spring.vault.core;
     requires jackson.annotations;
     requires movie.info.omdb;
+    requires directory.monitor;
+    requires video.converter;
 }
