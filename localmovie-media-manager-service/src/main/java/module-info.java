@@ -11,7 +11,6 @@ module local.movie.service {
     requires spring.boot;
     requires ffmpeg;
     requires micrometer.core;
-    requires javax.transaction.api;
     requires google.pushnotification;
     requires spring.web;
     requires camel.core;
@@ -23,5 +22,6 @@ module local.movie.service {
     requires jackson.annotations;
     requires movie.info.omdb;
     requires directory.monitor;
-    requires video.converter;
+    requires cast.video.converter.handbrake;
+    requires java.sql;
 }

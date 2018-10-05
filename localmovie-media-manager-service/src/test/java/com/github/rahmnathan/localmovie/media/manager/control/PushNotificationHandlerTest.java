@@ -3,8 +3,8 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 import com.github.rahmnathan.google.pushnotification.boundary.FirebaseNotificationService;
 import com.github.rahmnathan.localmovie.domain.AndroidPushClient;
 import com.github.rahmnathan.localmovie.media.manager.repository.AndroidPushTokenRepository;
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeAll;
+import org.apache.camel.CamelContext;
+import org.apache.camel.ProducerTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +25,7 @@ public class PushNotificationHandlerTest {
         this.tokenRepository = mock(AndroidPushTokenRepository.class);
 
         FirebaseNotificationService notificationService = mock(FirebaseNotificationService.class);
-        this.notificationHandler = new PushNotificationHandler(tokenRepository, notificationService);
+        this.notificationHandler = new PushNotificationHandler(tokenRepository, mock(ProducerTemplate.class), mock(CamelContext.class));
     }
 
     @Test

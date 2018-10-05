@@ -4,6 +4,8 @@ import com.github.rahmnathan.google.pushnotification.boundary.FirebaseNotificati
 import com.github.rahmnathan.google.pushnotification.data.PushNotification;
 import com.github.rahmnathan.localmovie.domain.AndroidPushClient;
 import com.github.rahmnathan.localmovie.media.manager.repository.AndroidPushTokenRepository;
+import org.apache.camel.CamelContext;
+import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,9 @@ public class PushNotificationHandler {
     private final FirebaseNotificationService notificationService;
     private final AndroidPushTokenRepository pushTokenRepository;
 
-    public PushNotificationHandler(AndroidPushTokenRepository pushTokenRepository, FirebaseNotificationService notificationService) {
-        this.notificationService = notificationService;
+    public PushNotificationHandler(AndroidPushTokenRepository pushTokenRepository, ProducerTemplate template, CamelContext context) {
         this.pushTokenRepository = pushTokenRepository;
+        this.notificationService = new FirebaseNotificationService(template, context);
     }
 
     void sendPushNotifications(String fileName, String path) {

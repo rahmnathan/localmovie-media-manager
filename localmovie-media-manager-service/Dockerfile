@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 MAINTAINER nathan
 
 RUN apt-get update && \
-    apt-get -y install apt-utils ffmpeg handbrake-cli software-properties-common && \
+    apt-get -y install apt-utils ffmpeg handbrake-cli software-properties-common wget tar && \
     apt-get clean
 
 RUN mkdir /opt/localmovie && mkdir /opt/localmovie/config
@@ -12,6 +12,12 @@ RUN mkdir /opt/localmovie && mkdir /opt/localmovie/config
 RUN add-apt-repository -y ppa:linuxuprising/java && \
     yes | apt-get -y install oracle-java10-installer && \
     apt-get -y install gnupg oracle-java10-set-default
+
+# Java 11 install logic
+#RUN wget "https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz" && \
+#    tar -zxvf openjdk-11+28_linux-x64_bin.tar.gz && \
+#    mv jdk-11 /usr/lib/jvm && \
+#    rm -f openjdk-11+28_linux-x64_bin.tar.gz
 
 ADD src/main/resources/vault.cer /opt/localmovie/vault.cer
 RUN keytool -importcert -file /opt/localmovie/vault.cer -keystore /usr/lib/jvm/java-10-oracle/lib/security/cacerts -storepass changeit -noprompt -alias "vault"
