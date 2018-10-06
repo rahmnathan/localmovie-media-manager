@@ -24,4 +24,5 @@ module local.movie.service {
     requires directory.monitor;
     requires cast.video.converter.handbrake;
     requires java.sql;
+    requires spring.tx;
 }

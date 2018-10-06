@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +60,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     }
 
     @Override
+    @Transactional
     public void directoryModified(WatchEvent event, Path absolutePath) {
         String relativePath = absolutePath.toString().split("/LocalMedia/")[1];
         MDC.put("Path", relativePath);
