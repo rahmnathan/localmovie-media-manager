@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PushNotificationHandler {
     private final Logger logger = LoggerFactory.getLogger(PushNotificationHandler.class);
-    private static final String MOVIE_TOPIC = "/topics/movies";
+    private static final String MOVIE_TOPIC = "movies";
     private final FirebaseNotificationService notificationService;
 
     public PushNotificationHandler(ProducerTemplate template, CamelContext context) {
