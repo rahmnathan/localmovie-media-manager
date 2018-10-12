@@ -8,6 +8,7 @@ import org.apache.camel.ProducerTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -30,18 +31,18 @@ public class PushNotificationHandlerTest {
 
     @Test
     public void addMatchingTokenTest(){
-        Optional<AndroidPushClient> pushClient = Optional.of(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN));
+        Optional<AndroidPushClient> pushClient = Optional.of(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN, LocalDate.now()));
         when(tokenRepository.findById(TOKEN_ID)).thenReturn(pushClient);
 
-        notificationHandler.addPushToken(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN));
+        notificationHandler.addPushToken(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN, LocalDate.now()));
     }
 
     @Test
     public void addNonMatchingTokenTest(){
-        Optional<AndroidPushClient> pushClient = Optional.of(new AndroidPushClient(TOKEN_ID, "randomString"));
+        Optional<AndroidPushClient> pushClient = Optional.of(new AndroidPushClient(TOKEN_ID, "randomString", LocalDate.now()));
         when(tokenRepository.findById(TOKEN_ID)).thenReturn(pushClient);
 
-        notificationHandler.addPushToken(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN));
+        notificationHandler.addPushToken(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN, LocalDate.now()));
     }
 
     @Test
@@ -49,12 +50,12 @@ public class PushNotificationHandlerTest {
         Optional<AndroidPushClient> pushClient = Optional.empty();
         when(tokenRepository.findById(TOKEN_ID)).thenReturn(pushClient);
 
-        notificationHandler.addPushToken(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN));
+        notificationHandler.addPushToken(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN, LocalDate.now()));
     }
 
     @Test
     public void sendNotificationsTest(){
-        when(tokenRepository.findAll()).thenReturn(Collections.singleton(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN)));
+        when(tokenRepository.findAll()).thenReturn(Collections.singleton(new AndroidPushClient(TOKEN_ID, PUSH_TOKEN, LocalDate.now())));
 
         notificationHandler.sendPushNotifications("FakeFilename", "FakeFilePath");
     }

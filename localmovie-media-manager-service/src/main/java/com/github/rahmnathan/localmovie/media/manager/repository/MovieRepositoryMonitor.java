@@ -19,9 +19,9 @@ public class MovieRepositoryMonitor {
         this.movieProvider = movieProvider;
     }
 
-    @Scheduled(fixedRate = 86400000)
+    @Scheduled(fixedDelay = 86400000)
     public void checkForEmptyValues(){
-        logger.info("Checking for null MovieInfo fields in database");
+        logger.info("Checking for null MovieInfo fields in database.");
 
         movieRepository.findAll().forEach(mediaFile -> {
             Movie existingMovie = mediaFile.getMovie();
