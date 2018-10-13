@@ -10,7 +10,7 @@ kubernetes/localmovies directory.
 The following diagram is an attempt to show the components and data-flow of the backend
 services for this project.
 
-![Imgur Image](https://imgur.com/VPpYI4W.png)
+![Imgur Image](https://imgur.com/4hVN0WZ.png)
 
 <h2>localmovie-media-manager</h2>
 
