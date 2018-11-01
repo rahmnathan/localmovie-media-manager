@@ -20,7 +20,7 @@ RUN wget "https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin
     rm -f openjdk-11+28_linux-x64_bin.tar.gz
 
 ADD src/main/resources/vault.cer /opt/localmovie/vault.cer
-RUN keytool -importcert -file /opt/localmovie/vault.cer -keystore /usr/lib/jvm/java-10-oracle/lib/security/cacerts -storepass changeit -noprompt -alias "vault"
+RUN keytool -importcert -file /opt/localmovie/vault.cer -keystore /usr/lib/jvm/jdk-11/lib/security/cacerts -storepass changeit -noprompt -alias "vault"
 
 ARG JAR_FILE
 ADD target/$JAR_FILE /opt/localmovie/localmovie-media-manager.jar
