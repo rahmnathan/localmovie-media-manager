@@ -16,14 +16,14 @@ RUN mkdir /opt/localmovie && mkdir /opt/localmovie/config
 # Java 11 install logic
 RUN wget "https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz" && \
     tar -zxvf openjdk-11+28_linux-x64_bin.tar.gz && \
-    mv jdk-11 /usr/lib/jvm && \
     rm -f openjdk-11+28_linux-x64_bin.tar.gz
 
 ADD src/main/resources/vault.cer /opt/localmovie/vault.cer
-RUN /usr/lib/jvm/jdk-11/bin/keytool -importcert -file /opt/localmovie/vault.cer -keystore /usr/lib/jvm/jdk-11/lib/security/cacerts -storepass changeit -noprompt -alias "vault"
+
+RUN /jdk-11/bin/keytool -importcert -file /opt/localmovie/vault.cer -keystore /jdk-11/lib/security/cacerts -storepass changeit -noprompt -alias "vault"
 
 ARG JAR_FILE
 ADD target/$JAR_FILE /opt/localmovie/localmovie-media-manager.jar
 
 WORKDIR /opt/localmovie/
-ENTRYPOINT java -jar localmovie-media-manager.jar
+ENTRYPOINT /jdk-11/bin/java -jar localmovie-media-manager.jar
