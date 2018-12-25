@@ -24,6 +24,9 @@ ENV PATH /jdk-10.0.2/bin:$PATH
 ADD src/main/resources/vault.cer /opt/localmovie/vault.cer
 RUN keytool -importcert -file /opt/localmovie/vault.cer -keystore jdk-10.0.2/lib/security/cacerts -storepass changeit -noprompt -alias "vault"
 
+ADD src/main/resources/google.cer /opt/localmovie/google.cer
+RUN keytool -importcert -file /opt/localmovie/google.cer -keystore jdk-10.0.2/lib/security/cacerts -storepass changeit -noprompt -alias "google"
+
 ARG JAR_FILE
 ADD target/$JAR_FILE /opt/localmovie/localmovie-media-manager.jar
 
