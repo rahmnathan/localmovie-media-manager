@@ -56,7 +56,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeCache(){
-        eventRepository.findAll().forEach(cacheService::addEvent);
+        cacheService.addEvents(eventRepository.findAll());
     }
 
     @Override

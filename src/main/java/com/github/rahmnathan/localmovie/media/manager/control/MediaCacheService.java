@@ -99,6 +99,17 @@ public class MediaCacheService {
         }
     }
 
+    void addEvents(List<MediaFileEvent> mediaFileEvents){
+        try (Jedis jedis = jedisPool.getResource()) {
+            logger.info("Adding MediaFileEvents to cache. Count: {}", mediaFileEvents.size());
+            List<MediaFileEvent> existingEvents = getMediaFileEvents();
+            existingEvents.addAll(mediaFileEvents);
+            jedis.set(MEDIA_EVENTS.name(), objectMapper.writeValueAsString(existingEvents));
+        } catch (IOException e) {
+            logger.error("Failure marshalling file paths for cache.", e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private List<MediaFileEvent> getMediaFileEvents() {
         try (Jedis jedis = jedisPool.getResource()) {
