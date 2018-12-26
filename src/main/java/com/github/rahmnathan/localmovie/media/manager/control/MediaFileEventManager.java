@@ -60,7 +60,6 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     }
 
     @Override
-    @Transactional
     public void directoryModified(WatchEvent event, Path inputPath) {
         String absolutePath = inputPath.toFile().getAbsolutePath();
 
