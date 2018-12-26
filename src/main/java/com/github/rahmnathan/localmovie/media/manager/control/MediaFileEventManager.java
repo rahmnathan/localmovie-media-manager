@@ -61,26 +61,26 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
 
     @Override
     @Transactional
-    public void directoryModified(WatchEvent event, Path absolutePath) {
-        String relativePath = absolutePath.toString().split("/LocalMedia/")[1];
-        MDC.put("Path", relativePath);
+    public void directoryModified(WatchEvent event, Path inputPath) {
+        String absolutePath = inputPath.toFile().getAbsolutePath();
+
+        MDC.put("Path", absolutePath);
         logger.info("Detected movie event.");
 
-        String absoluteFilePath = absolutePath.toString();
-        if(!activeConversions.contains(absoluteFilePath)) {
+        if(!activeConversions.contains(absolutePath)) {
+            String relativePath = inputPath.toString().split("/LocalMedia/")[1];
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                waitForWriteComplete(absolutePath);
-                if (Files.isRegularFile(absolutePath) && ffprobe != null) {
+                waitForWriteComplete(inputPath);
+
+                if (Files.isRegularFile(inputPath) && ffprobe != null) {
                     activeConversionGauge.getAndIncrement();
-                    relativePath = launchVideoConverter(absoluteFilePath);
+                    relativePath = launchVideoConverter(absolutePath);
                     activeConversionGauge.getAndDecrement();
                 }
 
                 cacheService.addFile(relativePath);
                 getDataAndNotify(event, relativePath);
-                MediaFile mediaFile = getMediaFile(event, relativePath);
-                notificationHandler.sendPushNotifications(mediaFile.getMovie().getTitle(), mediaFile.getPath());
             } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE){
                 cacheService.removeFile(relativePath);
                 addEvent(event, relativePath);
