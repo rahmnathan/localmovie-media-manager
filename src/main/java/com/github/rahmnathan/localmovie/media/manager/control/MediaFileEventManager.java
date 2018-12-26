@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class MediaFileEventManager implements DirectoryMonitorObserver {
-    private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovies.conversions.active", new AtomicInteger(0));
+    private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final Logger logger = LoggerFactory.getLogger(MediaFileEventManager.class);
     private volatile Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final PushNotificationHandler notificationHandler;
