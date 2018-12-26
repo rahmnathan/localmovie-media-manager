@@ -68,7 +68,6 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
 
         String absoluteFilePath = absolutePath.toString();
         if(!activeConversions.contains(absoluteFilePath)) {
-            MediaFile mediaFile = null;
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(absolutePath);
@@ -79,14 +78,21 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
                 }
 
                 cacheService.addFile(relativePath);
-                mediaFile = getMediaFile(event, relativePath);
+                getDataAndNotify(event, relativePath);
+                MediaFile mediaFile = getMediaFile(event, relativePath);
                 notificationHandler.sendPushNotifications(mediaFile.getMovie().getTitle(), mediaFile.getPath());
             } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE){
                 cacheService.removeFile(relativePath);
+                addEvent(event, relativePath);
             }
-
-            addEvent(event, mediaFile, relativePath);
         }
+    }
+
+    @Transactional
+    public void getDataAndNotify(WatchEvent event, String relativePath){
+        MediaFile mediaFile = getMediaFile(event, relativePath);
+        notificationHandler.sendPushNotifications(mediaFile.getMovie().getTitle(), mediaFile.getPath());
+        addEvent(event, relativePath, mediaFile);
     }
 
     private void waitForWriteComplete(Path filePath){
@@ -119,7 +125,13 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         return mediaFile;
     }
 
-    private void addEvent(WatchEvent watchEvent, MediaFile mediaFile, String resultFilePath){
+    private void addEvent(WatchEvent watchEvent, String resultFilePath){
+        logger.info("Adding event to repository.");
+        MediaFileEvent event = new MediaFileEvent(MovieEvent.valueOf(watchEvent.kind().name()).getMovieEventString(), null, resultFilePath);
+        cacheService.addEvent(eventRepository.saveAndFlush(event));
+    }
+
+    private void addEvent(WatchEvent watchEvent, String resultFilePath, MediaFile mediaFile){
         logger.info("Adding event to repository.");
         MediaFileEvent event = new MediaFileEvent(MovieEvent.valueOf(watchEvent.kind().name()).getMovieEventString(), mediaFile, resultFilePath);
         cacheService.addEvent(eventRepository.saveAndFlush(event));
