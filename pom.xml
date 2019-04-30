@@ -135,7 +135,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.10</version>
+                <version>1.4.8</version>
                 <configuration>
                     <repository>192.168.1.8:5000/localmovie-media-manager</repository>
                     <tag>latest</tag>
