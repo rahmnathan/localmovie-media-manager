@@ -29,6 +29,7 @@ public class FileListProvider {
             Optional<File[]> fileArray = Optional.ofNullable(new File(mediaPath + path).listFiles());
 
             fileArray.ifPresent(files -> {
+                logger.info("Found {} files.", files.length);
                 Set<String> tempFileSet = Arrays.stream(files)
                         .map(file -> file.getAbsolutePath().substring(mediaPath.length()))
                         .collect(Collectors.toSet());
