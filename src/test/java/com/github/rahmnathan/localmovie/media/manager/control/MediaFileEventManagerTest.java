@@ -2,7 +2,7 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.repository.MediaEventRepository;
-import com.github.rahmnathan.omdb.data.Movie;
+import com.github.rahmnathan.omdb.data.Media;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ public class MediaFileEventManagerTest {
         eventManager.directoryModified(watchEvent, Paths.get("/my/test/LocalMedia/path"));
 
         when(watchEvent.kind()).thenReturn(StandardWatchEventKinds.ENTRY_CREATE);
-        MediaFile mediaFile = MediaFile.Builder.newInstance().setMovie(Movie.Builder.newInstance().build()).build();
+        MediaFile mediaFile = MediaFile.Builder.newInstance().setMedia(Media.Builder.newInstance().build()).build();
         when(dataService.loadMediaFile(any())).thenReturn(mediaFile);
         eventManager.directoryModified(watchEvent, Paths.get("/my/test/LocalMedia/path"));
     }

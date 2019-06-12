@@ -90,7 +90,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     @Transactional
     public void getDataAndNotify(WatchEvent event, String relativePath){
         MediaFile mediaFile = getMediaFile(event, relativePath);
-        notificationHandler.sendPushNotifications(mediaFile.getMovie().getTitle(), mediaFile.getPath());
+        notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getPath());
         addEvent(event, relativePath, mediaFile);
     }
 

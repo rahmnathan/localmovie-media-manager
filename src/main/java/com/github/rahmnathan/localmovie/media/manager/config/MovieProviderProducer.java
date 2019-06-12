@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.media.manager.config;
 
-import com.github.rahmnathan.omdb.boundary.OmdbMovieProvider;
+import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +20,8 @@ public class MovieProviderProducer {
     }
 
     @Bean
-    public OmdbMovieProvider createMovieProvider(){
+    public OmdbMediaProvider createMovieProvider(){
         context.setUseMDCLogging(true);
-        return new OmdbMovieProvider(context, template, apiKey);
+        return new OmdbMediaProvider(context, template, apiKey);
     }
 }

@@ -2,8 +2,8 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.repository.MovieRepository;
-import com.github.rahmnathan.omdb.boundary.OmdbMovieProvider;
-import com.github.rahmnathan.omdb.data.Movie;
+import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
+import com.github.rahmnathan.omdb.data.Media;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,19 +18,20 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 public class MediaDataServiceTest {
-    private static final String SERIES_FILE_PATH = "Series/Westworld/Season 1/Episode 1.mkv";
+    private static final String SERIES_FILE_PATH = "Series/Game of Thrones/Season 13/Episode 5.mkv";
     private static final String SERIES_FILE_TITLE = "Episode 1";
-    private static final String MOVIE_FILE_PATH = "Movies/TestMovie.mkv";
-    private static final String MOVIE_FILE_TITLE = "TestMovie";
+    private static final String SERIES_TITLE = "Game of Thrones";
+    private static final String MOVIE_FILE_PATH = "Movies/TestMedia.mkv";
+    private static final String MOVIE_FILE_TITLE = "TestMedia";
     private MediaDataService dataService;
 
     @Autowired
     private MovieRepository movieRepository;
-    private OmdbMovieProvider movieProvider;
+    private OmdbMediaProvider movieProvider;
 
     @BeforeEach
     public void initialize(){
-        this.movieProvider = mock(OmdbMovieProvider.class);
+        this.movieProvider = mock(OmdbMediaProvider.class);
 
         this.dataService = new MediaDataService(movieRepository, movieProvider);
     }
@@ -46,23 +47,23 @@ public class MediaDataServiceTest {
 
     @Test
     public void loadMissingMediaFileTest() throws Exception {
-        Movie movie = Movie.Builder.newInstance().setTitle(MOVIE_FILE_TITLE).build();
+        Media movie = Media.Builder.newInstance().setTitle(MOVIE_FILE_TITLE).build();
         when(movieProvider.getMovie(MOVIE_FILE_TITLE)).thenReturn(movie);
 
 
         MediaFile mediaFile = dataService.loadMediaFile(MOVIE_FILE_PATH);
 
-        assertEquals(movie.getTitle(), mediaFile.getMovie().getTitle());
+        assertEquals(movie.getTitle(), mediaFile.getMedia().getTitle());
     }
 
     @Test
     public void loadParentFileTest() throws Exception {
-        Movie movie = Movie.Builder.newInstance().setTitle(SERIES_FILE_TITLE).build();
-        when(movieProvider.getMovie(SERIES_FILE_TITLE)).thenReturn(movie);
+        Media movie = Media.Builder.newInstance().setTitle(SERIES_FILE_TITLE).build();
+        when(movieProvider.getEpisode(SERIES_TITLE, 13, 5)).thenReturn(movie);
 
 
         MediaFile mediaFile = dataService.loadMediaFile(SERIES_FILE_PATH);
 
-        assertEquals(movie.getTitle(), mediaFile.getMovie().getTitle());
+        assertEquals(movie.getTitle(), mediaFile.getMedia().getTitle());
     }
 }

@@ -1,8 +1,8 @@
 package com.github.rahmnathan.localmovie.media.manager.repository;
 
-import com.github.rahmnathan.omdb.boundary.OmdbMovieProvider;
-import com.github.rahmnathan.omdb.data.Movie;
-import com.github.rahmnathan.omdb.exception.MovieProviderException;
+import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
+import com.github.rahmnathan.omdb.data.Media;
+import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 public class MovieRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MovieRepositoryMonitor.class.getName());
     private final MovieRepository movieRepository;
-    private final OmdbMovieProvider movieProvider;
+    private final OmdbMediaProvider mediaProvider;
 
-    public MovieRepositoryMonitor(MovieRepository movieRepository, OmdbMovieProvider movieProvider) {
+    public MovieRepositoryMonitor(MovieRepository movieRepository, OmdbMediaProvider mediaProvider) {
         this.movieRepository = movieRepository;
-        this.movieProvider = movieProvider;
+        this.mediaProvider = mediaProvider;
     }
 
     @Scheduled(fixedDelay = 86400000)
@@ -24,24 +24,24 @@ public class MovieRepositoryMonitor {
         logger.info("Checking for null MovieInfo fields in database.");
 
         movieRepository.findAll().forEach(mediaFile -> {
-            Movie existingMovie = mediaFile.getMovie();
-            if(existingMovie.hasMissingValues()){
-                logger.info("Detected missing fields: {}", existingMovie.toString());
+            Media existingMedia = mediaFile.getMedia();
+            if(existingMedia.hasMissingValues()){
+                logger.info("Detected missing fields: {}", existingMedia.toString());
 
                 try {
-                    Movie newMovie = movieProvider.getMovie(existingMovie.getTitle());
-                    Movie mergedMovie = mergeMovies(newMovie, existingMovie);
-                    mediaFile.setMovie(mergedMovie);
+                    Media newMovie = mediaProvider.getMovie(existingMedia.getTitle());
+                    Media mergedMovie = mergeMovies(newMovie, existingMedia);
+                    mediaFile.setMedia(mergedMovie);
                     movieRepository.save(mediaFile);
-                } catch (MovieProviderException e){
+                } catch (MediaProviderException e){
                     logger.error("Failed to get movie from provider", e);
                 }
             }
         });
     }
 
-    private Movie mergeMovies(Movie newMovie, Movie existingMovie){
-        return Movie.Builder.newInstance()
+    private Media mergeMovies(Media newMovie, Media existingMovie){
+        return Media.Builder.newInstance()
                 .setGenre(newMovie.getGenre() != null && !newMovie.getGenre().equals("null") ? newMovie.getGenre() : existingMovie.getGenre())
                 .setImage(newMovie.getImage() != null && !newMovie.getImage().equals("null") ? newMovie.getImage() : existingMovie.getImage())
                 .setIMDBRating(newMovie.getImdbRating() != null && !newMovie.getImdbRating().equals("null") ? newMovie.getImdbRating() : existingMovie.getImdbRating())

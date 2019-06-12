@@ -1,6 +1,8 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class PathUtils {
 
@@ -9,13 +11,29 @@ class PathUtils {
     }
 
     static boolean isTopLevel(String currentPath){
-        return currentPath.split(File.separator).length == 2;
+        int pathLength = currentPath.split(File.separator).length;
+        return pathLength == 2;
+    }
+
+    static boolean isEpisode(String currentPath){
+        int pathLength = currentPath.split(File.separator).length;
+        return pathLength == 4;
+    }
+
+    static int getEpisodeNumber(String fileName){
+        Pattern pattern = Pattern.compile("(?<=Episode )\\d+");
+        Matcher matcher = pattern.matcher(fileName);
+        return matcher.find() ? Integer.parseInt(matcher.group()) : 1;
+    }
+
+    static int getSeasonNumber(String path) {
+        Pattern pattern = Pattern.compile("(?<=Season )\\d+");
+        Matcher matcher = pattern.matcher(path);
+        return matcher.find() ? Integer.parseInt(matcher.group()) : 1;
     }
 
     static File getParentFile(String path){
-        int directoryDepth = path.split(File.separator).length;
-        if(!isTopLevel(path))
-            directoryDepth -= 2;
+        int directoryDepth = path.split(File.separator).length - 2;
 
         File file = new File(path);
         for(int i = 0; i < directoryDepth; i++){

@@ -2,8 +2,9 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.repository.MovieRepository;
-import com.github.rahmnathan.omdb.boundary.OmdbMovieProvider;
-import com.github.rahmnathan.omdb.exception.MovieProviderException;
+import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
+import com.github.rahmnathan.omdb.data.Media;
+import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -11,14 +12,16 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.Optional;
 
+import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.*;
+
 @Service
 public class MediaDataService {
     private final Logger logger = LoggerFactory.getLogger(MediaDataService.class.getName());
-    private final OmdbMovieProvider movieProvider;
+    private final OmdbMediaProvider mediaProvider;
     private final MovieRepository repository;
 
-    public MediaDataService(MovieRepository repository, OmdbMovieProvider movieProvider) {
-        this.movieProvider = movieProvider;
+    public MediaDataService(MovieRepository repository, OmdbMediaProvider mediaProvider) {
+        this.mediaProvider = mediaProvider;
         this.repository = repository;
     }
 
@@ -27,7 +30,7 @@ public class MediaDataService {
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
             return mediaFile.get();
-        } else if (PathUtils.isTopLevel(path)) {
+        } else if (isTopLevel(path) || isEpisode(path)) {
             return loadMediaInfoFromProvider(path);
         } else {
             return loadSeriesParentInfo(path);
@@ -42,12 +45,26 @@ public class MediaDataService {
         MediaFile.Builder builder = MediaFile.Builder.newInstance()
                 .setFileName(fileName)
                 .setPath(path)
+                .setMedia(Media.Builder.newInstance().setTitle(title).build())
                 .setViews(0);
 
-        try {
-            builder.setMovie(movieProvider.getMovie(title));
-        } catch (MovieProviderException e) {
-            logger.error("Error getting movie from provider", e);
+        if(isEpisode(path)){
+            try {
+                String seriesTitle = getParentFile(path).getName();
+                int seasonNumber = getSeasonNumber(path);
+                int episodeNumber = getEpisodeNumber(fileName);
+
+                builder.setMedia(mediaProvider.getEpisode(seriesTitle, seasonNumber, episodeNumber));
+            } catch (MediaProviderException e) {
+                logger.error("Error getting media from provider", e);
+                return loadSeriesParentInfo(path);
+            }
+        } else {
+            try {
+                builder.setMedia(mediaProvider.getMovie(title));
+            } catch (MediaProviderException e) {
+                logger.error("Error getting media from provider", e);
+            }
         }
 
         return repository.save(builder.build());
@@ -61,6 +78,7 @@ public class MediaDataService {
         logger.info("{} - Parent resolved to: {}", path, file.getPath());
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
-        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, PathUtils.getTitle(filename), path);
+        Integer number = getEpisodeNumber(filename);
+        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, PathUtils.getTitle(filename), path, number);
     }
 }
