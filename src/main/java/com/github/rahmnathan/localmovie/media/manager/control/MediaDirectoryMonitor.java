@@ -34,6 +34,7 @@ public class MediaDirectoryMonitor {
     public void initializeFileList() {
         Arrays.stream(mediaPaths).forEach(directoryMonitor::registerDirectory);
         directoryMonitor.getPaths().stream()
+                .parallel()
                 .map(Path::toString)
                 .filter(path -> path.contains(File.separator + "LocalMedia" + File.separator))
                 .map(path -> path.split(File.separator + "LocalMedia" + File.separator)[1])

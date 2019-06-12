@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.stream.StreamSupport;
+
 @Service
 public class MovieRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MovieRepositoryMonitor.class.getName());
@@ -23,7 +25,7 @@ public class MovieRepositoryMonitor {
     public void checkForEmptyValues(){
         logger.info("Checking for null MovieInfo fields in database.");
 
-        movieRepository.findAll().forEach(mediaFile -> {
+        StreamSupport.stream(movieRepository.findAll().spliterator(), true).forEach(mediaFile -> {
             Media existingMedia = mediaFile.getMedia();
             if(existingMedia.hasMissingValues()){
                 logger.info("Detected missing fields: {}", existingMedia.toString());
