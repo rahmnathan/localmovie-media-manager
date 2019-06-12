@@ -21,7 +21,7 @@ public class MovieRepositoryMonitor {
         this.mediaProvider = mediaProvider;
     }
 
-    @Scheduled(fixedDelay = 86400000)
+    @Scheduled(fixedDelay = 3600000)
     public void checkForEmptyValues(){
         logger.info("Checking for null MovieInfo fields in database.");
 
