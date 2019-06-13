@@ -33,7 +33,7 @@ public class MovieRepositoryMonitor {
 
         StreamSupport.stream(mediaRepository.findAll().spliterator(), true).forEach(mediaFile -> {
             Media existingMedia = mediaFile.getMedia();
-            if(existingMedia.hasMissingValues() || existingMedia.getMediaType() == MediaType.EPISODE && isEpisode(mediaFile.getPath())) {
+            if(existingMedia.hasMissingValues() || existingMedia.getMediaType() == MediaType.MOVIE && isEpisode(mediaFile.getPath())) {
                 logger.info("Detected missing fields: {}", existingMedia.toString());
 
                 MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
