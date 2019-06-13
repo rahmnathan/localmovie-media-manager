@@ -7,6 +7,7 @@ import com.github.rahmnathan.omdb.data.Media;
 import com.github.rahmnathan.omdb.data.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +48,7 @@ public class MovieRepositoryMonitor {
             try {
                 MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
                 cacheService.addMedia(newMediaFile);
-            } catch (Exception e){
+            } catch (DataIntegrityViolationException e){
                 logger.error("Exception occurred when loading updated media file.", e);
             }
         });
