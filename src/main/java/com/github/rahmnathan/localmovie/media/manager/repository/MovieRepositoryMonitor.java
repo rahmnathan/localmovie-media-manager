@@ -67,7 +67,9 @@ public class MovieRepositoryMonitor {
     }
 
     public void deleteMedia(String path){
-        mediaRepository.deleteById(path);
+        if(mediaRepository.existsById(path)) {
+            mediaRepository.deleteById(path);
+        }
     }
 
     public Set<String> findMediaWithMissingData() {
