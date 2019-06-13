@@ -42,9 +42,20 @@ public class MovieRepositoryMonitor {
         mediaPaths.forEach(mediaPath -> {
             logger.info("Updating media at path: {}", mediaPath);
 
-            MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
-            cacheService.addMedia(newMediaFile);
+            deleteMedia(mediaPath);
+
+            try {
+                MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
+                cacheService.addMedia(newMediaFile);
+            } catch (Exception e){
+                logger.error("Exception occurred when loading updated media file.", e);
+            }
         });
+    }
+
+    @Transactional
+    public void deleteMedia(String path){
+        mediaRepository.deleteById(path);
     }
 
     @Transactional
