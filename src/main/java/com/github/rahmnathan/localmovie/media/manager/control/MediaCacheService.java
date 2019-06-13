@@ -35,7 +35,7 @@ public class MediaCacheService {
                 .registerModule(new JavaTimeModule());
     }
 
-    void addMedia(MediaFile mediaFile) {
+    public void addMedia(MediaFile mediaFile) {
         try (Jedis jedis = jedisPool.getResource()) {
             logger.info("Adding media file to cache. Key {} Value {}", mediaFile.getPath(), mediaFile);
             jedis.set(MEDIA_FILE + mediaFile.getPath(), objectMapper.writeValueAsString(mediaFile));

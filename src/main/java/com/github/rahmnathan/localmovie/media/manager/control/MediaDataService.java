@@ -30,7 +30,13 @@ public class MediaDataService {
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
             return mediaFile.get();
-        } else if (isTopLevel(path) || isEpisode(path)) {
+        }
+
+        return loadUpdatedMediaFile(path);
+    }
+
+    public MediaFile loadUpdatedMediaFile(String path){
+        if (isTopLevel(path) || isEpisode(path)) {
             return loadMediaInfoFromProvider(path);
         } else {
             return loadSeriesParentInfo(path);
