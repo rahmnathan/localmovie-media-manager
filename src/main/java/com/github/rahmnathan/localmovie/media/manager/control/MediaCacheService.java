@@ -88,7 +88,7 @@ public class MediaCacheService {
                 .collect(Collectors.joining(File.separator));
     }
 
-    void addEvent(MediaFileEvent mediaFileEvent) {
+    public void addEvent(MediaFileEvent mediaFileEvent) {
         try (Jedis jedis = jedisPool.getResource()) {
             logger.info("Adding MediaFileEvent to cache: {}", mediaFileEvent);
             List<MediaFileEvent> existingEvents = getMediaFileEvents();

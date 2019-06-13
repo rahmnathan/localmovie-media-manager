@@ -1,13 +1,13 @@
 package com.github.rahmnathan.localmovie.media.manager.repository;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
+import com.github.rahmnathan.localmovie.domain.MediaFileEvent;
+import com.github.rahmnathan.localmovie.domain.MovieEvent;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
-import com.github.rahmnathan.omdb.data.Media;
 import com.github.rahmnathan.omdb.data.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +19,7 @@ import java.util.stream.StreamSupport;
 import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.isEpisode;
 
 @Service
+@Transactional
 public class MovieRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MovieRepositoryMonitor.class.getName());
     private final MovieRepository mediaRepository;
@@ -50,20 +51,25 @@ public class MovieRepositoryMonitor {
 
             MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
             cacheService.addMedia(newMediaFile);
+
+            addUpdateEvent(mediaPath, newMediaFile);
         });
     }
 
-    @Transactional
+    private void addUpdateEvent(String resultFilePath, MediaFile mediaFile){
+        logger.info("Adding update event to repository.");
+        MediaFileEvent event = new MediaFileEvent(MovieEvent.ENTRY_CREATE.getMovieEventString(), mediaFile, resultFilePath);
+        cacheService.addEvent(eventRepository.saveAndFlush(event));
+    }
+
     public void deleteMediaEvents(String path){
         eventRepository.deleteAllByRelativePath(path);
     }
 
-    @Transactional
     public void deleteMedia(String path){
         mediaRepository.deleteById(path);
     }
 
-    @Transactional
     public Set<String> findMediaWithMissingData() {
         return StreamSupport.stream(mediaRepository.findAll().spliterator(), true)
                 .filter(mediaFile -> mediaFile.getMedia().hasMissingValues() || (mediaFile.getMedia().getMediaType() == MediaType.MOVIE && isEpisode(mediaFile.getPath())))
