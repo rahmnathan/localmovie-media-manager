@@ -27,7 +27,7 @@ public class MovieRepositoryMonitor {
         this.cacheService = cacheService;
     }
 
-    @Scheduled(fixedDelay = 3600000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 30000)
     public void checkForEmptyValues(){
         logger.info("Checking for null MovieInfo fields in database.");
 
