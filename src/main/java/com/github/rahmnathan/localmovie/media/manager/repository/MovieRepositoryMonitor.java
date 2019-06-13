@@ -34,7 +34,6 @@ public class MovieRepositoryMonitor {
                 logger.info("Detected missing fields: {}", existingMedia.toString());
 
                 MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
-                mediaRepository.save(newMediaFile);
                 cacheService.addMedia(newMediaFile);
             }
         });
