@@ -9,7 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.isEpisode;
@@ -31,14 +34,32 @@ public class MovieRepositoryMonitor {
     public void checkForEmptyValues(){
         logger.info("Checking for null MovieInfo fields in database.");
 
-        StreamSupport.stream(mediaRepository.findAll().spliterator(), true).forEach(mediaFile -> {
-            Media existingMedia = mediaFile.getMedia();
-            if(existingMedia.hasMissingValues() || existingMedia.getMediaType() == MediaType.MOVIE && isEpisode(mediaFile.getPath())) {
-                logger.info("Detected missing fields: {}", existingMedia.toString());
+        Set<String> mediaWithMissingFields = findMediaWithMissingData();
+        updateMedia(mediaWithMissingFields);
+    }
 
-                MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
-                cacheService.addMedia(newMediaFile);
-            }
+    public void updateMedia(Set<String> mediaPaths){
+        mediaPaths.forEach(mediaPath -> {
+            logger.info("Updating media at path: {}", mediaPath);
+
+            deleteMedia(mediaPath);
+
+            MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
+            cacheService.addMedia(newMediaFile);
         });
+    }
+
+    @Transactional
+    public void deleteMedia(String path){
+        mediaRepository.deleteById(path);
+    }
+
+    @Transactional
+    public Set<String> findMediaWithMissingData() {
+        return StreamSupport.stream(mediaRepository.findAll().spliterator(), true)
+                .filter(mediaFile -> mediaFile.getMedia().hasMissingValues() || (mediaFile.getMedia().getMediaType() == MediaType.MOVIE && isEpisode(mediaFile.getPath())))
+                .peek(mediaFile -> logger.info("Detected missing fields: {}", mediaFile.toString()))
+                .map(MediaFile::getPath)
+                .collect(Collectors.toSet());
     }
 }
