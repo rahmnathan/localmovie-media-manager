@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MediaEventRepository extends JpaRepository<MediaFileEvent, Long> {
+    void deleteAllByRelativePath(String path);
 }

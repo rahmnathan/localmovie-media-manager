@@ -23,12 +23,14 @@ public class MovieRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MovieRepositoryMonitor.class.getName());
     private final MovieRepository mediaRepository;
     private final MediaDataService mediaDataService;
+    private final MediaEventRepository eventRepository;
     private final MediaCacheService cacheService;
 
-    public MovieRepositoryMonitor(MovieRepository movieRepository, MediaCacheService cacheService, MediaDataService mediaDataService) {
+    public MovieRepositoryMonitor(MovieRepository movieRepository, MediaEventRepository eventRepository, MediaCacheService cacheService, MediaDataService mediaDataService) {
         this.mediaDataService = mediaDataService;
         this.mediaRepository = movieRepository;
         this.cacheService = cacheService;
+        this.eventRepository = eventRepository;
     }
 
     @Scheduled(fixedDelay = 3600000, initialDelay = 30000)
@@ -39,19 +41,21 @@ public class MovieRepositoryMonitor {
         updateMedia(mediaWithMissingFields);
     }
 
-    public void updateMedia(Set<String> mediaPaths){
+    public void updateMedia(Set<String> mediaPaths) {
         mediaPaths.forEach(mediaPath -> {
             logger.info("Updating media at path: {}", mediaPath);
 
+            deleteMediaEvents(mediaPath);
             deleteMedia(mediaPath);
 
-            try {
-                MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
-                cacheService.addMedia(newMediaFile);
-            } catch (DataIntegrityViolationException e){
-                logger.error("Exception occurred when loading updated media file.", e);
-            }
+            MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
+            cacheService.addMedia(newMediaFile);
         });
+    }
+
+    @Transactional
+    public void deleteMediaEvents(String path){
+        eventRepository.deleteAllByRelativePath(path);
     }
 
     @Transactional
