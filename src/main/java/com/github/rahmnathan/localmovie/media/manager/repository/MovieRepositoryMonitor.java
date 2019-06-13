@@ -4,12 +4,15 @@ import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
 import com.github.rahmnathan.omdb.data.Media;
+import com.github.rahmnathan.omdb.data.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.StreamSupport;
+
+import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.isEpisode;
 
 @Service
 public class MovieRepositoryMonitor {
@@ -30,7 +33,7 @@ public class MovieRepositoryMonitor {
 
         StreamSupport.stream(mediaRepository.findAll().spliterator(), true).forEach(mediaFile -> {
             Media existingMedia = mediaFile.getMedia();
-            if(existingMedia.hasMissingValues()) {
+            if(existingMedia.hasMissingValues() || existingMedia.getMediaType() == MediaType.EPISODE && isEpisode(mediaFile.getPath())) {
                 logger.info("Detected missing fields: {}", existingMedia.toString());
 
                 MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
