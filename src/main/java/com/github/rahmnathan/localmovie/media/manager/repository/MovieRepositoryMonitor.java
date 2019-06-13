@@ -1,8 +1,6 @@
 package com.github.rahmnathan.localmovie.media.manager.repository;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
-import com.github.rahmnathan.localmovie.domain.MediaFileEvent;
-import com.github.rahmnathan.localmovie.domain.MovieEvent;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
 import com.github.rahmnathan.omdb.data.MediaType;
@@ -34,7 +32,7 @@ public class MovieRepositoryMonitor {
         this.eventRepository = eventRepository;
     }
 
-    @Scheduled(fixedDelay = 3600000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 86400000, initialDelay = 30000)
     public void checkForEmptyValues(){
         logger.info("Checking for null MovieInfo fields in database.");
 
@@ -51,15 +49,7 @@ public class MovieRepositoryMonitor {
 
             MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
             cacheService.addMedia(newMediaFile);
-
-            addUpdateEvent(mediaPath, newMediaFile);
         });
-    }
-
-    private void addUpdateEvent(String resultFilePath, MediaFile mediaFile){
-        logger.info("Adding update event to repository.");
-        MediaFileEvent event = new MediaFileEvent(MovieEvent.ENTRY_CREATE.getMovieEventString(), mediaFile, resultFilePath);
-        cacheService.addEvent(eventRepository.saveAndFlush(event));
     }
 
     public void deleteMediaEvents(String path){
