@@ -42,23 +42,16 @@ public class MovieRepositoryMonitor {
         mediaPaths.forEach(mediaPath -> {
             logger.info("Updating media at path: {}", mediaPath);
 
-            deleteMedia(mediaPath);
-
             MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
             cacheService.addMedia(newMediaFile);
         });
     }
 
     @Transactional
-    public void deleteMedia(String path){
-        mediaRepository.deleteById(path);
-    }
-
-    @Transactional
     public Set<String> findMediaWithMissingData() {
         return StreamSupport.stream(mediaRepository.findAll().spliterator(), true)
                 .filter(mediaFile -> mediaFile.getMedia().hasMissingValues() || (mediaFile.getMedia().getMediaType() == MediaType.MOVIE && isEpisode(mediaFile.getPath())))
-                .peek(mediaFile -> logger.info("Detected missing fields: {}", mediaFile.toString()))
+                .peek(mediaFile -> logger.info("Detected missing fields for media: {}", mediaFile.getPath()))
                 .map(MediaFile::getPath)
                 .collect(Collectors.toSet());
     }
