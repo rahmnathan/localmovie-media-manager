@@ -25,7 +25,7 @@ public class MediaFileEventManagerTest {
     }
 
     @Test
-    public void directoryMonitorTest(){
+    public void directoryMonitorTest() throws Exception {
         WatchEvent watchEvent = mock(WatchEvent.class);
         when(watchEvent.kind()).thenReturn(StandardWatchEventKinds.ENTRY_DELETE);
 

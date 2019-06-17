@@ -3,8 +3,6 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.getEpisodeNumber;
 import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.getSeasonNumber;
@@ -26,13 +24,13 @@ public class PathUtilsTest {
     }
 
     @Test
-    public void getEpisodeNumberTest(){
+    public void getEpisodeNumberTest() throws Exception {
         String input = "Episode 11.mp4";
         assertEquals(11, getEpisodeNumber(input));
     }
 
     @Test
-    public void getSeasonNumberTest(){
+    public void getSeasonNumberTest() throws Exception {
         String path = "Series/Westworld/Season 43/Episode 13.mp4";
         assertEquals(43, getSeasonNumber(path));
     }

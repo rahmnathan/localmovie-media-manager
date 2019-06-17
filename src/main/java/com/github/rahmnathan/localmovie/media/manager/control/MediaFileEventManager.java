@@ -4,6 +4,7 @@ import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.domain.MediaFileEvent;
 import com.github.rahmnathan.localmovie.domain.MovieEvent;
+import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.media.manager.repository.MediaEventRepository;
 import com.github.rahmnathan.video.cast.handbrake.control.VideoController;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
@@ -78,8 +79,12 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
                     activeConversionGauge.getAndDecrement();
                 }
 
-                cacheService.addFile(relativePath);
-                getDataAndNotify(event, relativePath);
+                try {
+                    getDataAndNotify(event, relativePath);
+                    cacheService.addFile(relativePath);
+                } catch (InvalidMediaException e){
+                    logger.error("Failure parsing media data.", e);
+                }
             } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE){
                 cacheService.removeFile(relativePath);
                 addEvent(event, relativePath);
@@ -88,7 +93,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     }
 
     @Transactional
-    public void getDataAndNotify(WatchEvent event, String relativePath){
+    public void getDataAndNotify(WatchEvent event, String relativePath) throws InvalidMediaException {
         MediaFile mediaFile = getMediaFile(event, relativePath);
         notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getPath());
         addEvent(event, relativePath, mediaFile);
@@ -113,7 +118,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         }
     }
 
-    private MediaFile getMediaFile(WatchEvent watchEvent, String relativePath){
+    private MediaFile getMediaFile(WatchEvent watchEvent, String relativePath) throws InvalidMediaException {
         MediaFile mediaFile = metadataService.loadMediaFile(relativePath);
         if(watchEvent.kind() == StandardWatchEventKinds.ENTRY_DELETE){
             return MediaFile.Builder.copyWithNoImage(mediaFile);

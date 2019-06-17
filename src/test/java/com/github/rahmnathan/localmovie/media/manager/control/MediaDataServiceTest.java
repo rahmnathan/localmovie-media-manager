@@ -37,7 +37,7 @@ public class MediaDataServiceTest {
     }
 
     @Test
-    public void loadExistingMediaFileTest(){
+    public void loadExistingMediaFileTest() throws Exception {
         MediaFile mediaFile = MediaFile.Builder.newInstance().setPath(SERIES_FILE_PATH).build();
         movieRepository.save(mediaFile);
 

@@ -2,6 +2,11 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
+import com.github.rahmnathan.localmovie.domain.MediaFile;
+import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
+import com.github.rahmnathan.omdb.data.Media;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -11,10 +16,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class MediaDirectoryMonitor {
+    private final Logger logger = LoggerFactory.getLogger(MediaDirectoryMonitor.class);
     private final DirectoryMonitor directoryMonitor;
     private final FileListProvider fileListProvider;
     private final MediaCacheService cacheService;
@@ -41,9 +48,18 @@ public class MediaDirectoryMonitor {
                 .forEach(path -> {
                     Set<String> files = fileListProvider.listFiles(path);
                     cacheService.putFiles(path, files);
-                    files.stream()
-                            .map(dataService::loadMediaFile)
-                            .forEach(cacheService::addMedia);
+                    files.parallelStream()
+                            .map(file -> {
+                                try {
+                                    return Optional.of(dataService.loadMediaFile(file));
+                                } catch (InvalidMediaException e) {
+                                    logger.error("Failure loading media data.", e);
+                                    return Optional.empty();
+                                }
+                            })
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .forEach(mediaFile -> cacheService.addMedia((MediaFile) mediaFile));
                 });
     }
 }

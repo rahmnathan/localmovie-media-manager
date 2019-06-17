@@ -1,5 +1,7 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
+import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
+
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,16 +22,26 @@ public class PathUtils {
         return pathLength == 4;
     }
 
-    static int getEpisodeNumber(String fileName){
+    static int getEpisodeNumber(String fileName) throws InvalidMediaException {
         Pattern pattern = Pattern.compile("(?<=Episode )\\d+");
         Matcher matcher = pattern.matcher(fileName);
-        return matcher.find() ? Integer.parseInt(matcher.group()) : 1;
+
+        if(matcher.find()){
+            return Integer.parseInt(matcher.group());
+        }
+
+        throw new InvalidMediaException("Unable to parse episode number from String: " + fileName);
     }
 
-    static int getSeasonNumber(String path) {
+    static int getSeasonNumber(String path) throws InvalidMediaException {
         Pattern pattern = Pattern.compile("(?<=Season )\\d+");
         Matcher matcher = pattern.matcher(path);
-        return matcher.find() ? Integer.parseInt(matcher.group()) : 1;
+
+        if(matcher.find()){
+            return Integer.parseInt(matcher.group());
+        }
+
+        throw new InvalidMediaException("Unable to parse season number from String: " + path);
     }
 
     static File getParentFile(String path){

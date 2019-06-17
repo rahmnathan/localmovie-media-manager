@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.media.manager.repository;
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
+import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
 import com.github.rahmnathan.omdb.data.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +48,12 @@ public class MovieRepositoryMonitor {
             deleteMediaEvents(mediaPath);
             deleteMedia(mediaPath);
 
-            MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
-            cacheService.addMedia(newMediaFile);
+            try {
+                MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaPath);
+                cacheService.addMedia(newMediaFile);
+            } catch (InvalidMediaException e){
+                logger.error("Failure loading media data.", e);
+            }
         });
     }
 

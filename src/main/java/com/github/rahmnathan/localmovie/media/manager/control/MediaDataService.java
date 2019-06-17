@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
+import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.media.manager.repository.MovieRepository;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import com.github.rahmnathan.omdb.data.Media;
@@ -25,7 +26,7 @@ public class MediaDataService {
         this.repository = repository;
     }
 
-    public MediaFile loadMediaFile(String path) {
+    public MediaFile loadMediaFile(String path) throws InvalidMediaException {
         Optional<MediaFile> mediaFile = repository.findById(path);
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
@@ -35,7 +36,7 @@ public class MediaDataService {
         return loadUpdatedMediaFile(path);
     }
 
-    public MediaFile loadUpdatedMediaFile(String path){
+    public MediaFile loadUpdatedMediaFile(String path) throws InvalidMediaException {
         if (isTopLevel(path) || isEpisode(path)) {
             return loadMediaInfoFromProvider(path);
         } else {
@@ -43,7 +44,7 @@ public class MediaDataService {
         }
     }
 
-    private MediaFile loadMediaInfoFromProvider(String path) {
+    private MediaFile loadMediaInfoFromProvider(String path) throws InvalidMediaException {
         logger.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
         String title = PathUtils.getTitle(fileName);
@@ -76,7 +77,7 @@ public class MediaDataService {
         return repository.save(builder.build());
     }
 
-    private MediaFile loadSeriesParentInfo(String path) {
+    private MediaFile loadSeriesParentInfo(String path) throws InvalidMediaException {
         logger.info("Getting info from parent - {}", path);
 
         String filename = new File(path).getName();
