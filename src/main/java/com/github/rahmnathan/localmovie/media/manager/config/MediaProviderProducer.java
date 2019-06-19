@@ -8,12 +8,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class MovieProviderProducer {
+public class MediaProviderProducer {
     private final CamelContext context;
     private final ProducerTemplate template;
     private final String apiKey;
 
-    public MovieProviderProducer(CamelContext context, ProducerTemplate template, @Value("${omdb.api.key}") String apiKey) {
+    public MediaProviderProducer(CamelContext context, ProducerTemplate template, @Value("${omdb.api.key}") String apiKey) {
         this.context = context;
         this.template = template;
         this.apiKey = apiKey;

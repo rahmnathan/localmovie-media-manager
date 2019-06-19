@@ -11,19 +11,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @Transactional
-public class MovieRepositoryMonitor {
-    private final Logger logger = LoggerFactory.getLogger(MovieRepositoryMonitor.class.getName());
-    private final MovieRepository mediaRepository;
+public class MediaRepositoryMonitor {
+    private final Logger logger = LoggerFactory.getLogger(MediaRepositoryMonitor.class.getName());
+    private final MediaRepository mediaRepository;
     private final MediaDataService mediaDataService;
     private final MediaCacheService cacheService;
 
-    public MovieRepositoryMonitor(MovieRepository movieRepository, MediaCacheService cacheService, MediaDataService mediaDataService) {
+    public MediaRepositoryMonitor(MediaRepository mediaRepository, MediaCacheService cacheService, MediaDataService mediaDataService) {
         this.mediaDataService = mediaDataService;
-        this.mediaRepository = movieRepository;
+        this.mediaRepository = mediaRepository;
         this.cacheService = cacheService;
     }
 
@@ -31,17 +30,17 @@ public class MovieRepositoryMonitor {
     public void checkForEmptyValues() {
         logger.info("Performing update of existing media.");
 
-        findStaleMedia().forEach(mediaFile -> {
+        mediaRepository.findAllByUpdatedBefore(LocalDateTime.now().minusMinutes(3)).forEach(mediaFile -> {
             try {
-                MediaFile newMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
-                cacheService.addMedia(newMediaFile);
+                logger.info("Updating media at path: {}", mediaFile.getPath());
+                MediaFile updatedMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
+                mediaFile.setMedia(updatedMediaFile.getMedia());
+
+                mediaRepository.save(mediaFile);
+                cacheService.addMedia(updatedMediaFile);
             } catch (InvalidMediaException e) {
                 logger.error("Failure loading media data.", e);
             }
         });
-    }
-
-    public List<MediaFile> findStaleMedia() {
-        return mediaRepository.findAllByUpdatedBefore(LocalDateTime.now().minusDays(3));
     }
 }

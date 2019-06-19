@@ -121,7 +121,15 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
     private MediaFile getMediaFile(WatchEvent watchEvent, String relativePath) throws InvalidMediaException {
         MediaFile mediaFile = metadataService.loadMediaFile(relativePath);
         if(watchEvent.kind() == StandardWatchEventKinds.ENTRY_DELETE){
+            if(metadataService.existsInDatabase(relativePath)){
+                metadataService.deleteMediaFile(relativePath);
+            }
+
             return MediaFile.Builder.copyWithNoImage(mediaFile);
+        } else {
+            if(!metadataService.existsInDatabase(relativePath)) {
+                metadataService.saveMediaFile(mediaFile);
+            }
         }
 
         cacheService.addMedia(mediaFile);

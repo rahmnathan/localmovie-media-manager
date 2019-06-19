@@ -8,6 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface MovieRepository extends CrudRepository<MediaFile, String> {
+public interface MediaRepository extends CrudRepository<MediaFile, String> {
     List<MediaFile> findAllByUpdatedBefore(LocalDateTime time);
 }

@@ -4,7 +4,6 @@ import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
-import com.github.rahmnathan.omdb.data.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +50,12 @@ public class MediaDirectoryMonitor {
                     files.parallelStream()
                             .map(file -> {
                                 try {
-                                    return Optional.of(dataService.loadMediaFile(file));
+                                    MediaFile mediaFile = dataService.loadMediaFile(file);
+                                    if (!dataService.existsInDatabase(mediaFile.getPath())) {
+                                        dataService.saveMediaFile(mediaFile);
+                                    }
+
+                                    return Optional.of(mediaFile);
                                 } catch (InvalidMediaException e) {
                                     logger.error("Failure loading media data.", e);
                                     return Optional.empty();

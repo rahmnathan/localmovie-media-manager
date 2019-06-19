@@ -2,7 +2,7 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
-import com.github.rahmnathan.localmovie.media.manager.repository.MovieRepository;
+import com.github.rahmnathan.localmovie.media.manager.repository.MediaRepository;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import com.github.rahmnathan.omdb.data.Media;
 import com.github.rahmnathan.omdb.data.MediaType;
@@ -20,9 +20,9 @@ import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.*
 public class MediaDataService {
     private final Logger logger = LoggerFactory.getLogger(MediaDataService.class.getName());
     private final OmdbMediaProvider mediaProvider;
-    private final MovieRepository repository;
+    private final MediaRepository repository;
 
-    public MediaDataService(MovieRepository repository, OmdbMediaProvider mediaProvider) {
+    public MediaDataService(MediaRepository repository, OmdbMediaProvider mediaProvider) {
         this.mediaProvider = mediaProvider;
         this.repository = repository;
     }
@@ -43,6 +43,18 @@ public class MediaDataService {
         } else {
             return loadSeriesParentInfo(path, MediaType.SEASON);
         }
+    }
+
+    public void saveMediaFile(MediaFile mediaFile){
+        repository.save(mediaFile);
+    }
+
+    public boolean existsInDatabase(String path){
+        return repository.existsById(path);
+    }
+
+    public void deleteMediaFile(String path){
+        repository.deleteById(path);
     }
 
     private MediaFile loadMediaInfoFromProvider(String path) throws InvalidMediaException {
@@ -75,7 +87,7 @@ public class MediaDataService {
             }
         }
 
-        return repository.save(builder.build());
+        return builder.build();
     }
 
     private MediaFile loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
@@ -86,7 +98,7 @@ public class MediaDataService {
         logger.info("{} - Parent resolved to: {}", path, file.getPath());
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
-        Integer number = getEpisodeNumber(filename);
+        Integer number = isEpisode(path) ? getEpisodeNumber(filename) : getSeasonNumber(filename);
         return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, getTitle(filename), path, number, mediaType);
     }
 }

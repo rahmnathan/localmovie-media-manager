@@ -1,7 +1,7 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.localmovie.domain.MediaFile;
-import com.github.rahmnathan.localmovie.media.manager.repository.MovieRepository;
+import com.github.rahmnathan.localmovie.media.manager.repository.MediaRepository;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import com.github.rahmnathan.omdb.data.Media;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,20 +26,20 @@ public class MediaDataServiceTest {
     private MediaDataService dataService;
 
     @Autowired
-    private MovieRepository movieRepository;
+    private MediaRepository mediaRepository;
     private OmdbMediaProvider movieProvider;
 
     @BeforeEach
     public void initialize(){
         this.movieProvider = mock(OmdbMediaProvider.class);
 
-        this.dataService = new MediaDataService(movieRepository, movieProvider);
+        this.dataService = new MediaDataService(mediaRepository, movieProvider);
     }
 
     @Test
     public void loadExistingMediaFileTest() throws Exception {
         MediaFile mediaFile = MediaFile.Builder.newInstance().setPath(SERIES_FILE_PATH).build();
-        movieRepository.save(mediaFile);
+        mediaRepository.save(mediaFile);
 
         MediaFile responseFile = dataService.loadMediaFile(SERIES_FILE_PATH);
         assertEquals(mediaFile.getPath(), responseFile.getPath());
