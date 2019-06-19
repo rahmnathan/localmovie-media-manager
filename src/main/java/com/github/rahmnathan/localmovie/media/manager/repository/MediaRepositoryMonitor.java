@@ -26,11 +26,11 @@ public class MediaRepositoryMonitor {
         this.cacheService = cacheService;
     }
 
-    @Scheduled(fixedDelay = 86400000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 120000)
     public void checkForEmptyValues() {
         logger.info("Performing update of existing media.");
 
-        mediaRepository.findAllByUpdatedBefore(LocalDateTime.now().minusMinutes(3)).forEach(mediaFile -> {
+        mediaRepository.findAllByUpdatedBefore(LocalDateTime.now().minusDays(3)).forEach(mediaFile -> {
             try {
                 logger.info("Updating media at path: {}", mediaFile.getPath());
                 MediaFile updatedMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
