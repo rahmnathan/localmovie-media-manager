@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PathUtils {
+class PathUtils {
 
     private PathUtils(){
         // No need to instantiate this
@@ -17,7 +17,7 @@ public class PathUtils {
         return pathLength == 2;
     }
 
-    public static boolean isEpisode(String currentPath){
+    static boolean isEpisode(String currentPath){
         int pathLength = currentPath.split(File.separator).length;
         return pathLength == 4;
     }

@@ -45,15 +45,15 @@ public class MediaDataService {
         }
     }
 
-    public void saveMediaFile(MediaFile mediaFile){
+    void saveMediaFile(MediaFile mediaFile){
         repository.save(mediaFile);
     }
 
-    public boolean existsInDatabase(String path){
+    boolean existsInDatabase(String path){
         return repository.existsById(path);
     }
 
-    public void deleteMediaFile(String path){
+    void deleteMediaFile(String path){
         repository.deleteById(path);
     }
 

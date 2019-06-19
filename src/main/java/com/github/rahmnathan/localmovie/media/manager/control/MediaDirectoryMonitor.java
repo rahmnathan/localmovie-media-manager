@@ -46,24 +46,24 @@ public class MediaDirectoryMonitor {
                 .map(path -> path.split(File.separator + "LocalMedia" + File.separator)[1])
                 .forEach(path -> {
                     Set<String> files = fileListProvider.listFiles(path);
+                    loadMediaData(files);
                     cacheService.putFiles(path, files);
-                    files.parallelStream()
-                            .map(file -> {
-                                try {
-                                    MediaFile mediaFile = dataService.loadMediaFile(file);
-                                    if (!dataService.existsInDatabase(mediaFile.getPath())) {
-                                        dataService.saveMediaFile(mediaFile);
-                                    }
+                });
+    }
 
-                                    return Optional.of(mediaFile);
-                                } catch (InvalidMediaException e) {
-                                    logger.error("Failure loading media data.", e);
-                                    return Optional.empty();
-                                }
-                            })
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .forEach(mediaFile -> cacheService.addMedia((MediaFile) mediaFile));
+    private void loadMediaData(Set<String> files) {
+        files.parallelStream()
+                .forEach(file -> {
+                    try {
+                        MediaFile mediaFile = dataService.loadMediaFile(file);
+                        if (!dataService.existsInDatabase(mediaFile.getPath())) {
+                            dataService.saveMediaFile(mediaFile);
+                        }
+
+                        cacheService.addMedia(mediaFile);
+                    } catch (InvalidMediaException e) {
+                        logger.error("Failure loading media data.", e);
+                    }
                 });
     }
 }
