@@ -21,7 +21,7 @@ public class FileListProvider {
         this.mediaPaths = mediaPaths;
     }
 
-    public Set<String> listFiles(String path) {
+    Set<String> listFiles(String path) {
         logger.info("Listing files at - {}", path);
 
         Set<String> filePaths = new HashSet<>();

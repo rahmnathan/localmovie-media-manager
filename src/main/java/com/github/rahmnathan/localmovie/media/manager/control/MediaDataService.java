@@ -5,6 +5,7 @@ import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaExce
 import com.github.rahmnathan.localmovie.media.manager.repository.MovieRepository;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import com.github.rahmnathan.omdb.data.Media;
+import com.github.rahmnathan.omdb.data.MediaType;
 import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class MediaDataService {
         this.repository = repository;
     }
 
-    public MediaFile loadMediaFile(String path) throws InvalidMediaException {
+    MediaFile loadMediaFile(String path) throws InvalidMediaException {
         Optional<MediaFile> mediaFile = repository.findById(path);
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
@@ -40,14 +41,14 @@ public class MediaDataService {
         if (isTopLevel(path) || isEpisode(path)) {
             return loadMediaInfoFromProvider(path);
         } else {
-            return loadSeriesParentInfo(path);
+            return loadSeriesParentInfo(path, MediaType.SEASON);
         }
     }
 
     private MediaFile loadMediaInfoFromProvider(String path) throws InvalidMediaException {
         logger.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
-        String title = PathUtils.getTitle(fileName);
+        String title = getTitle(fileName);
 
         MediaFile.Builder builder = MediaFile.Builder.newInstance()
                 .setFileName(fileName)
@@ -64,7 +65,7 @@ public class MediaDataService {
                 builder.setMedia(mediaProvider.getEpisode(seriesTitle, seasonNumber, episodeNumber));
             } catch (MediaProviderException e) {
                 logger.error("Error getting media from provider", e);
-                return loadSeriesParentInfo(path);
+                return loadSeriesParentInfo(path, MediaType.EPISODE);
             }
         } else {
             try {
@@ -77,15 +78,15 @@ public class MediaDataService {
         return repository.save(builder.build());
     }
 
-    private MediaFile loadSeriesParentInfo(String path) throws InvalidMediaException {
+    private MediaFile loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
         logger.info("Getting info from parent - {}", path);
 
         String filename = new File(path).getName();
-        File file = PathUtils.getParentFile(path);
+        File file = getParentFile(path);
         logger.info("{} - Parent resolved to: {}", path, file.getPath());
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
         Integer number = getEpisodeNumber(filename);
-        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, PathUtils.getTitle(filename), path, number);
+        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, getTitle(filename), path, number, mediaType);
     }
 }

@@ -68,7 +68,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         logger.info("Detected movie event.");
 
         if(!activeConversions.contains(absolutePath)) {
-            String relativePath = inputPath.toString().split("/LocalMedia/")[1];
+            String relativePath = inputPath.toString().split(File.separator + "LocalMedia" + File.separator)[1];
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(inputPath);
@@ -154,6 +154,6 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
             resultFilePath = inputFilePath;
         }
 
-        return resultFilePath.split("/LocalMedia/")[1];
+        return resultFilePath.split(File.separator + "LocalMedia" + File.separator)[1];
     }
 }
