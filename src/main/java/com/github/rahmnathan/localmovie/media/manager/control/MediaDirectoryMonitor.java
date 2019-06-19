@@ -11,12 +11,12 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
+
+import static com.github.rahmnathan.localmovie.media.manager.control.FileListProvider.ROOT_MEDIA_FOLDER;
 
 @Service
 public class MediaDirectoryMonitor {
@@ -42,8 +42,8 @@ public class MediaDirectoryMonitor {
         directoryMonitor.getPaths().stream()
                 .parallel()
                 .map(Path::toString)
-                .filter(path -> path.contains(File.separator + "LocalMedia" + File.separator))
-                .map(path -> path.split(File.separator + "LocalMedia" + File.separator)[1])
+                .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
+                .map(path -> path.split(ROOT_MEDIA_FOLDER)[1])
                 .forEach(path -> {
                     Set<String> files = fileListProvider.listFiles(path);
                     loadMediaData(files);

@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.github.rahmnathan.localmovie.media.manager.control.FileListProvider.ROOT_MEDIA_FOLDER;
+
 @Service
 public class MediaFileEventManager implements DirectoryMonitorObserver {
     private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
@@ -68,7 +70,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
         logger.info("Detected movie event.");
 
         if(!activeConversions.contains(absolutePath)) {
-            String relativePath = inputPath.toString().split(File.separator + "LocalMedia" + File.separator)[1];
+            String relativePath = inputPath.toString().split(ROOT_MEDIA_FOLDER)[1];
 
             if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(inputPath);
@@ -162,6 +164,6 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
             resultFilePath = inputFilePath;
         }
 
-        return resultFilePath.split(File.separator + "LocalMedia" + File.separator)[1];
+        return resultFilePath.split(ROOT_MEDIA_FOLDER)[1];
     }
 }
