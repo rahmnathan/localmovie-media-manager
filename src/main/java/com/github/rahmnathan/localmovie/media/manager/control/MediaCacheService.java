@@ -44,6 +44,13 @@ public class MediaCacheService {
         }
     }
 
+    public void removeMedia(String path) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            logger.info("Removing media from cache: {}", path);
+            jedis.del(MEDIA_FILE + path);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private Set<String> listFiles(String path) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -65,7 +72,7 @@ public class MediaCacheService {
         }
     }
 
-    void addFile(String relativePath) {
+    public void addFile(String relativePath) {
         logger.info("Adding file to fileListCache: {}", relativePath);
         String parentDir = upOneDir(relativePath);
         Set<String> fileSet = listFiles(parentDir);
@@ -73,7 +80,7 @@ public class MediaCacheService {
         putFiles(parentDir, fileSet);
     }
 
-    void removeFile(String relativePath) {
+    public void removeFile(String relativePath) {
         logger.info("Removing file to fileListCache: {}", relativePath);
         String parentDir = upOneDir(relativePath);
         Set<String> fileSet = listFiles(parentDir);
@@ -88,7 +95,7 @@ public class MediaCacheService {
                 .collect(Collectors.joining(File.separator));
     }
 
-    void addEvent(MediaFileEvent mediaFileEvent) {
+    public void addEvent(MediaFileEvent mediaFileEvent) {
         try (Jedis jedis = jedisPool.getResource()) {
             logger.info("Adding MediaFileEvent to cache: {}", mediaFileEvent);
             List<MediaFileEvent> existingEvents = getMediaFileEvents();
@@ -99,7 +106,7 @@ public class MediaCacheService {
         }
     }
 
-    void addEvents(List<MediaFileEvent> mediaFileEvents){
+    public void addEvents(List<MediaFileEvent> mediaFileEvents){
         try (Jedis jedis = jedisPool.getResource()) {
             logger.info("Adding MediaFileEvents to cache. Count: {}", mediaFileEvents.size());
             List<MediaFileEvent> existingEvents = getMediaFileEvents();

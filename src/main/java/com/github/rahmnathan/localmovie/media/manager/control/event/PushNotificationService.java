@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.media.manager.control;
+package com.github.rahmnathan.localmovie.media.manager.control.event;
 
 import com.github.rahmnathan.google.pushnotification.boundary.FirebaseNotificationService;
 import com.github.rahmnathan.google.pushnotification.data.PushNotification;
@@ -10,13 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PushNotificationHandler {
-    private final Logger logger = LoggerFactory.getLogger(PushNotificationHandler.class);
+public class PushNotificationService {
+    private final Logger logger = LoggerFactory.getLogger(PushNotificationService.class);
     private static final String MOVIE_TOPIC = "movies";
     private final FirebaseNotificationService notificationService;
     private final boolean enabled;
 
-    public PushNotificationHandler(ProducerTemplate template, CamelContext context, @Value("${push.notification.enabled:false}") boolean enabled) {
+    public PushNotificationService(ProducerTemplate template, CamelContext context, @Value("${push.notification.enabled:false}") boolean enabled) {
         this.notificationService = new FirebaseNotificationService(template, context);
         this.enabled = enabled;
     }

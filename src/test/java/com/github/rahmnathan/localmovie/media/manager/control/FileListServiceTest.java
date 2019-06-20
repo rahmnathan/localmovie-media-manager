@@ -7,13 +7,13 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FileListProviderTest {
+public class FileListServiceTest {
 
     @Test
     public void listFilesTest(){
-        FileListProvider fileListProvider = new FileListProvider(new String[]{File.separator});
+        FileListService fileListService = new FileListService(new String[]{File.separator});
 
-        Set<String> fileList = fileListProvider.listFiles("");
+        Set<String> fileList = fileListService.listFiles("");
         assertTrue(fileList.size() > 0);
     }
 }

@@ -27,7 +27,7 @@ public class MediaDataService {
         this.repository = repository;
     }
 
-    MediaFile loadMediaFile(String path) throws InvalidMediaException {
+    public MediaFile loadMediaFile(String path) throws InvalidMediaException {
         Optional<MediaFile> mediaFile = repository.findById(path);
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
@@ -45,15 +45,15 @@ public class MediaDataService {
         }
     }
 
-    MediaFile saveMediaFile(MediaFile mediaFile){
+    public MediaFile saveMediaFile(MediaFile mediaFile){
         return repository.save(mediaFile);
     }
 
-    boolean existsInDatabase(String path){
+    public boolean existsInDatabase(String path){
         return repository.existsById(path);
     }
 
-    void deleteMediaFile(String path){
+    public void deleteMediaFile(String path){
         repository.deleteById(path);
     }
 

@@ -12,12 +12,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class FileListProvider {
-    private final Logger logger = LoggerFactory.getLogger(FileListProvider.class.getName());
-    static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
+public class FileListService {
+    private final Logger logger = LoggerFactory.getLogger(FileListService.class.getName());
+    public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final String[] mediaPaths;
 
-    public FileListProvider(@Value("${media.path}") String[] mediaPaths) {
+    public FileListService(@Value("${media.path}") String[] mediaPaths) {
         this.mediaPaths = mediaPaths;
     }
 

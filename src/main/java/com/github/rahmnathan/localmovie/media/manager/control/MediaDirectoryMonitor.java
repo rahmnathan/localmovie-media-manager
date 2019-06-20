@@ -16,21 +16,21 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
-import static com.github.rahmnathan.localmovie.media.manager.control.FileListProvider.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.media.manager.control.FileListService.ROOT_MEDIA_FOLDER;
 
 @Service
 public class MediaDirectoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaDirectoryMonitor.class);
     private final DirectoryMonitor directoryMonitor;
-    private final FileListProvider fileListProvider;
+    private final FileListService fileListService;
     private final MediaCacheService cacheService;
     private final MediaDataService dataService;
     private final String[] mediaPaths;
 
     public MediaDirectoryMonitor(Collection<DirectoryMonitorObserver> observers, @Value("${media.path}") String[] mediaPaths,
-                                 FileListProvider fileListProvider, MediaCacheService cacheService, MediaDataService dataService) {
+                                 FileListService fileListService, MediaCacheService cacheService, MediaDataService dataService) {
         this.directoryMonitor = new DirectoryMonitor(observers);
-        this.fileListProvider = fileListProvider;
+        this.fileListService = fileListService;
         this.cacheService = cacheService;
         this.dataService = dataService;
         this.mediaPaths = mediaPaths;
@@ -45,7 +45,7 @@ public class MediaDirectoryMonitor {
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
                 .map(path -> path.split(ROOT_MEDIA_FOLDER)[1])
                 .forEach(path -> {
-                    Set<String> files = fileListProvider.listFiles(path);
+                    Set<String> files = fileListService.listFiles(path);
                     loadMediaData(files);
                     cacheService.putFiles(path, files);
                 });

@@ -14,9 +14,9 @@ public class MediaDirectoryMonitorTest {
 
     @BeforeEach
     public void initialize(){
-        FileListProvider fileListProvider = mock(FileListProvider.class);
-        when(fileListProvider.listFiles(any())).thenReturn(Collections.emptySet());
-        this.mediaDirectoryMonitor = new MediaDirectoryMonitor(Collections.emptySet(), new String[]{"/my/test/LocalMedia/"}, fileListProvider,
+        FileListService fileListService = mock(FileListService.class);
+        when(fileListService.listFiles(any())).thenReturn(Collections.emptySet());
+        this.mediaDirectoryMonitor = new MediaDirectoryMonitor(Collections.emptySet(), new String[]{"/my/test/LocalMedia/"}, fileListService,
                 mock(MediaCacheService.class), mock(MediaDataService.class));
     }
 
