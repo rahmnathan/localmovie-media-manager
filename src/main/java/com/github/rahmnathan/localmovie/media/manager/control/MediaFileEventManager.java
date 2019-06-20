@@ -130,7 +130,7 @@ public class MediaFileEventManager implements DirectoryMonitorObserver {
             return MediaFile.Builder.copyWithNoImage(mediaFile);
         } else {
             if(!metadataService.existsInDatabase(relativePath)) {
-                metadataService.saveMediaFile(mediaFile);
+                mediaFile = metadataService.saveMediaFile(mediaFile);
             }
         }
 

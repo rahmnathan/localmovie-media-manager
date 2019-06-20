@@ -45,8 +45,8 @@ public class MediaDataService {
         }
     }
 
-    void saveMediaFile(MediaFile mediaFile){
-        repository.save(mediaFile);
+    MediaFile saveMediaFile(MediaFile mediaFile){
+        return repository.save(mediaFile);
     }
 
     boolean existsInDatabase(String path){
