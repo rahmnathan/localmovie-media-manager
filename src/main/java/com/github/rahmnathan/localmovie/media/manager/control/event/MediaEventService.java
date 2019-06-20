@@ -93,11 +93,9 @@ public class MediaEventService {
         addDeleteEvent(relativePath);
     }
 
-    @Transactional
     public void deleteFromDatabase(String path){
         logger.info("Removing media from database.");
         eventRepository.deleteAllByRelativePath(path);
-        metadataService.deleteMediaFile(path);
     }
 
     private MediaFile loadMediaFile(String relativePath) throws InvalidMediaException {
