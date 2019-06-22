@@ -93,7 +93,7 @@ public class MediaEventService {
         addDeleteEvent(relativePath);
     }
 
-    public void deleteFromDatabase(String path){
+    private void deleteFromDatabase(String path){
         logger.info("Removing media from database.");
         eventRepository.deleteAllByRelativePath(path);
     }

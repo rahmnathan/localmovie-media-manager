@@ -53,10 +53,6 @@ public class MediaDataService {
         return repository.existsById(path);
     }
 
-    public void deleteMediaFile(String path){
-        repository.deleteById(path);
-    }
-
     private MediaFile loadMediaInfoFromProvider(String path) throws InvalidMediaException {
         logger.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
