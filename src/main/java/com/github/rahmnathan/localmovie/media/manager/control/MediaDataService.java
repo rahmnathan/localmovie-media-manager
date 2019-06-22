@@ -34,15 +34,21 @@ public class MediaDataService {
             return mediaFile.get();
         }
 
-        return loadUpdatedMediaFile(path);
+        return loadNewMediaFile(path);
     }
 
-    public MediaFile loadUpdatedMediaFile(String path) throws InvalidMediaException {
+    public MediaFile loadNewMediaFile(String path) throws InvalidMediaException {
+        MediaFile.Builder mediaFileBuilder = MediaFile.Builder.forPath(path);
+
+        Media media;
         if (isTopLevel(path) || isEpisode(path)) {
-            return loadMediaInfoFromProvider(path);
+            media = loadMediaFromProvider(path);
         } else {
-            return loadSeriesParentInfo(path, MediaType.SEASON);
+            media = loadSeriesParentInfo(path, MediaType.SEASON);
         }
+
+        mediaFileBuilder.setMedia(media);
+        return mediaFileBuilder.build();
     }
 
     public MediaFile saveMediaFile(MediaFile mediaFile){
@@ -53,33 +59,27 @@ public class MediaDataService {
         return repository.existsById(path);
     }
 
-    private MediaFile loadMediaInfoFromProvider(String path) throws InvalidMediaException {
+    private Media loadMediaFromProvider(String path) throws InvalidMediaException {
         logger.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
-        String title = getTitle(fileName);
-
-        MediaFile.Builder builder = MediaFile.Builder.newInstance()
-                .setFileName(fileName)
-                .setPath(path)
-                .setViews(0);
 
         if(isEpisode(path)){
             try {
-                builder.setMedia(loadEpisodeFromProvider(path, fileName));
+                return loadEpisodeFromProvider(path, fileName);
             } catch (MediaProviderException e) {
                 logger.error("Error getting media from provider", e);
                 return loadSeriesParentInfo(path, MediaType.EPISODE);
             }
         } else {
+            String title = getTitle(fileName);
+
             try {
-                builder.setMedia(mediaProvider.getMovie(title));
+                return mediaProvider.getMovie(title);
             } catch (MediaProviderException e) {
                 logger.error("Error getting media from provider", e);
-                builder.setMedia(Media.Builder.newInstance().setTitle(title).build());
+                return Media.Builder.newInstance().setTitle(title).build();
             }
         }
-
-        return builder.build();
     }
 
     private Media loadEpisodeFromProvider(String path, String fileName) throws MediaProviderException, InvalidMediaException {
@@ -90,7 +90,7 @@ public class MediaDataService {
         return mediaProvider.getEpisode(seriesTitle, seasonNumber, episodeNumber);
     }
 
-    private MediaFile loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
+    private Media loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
         logger.info("Getting info from parent - {}", path);
 
         String filename = new File(path).getName();
@@ -99,6 +99,6 @@ public class MediaDataService {
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
         Integer number = isEpisode(path) ? getEpisodeNumber(filename) : getSeasonNumber(filename);
-        return MediaFile.Builder.copyWithNewTitle(parentInfo, filename, getTitle(filename), path, number, mediaType);
+        return Media.Builder.copyWithNewTitleNumberAndType(parentInfo.getMedia(), getTitle(filename), number, mediaType);
     }
 }

@@ -33,7 +33,7 @@ public class MediaRepositoryMonitor {
         mediaRepository.findAllByUpdatedBefore(LocalDateTime.now().minusDays(3)).forEach(mediaFile -> {
             try {
                 logger.info("Updating media at path: {}", mediaFile.getPath());
-                MediaFile updatedMediaFile = mediaDataService.loadUpdatedMediaFile(mediaFile.getPath());
+                MediaFile updatedMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
                 mediaFile.setMedia(updatedMediaFile.getMedia());
 
                 mediaRepository.save(mediaFile);
