@@ -25,4 +25,6 @@ module local.movie.service {
     requires cast.video.converter.handbrake;
     requires java.sql;
     requires spring.tx;
+    requires java.persistence;
+    requires commons.lang;
 }

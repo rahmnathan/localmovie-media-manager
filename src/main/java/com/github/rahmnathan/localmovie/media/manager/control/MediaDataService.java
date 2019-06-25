@@ -1,8 +1,8 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
-import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
-import com.github.rahmnathan.localmovie.media.manager.repository.MediaRepository;
+import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.media.manager.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import com.github.rahmnathan.omdb.data.Media;
 import com.github.rahmnathan.omdb.data.MediaType;
@@ -10,6 +10,7 @@ import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.Optional;
@@ -20,15 +21,16 @@ import static com.github.rahmnathan.localmovie.media.manager.control.PathUtils.*
 public class MediaDataService {
     private final Logger logger = LoggerFactory.getLogger(MediaDataService.class.getName());
     private final OmdbMediaProvider mediaProvider;
-    private final MediaRepository repository;
+    private final MediaFileRepository repository;
 
-    public MediaDataService(MediaRepository repository, OmdbMediaProvider mediaProvider) {
+    public MediaDataService(MediaFileRepository repository, OmdbMediaProvider mediaProvider) {
         this.mediaProvider = mediaProvider;
         this.repository = repository;
     }
 
+    @Transactional
     public MediaFile loadMediaFile(String path) throws InvalidMediaException {
-        Optional<MediaFile> mediaFile = repository.findById(path);
+        Optional<MediaFile> mediaFile = repository.findByPath(path);
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
             return mediaFile.get();
@@ -47,8 +49,9 @@ public class MediaDataService {
             media = loadSeriesParentInfo(path, MediaType.SEASON);
         }
 
-        mediaFileBuilder.setMedia(media);
-        return mediaFileBuilder.build();
+        MediaFile mediaFile = mediaFileBuilder.build();
+        mediaFile.setMedia(com.github.rahmnathan.localmovie.media.manager.persistence.entity.Media.fromOmdbMedia(media, mediaFile));
+        return mediaFile;
     }
 
     public MediaFile saveMediaFile(MediaFile mediaFile){
@@ -56,7 +59,7 @@ public class MediaDataService {
     }
 
     public boolean existsInDatabase(String path){
-        return repository.existsById(path);
+        return repository.existsByPath(path);
     }
 
     private Media loadMediaFromProvider(String path) throws InvalidMediaException {
@@ -99,6 +102,6 @@ public class MediaDataService {
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
         Integer number = isEpisode(path) ? getEpisodeNumber(filename) : getSeasonNumber(filename);
-        return Media.Builder.copyWithNewTitleNumberAndType(parentInfo.getMedia(), getTitle(filename), number, mediaType);
+        return Media.Builder.copyWithNewTitleNumberAndType(parentInfo.getMedia().toOmdbMedia(), getTitle(filename), number, mediaType);
     }
 }

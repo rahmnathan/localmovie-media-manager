@@ -1,9 +1,10 @@
-package com.github.rahmnathan.localmovie.media.manager.repository;
+package com.github.rahmnathan.localmovie.media.manager.persistence.control;
 
-import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.media.manager.persistence.repository.MediaFileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,13 +17,13 @@ import java.time.LocalDateTime;
 @Transactional
 public class MediaRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaRepositoryMonitor.class.getName());
-    private final MediaRepository mediaRepository;
+    private final MediaFileRepository mediaFileRepository;
     private final MediaDataService mediaDataService;
     private final MediaCacheService cacheService;
 
-    public MediaRepositoryMonitor(MediaRepository mediaRepository, MediaCacheService cacheService, MediaDataService mediaDataService) {
+    public MediaRepositoryMonitor(MediaFileRepository mediaFileRepository, MediaCacheService cacheService, MediaDataService mediaDataService) {
         this.mediaDataService = mediaDataService;
-        this.mediaRepository = mediaRepository;
+        this.mediaFileRepository = mediaFileRepository;
         this.cacheService = cacheService;
     }
 
@@ -30,13 +31,13 @@ public class MediaRepositoryMonitor {
     public void checkForEmptyValues() {
         logger.info("Performing update of existing media.");
 
-        mediaRepository.findAllByUpdatedBefore(LocalDateTime.now().minusDays(3)).forEach(mediaFile -> {
+        mediaFileRepository.findAllByUpdatedBefore(LocalDateTime.now().minusDays(3)).forEach(mediaFile -> {
             try {
                 logger.info("Updating media at path: {}", mediaFile.getPath());
                 MediaFile updatedMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
                 mediaFile.setMedia(updatedMediaFile.getMedia());
 
-                mediaRepository.save(mediaFile);
+                mediaFileRepository.save(mediaFile);
                 cacheService.addMedia(updatedMediaFile);
             } catch (InvalidMediaException e) {
                 logger.error("Failure loading media data.", e);

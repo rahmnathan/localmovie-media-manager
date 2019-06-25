@@ -2,14 +2,15 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
-import com.github.rahmnathan.localmovie.domain.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -51,7 +52,8 @@ public class MediaDirectoryMonitor {
                 });
     }
 
-    private void loadMediaData(Set<String> files) {
+    @Transactional
+    public void loadMediaData(Set<String> files) {
         files.parallelStream()
                 .forEach(file -> {
                     try {

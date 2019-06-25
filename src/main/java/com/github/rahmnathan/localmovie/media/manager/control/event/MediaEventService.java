@@ -1,12 +1,11 @@
 package com.github.rahmnathan.localmovie.media.manager.control.event;
 
-import com.github.rahmnathan.localmovie.domain.MediaFile;
-import com.github.rahmnathan.localmovie.domain.MediaFileEvent;
-import com.github.rahmnathan.localmovie.domain.MovieEvent;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
-import com.github.rahmnathan.localmovie.media.manager.repository.MediaEventRepository;
+import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFileEvent;
+import com.github.rahmnathan.localmovie.media.manager.persistence.repository.MediaFileEventRepository;
 import com.github.rahmnathan.video.cast.handbrake.control.VideoController;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import io.micrometer.core.instrument.Metrics;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,17 +28,17 @@ import static com.github.rahmnathan.localmovie.media.manager.control.FileListSer
 
 @Service
 public class MediaEventService {
-    private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
+    private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final Logger logger = LoggerFactory.getLogger(MediaEventService.class);
     private final PushNotificationService notificationHandler;
     private final MediaDataService metadataService;
-    private final MediaEventRepository eventRepository;
+    private final MediaFileEventRepository eventRepository;
     private final ExecutorService executorService;
     private final MediaCacheService cacheService;
     private FFprobe ffprobe;
 
     public MediaEventService(@Value("${ffprobe.location:/usr/bin/ffprobe}") String ffprobeLocation, @Value("${concurrent.conversion.limit:1}") Integer concurrentConversions,
-                             MediaDataService mediaMetadataService, MediaEventRepository eventRepository,
+                             MediaDataService mediaMetadataService, MediaFileEventRepository eventRepository,
                              PushNotificationService notificationHandler, MediaCacheService cacheService) {
         logger.info("Number of concurrent video conversions allowed: {}", concurrentConversions);
         this.executorService = Executors.newFixedThreadPool(concurrentConversions);
@@ -65,9 +63,9 @@ public class MediaEventService {
         logger.info("Event type: CREATE.");
 
         if (Files.isRegularFile(inputPath) && ffprobe != null) {
-            activeConversionGauge.getAndIncrement();
+            queuedConversionGauge.getAndIncrement();
             relativePath = launchVideoConverter(inputPath.toFile().getAbsolutePath(), activeConversions);
-            activeConversionGauge.getAndDecrement();
+            queuedConversionGauge.getAndDecrement();
         }
 
         try {
@@ -110,13 +108,15 @@ public class MediaEventService {
 
     private void addDeleteEvent(String resultFilePath){
         logger.info("Adding DELETE event to repository.");
-        MediaFileEvent event = new MediaFileEvent(MovieEvent.ENTRY_DELETE.getMovieEventString(), null, resultFilePath);
+        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_DELETE.getMovieEventString(), null, resultFilePath);
         cacheService.addEvent(eventRepository.saveAndFlush(event));
     }
 
     private void addCreateEvent(String resultFilePath, MediaFile mediaFile){
         logger.info("Adding CREATE event to repository.");
-        MediaFileEvent event = new MediaFileEvent(MovieEvent.ENTRY_CREATE.getMovieEventString(), mediaFile, resultFilePath);
+        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, resultFilePath);
+        mediaFile.setMediaFileEvent(event);
+
         cacheService.addEvent(eventRepository.saveAndFlush(event));
     }
 
