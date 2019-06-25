@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
-    List<MediaFile> findAllByUpdatedBefore(LocalDateTime time);
+    List<MediaFile> findAllByUpdatedBeforeOrderByUpdated(LocalDateTime time);
     Optional<MediaFile> findByPath(String path);
     boolean existsByPath(String path);
 }

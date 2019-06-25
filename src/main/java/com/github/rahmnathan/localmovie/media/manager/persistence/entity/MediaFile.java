@@ -54,6 +54,10 @@ public class MediaFile {
         updated = LocalDateTime.now();
     }
 
+    public Long getId(){
+        return id;
+    }
+
     public LocalDateTime getUpdated(){
         return updated;
     }

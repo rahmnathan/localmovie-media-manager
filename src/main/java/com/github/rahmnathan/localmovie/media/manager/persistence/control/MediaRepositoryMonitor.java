@@ -31,7 +31,8 @@ public class MediaRepositoryMonitor {
     public void checkForEmptyValues() {
         logger.info("Performing update of existing media.");
 
-        mediaFileRepository.findAllByUpdatedBefore(LocalDateTime.now().minusDays(3)).forEach(mediaFile -> {
+        LocalDateTime queryCutoff = LocalDateTime.now().minusDays(3);
+        mediaFileRepository.findAllByUpdatedBeforeOrderByUpdated(queryCutoff).stream().limit(200).forEach(mediaFile -> {
             try {
                 logger.info("Updating media at path: {}", mediaFile.getPath());
                 MediaFile updatedMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
