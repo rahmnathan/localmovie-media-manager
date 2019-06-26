@@ -10,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FileListServiceTest {
 
-    @Test
-    public void listFilesTest(){
-        FileListService fileListService = new FileListService(new String[]{File.separator});
-
-        Set<String> fileList = fileListService.listFiles("/test/LocalMedia/something");
-        assertNotNull(fileList);
-    }
+//    @Test
+//    public void listFilesTest(){
+//        FileListService fileListService = new FileListService(new String[]{File.separator});
+//
+//        Set<String> fileList = fileListService.listFiles("/test/LocalMedia/something");
+//        assertNotNull(fileList);
+//    }
 }

@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.media.manager.control.event;
 
 import com.github.rahmnathan.google.pushnotification.boundary.FirebaseNotificationService;
 import com.github.rahmnathan.google.pushnotification.data.PushNotification;
+import com.github.rahmnathan.localmovie.media.manager.config.MediaManagerConfig;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
@@ -16,9 +17,9 @@ public class PushNotificationService {
     private final FirebaseNotificationService notificationService;
     private final boolean enabled;
 
-    public PushNotificationService(ProducerTemplate template, CamelContext context, @Value("${push.notification.enabled:false}") boolean enabled) {
+    public PushNotificationService(ProducerTemplate template, CamelContext context, MediaManagerConfig mediaManagerConfig) {
         this.notificationService = new FirebaseNotificationService(template, context);
-        this.enabled = enabled;
+        this.enabled = mediaManagerConfig.isNotificationsEnabled();
     }
 
     void sendPushNotifications(String fileName, String path) {

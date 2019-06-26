@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -22,13 +21,11 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private volatile Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final MediaEventService eventService;
 
-
     public MediaEventMonitor(MediaEventService eventService) {
         this.eventService = eventService;
     }
 
     @Override
-    @Transactional
     public void directoryModified(WatchEvent event, Path inputPath) {
         String absolutePath = inputPath.toFile().getAbsolutePath();
 

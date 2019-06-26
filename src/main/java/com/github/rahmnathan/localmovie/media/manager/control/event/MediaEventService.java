@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media.manager.control.event;
 
+import com.github.rahmnathan.localmovie.media.manager.config.MediaManagerConfig;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
@@ -12,10 +13,10 @@ import io.micrometer.core.instrument.Metrics;
 import net.bramp.ffmpeg.FFprobe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,18 +38,19 @@ public class MediaEventService {
     private final MediaCacheService cacheService;
     private FFprobe ffprobe;
 
-    public MediaEventService(@Value("${ffprobe.location:/usr/bin/ffprobe}") String ffprobeLocation, @Value("${concurrent.conversion.limit:1}") Integer concurrentConversions,
+    public MediaEventService(MediaManagerConfig mediaManagerConfig,
                              MediaDataService mediaMetadataService, MediaFileEventRepository eventRepository,
                              PushNotificationService notificationHandler, MediaCacheService cacheService) {
-        logger.info("Number of concurrent video conversions allowed: {}", concurrentConversions);
-        this.executorService = Executors.newFixedThreadPool(concurrentConversions);
+        MediaManagerConfig.MediaEventMonitorConfig eventMonitorConfig = mediaManagerConfig.getDirectoryMonitor();
+        logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
+        this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
         this.notificationHandler = notificationHandler;
         this.metadataService = mediaMetadataService;
         this.eventRepository = eventRepository;
         this.cacheService = cacheService;
 
         try {
-            this.ffprobe = new FFprobe(ffprobeLocation);
+            this.ffprobe = new FFprobe(eventMonitorConfig.getFfprobeLocation());
         } catch (IOException e){
             logger.error("Failed to instantiate MediaFileEventManager", e);
         }
@@ -68,6 +70,11 @@ public class MediaEventService {
             queuedConversionGauge.getAndDecrement();
         }
 
+        handleCreateEvent(relativePath);
+    }
+
+    @Transactional
+    public void handleCreateEvent(String relativePath){
         try {
             MediaFile mediaFile = loadMediaFile(relativePath);
             cacheService.addMedia(mediaFile);

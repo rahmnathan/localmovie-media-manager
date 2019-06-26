@@ -1,8 +1,8 @@
 package com.github.rahmnathan.localmovie.media.manager.control;
 
+import com.github.rahmnathan.localmovie.media.manager.config.MediaManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -17,8 +17,8 @@ public class FileListService {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final String[] mediaPaths;
 
-    public FileListService(@Value("${media.path}") String[] mediaPaths) {
-        this.mediaPaths = mediaPaths;
+    public FileListService(MediaManagerConfig mediaManagerConfig) {
+        this.mediaPaths = mediaManagerConfig.getMediaPaths();
     }
 
     Set<String> listFiles(String path) {

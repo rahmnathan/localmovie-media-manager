@@ -1,21 +1,40 @@
 {
-  "concurrent.conversion.limit": 3,
   "endpoints.prometheus.enabled": true,
-  "ffmpeg.location": "/usr/bin/ffmpeg",
-  "ffprobe.location": "/usr/bin/ffprobe",
-  "jedis.host": "redis-master",
   "logging.pattern.level": "%5p %mdc",
   "management.endpoints.web.exposure.include": "*",
-  "media.path": "/opt/localmovie/data/internal/LocalMedia/,/opt/localmovie/data/external1/LocalMedia/,/opt/localmovie/data/external2/LocalMedia/",
-  "omdb.api.key": "",
-  "push.notification.key": "",
-  "server.port": "8080",
-  "server.ssl.enabled": false,
-  "spring.datasource.password": "",
-  "spring.datasource.url": "jdbc:postgresql://postgres-postgresql.default:5432/localmovies",
-  "spring.datasource.username": "localmovies",
-  "spring.jpa.database-platform": "org.hibernate.dialect.PostgreSQLDialect",
-  "spring.jpa.hibernate.ddl-auto": "validate",
-  "spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation": true,
-  "spring.jpa.show-sql": false
+  "server": {
+    "port": "8080",
+    "ssl": {
+      "enabled": "false"
+    }
+  },
+  "service": {
+    "directoryMonitor": {
+      "concurrentConversionLimit": "3",
+      "ffprobeLocation": "/usr/bin/ffprobe"
+    },
+    "jedisHost": "redis-master",
+    "mediaPaths": "/opt/localmovie/data/internal/LocalMedia/,/opt/localmovie/data/external1/LocalMedia/,/opt/localmovie/data/external2/LocalMedia/",
+    "notificationsEnabled": "false",
+    "omdbApiKey": "",
+    "repository": {
+      "updateFrequencyDays": "4",
+      "updateLimit": "201"
+    }
+  },
+  "spring": {
+    "datasource": {
+      "password": "",
+      "url": "jdbc:postgresql://postgres-postgresql:5432/localmovies",
+      "username": "localmovies"
+    },
+    "jpa": {
+      "database-platform": "org.hibernate.dialect.PostgreSQLDialect",
+      "hibernate": {
+        "ddl-auto": "validate"
+      },
+      "properties.hibernate.jdbc.lob.non_contextual_creation": true,
+      "show-sql": "false"
+    }
+  }
 }

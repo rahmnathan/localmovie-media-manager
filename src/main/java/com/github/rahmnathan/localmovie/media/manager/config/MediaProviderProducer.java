@@ -3,7 +3,6 @@ package com.github.rahmnathan.localmovie.media.manager.config;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,10 +12,10 @@ public class MediaProviderProducer {
     private final ProducerTemplate template;
     private final String apiKey;
 
-    public MediaProviderProducer(CamelContext context, ProducerTemplate template, @Value("${omdb.api.key}") String apiKey) {
-        this.context = context;
+    public MediaProviderProducer(CamelContext context, ProducerTemplate template, MediaManagerConfig mediaManagerConfig) {
+        this.apiKey = mediaManagerConfig.getOmdbApiKey();
         this.template = template;
-        this.apiKey = apiKey;
+        this.context = context;
     }
 
     @Bean

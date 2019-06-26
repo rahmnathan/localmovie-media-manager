@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
+import com.github.rahmnathan.localmovie.media.manager.config.MediaManagerConfig;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
 import org.slf4j.Logger;
@@ -28,13 +29,13 @@ public class MediaDirectoryMonitor {
     private final MediaDataService dataService;
     private final String[] mediaPaths;
 
-    public MediaDirectoryMonitor(Collection<DirectoryMonitorObserver> observers, @Value("${media.path}") String[] mediaPaths,
+    public MediaDirectoryMonitor(Collection<DirectoryMonitorObserver> observers, MediaManagerConfig mediaManagerConfig,
                                  FileListService fileListService, MediaCacheService cacheService, MediaDataService dataService) {
         this.directoryMonitor = new DirectoryMonitor(observers);
+        this.mediaPaths = mediaManagerConfig.getMediaPaths();
         this.fileListService = fileListService;
         this.cacheService = cacheService;
         this.dataService = dataService;
-        this.mediaPaths = mediaPaths;
     }
 
     @EventListener(ApplicationReadyEvent.class)
