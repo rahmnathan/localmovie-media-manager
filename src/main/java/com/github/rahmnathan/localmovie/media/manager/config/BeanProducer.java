@@ -5,22 +5,28 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import redis.clients.jedis.JedisPool;
 
 @Configuration
-public class MediaProviderProducer {
-    private final CamelContext context;
+public class BeanProducer {
+    private final MediaManagerConfig mediaManagerConfig;
     private final ProducerTemplate template;
-    private final String apiKey;
+    private final CamelContext context;
 
-    public MediaProviderProducer(CamelContext context, ProducerTemplate template, MediaManagerConfig mediaManagerConfig) {
-        this.apiKey = mediaManagerConfig.getOmdbApiKey();
+    public BeanProducer(CamelContext context, ProducerTemplate template, MediaManagerConfig mediaManagerConfig) {
+        this.mediaManagerConfig = mediaManagerConfig;
         this.template = template;
         this.context = context;
     }
 
     @Bean
+    public JedisPool createJedisPool(){
+        return new JedisPool(mediaManagerConfig.getJedisHost());
+    }
+
+    @Bean
     public OmdbMediaProvider createMovieProvider(){
         context.setUseMDCLogging(true);
-        return new OmdbMediaProvider(context, template, apiKey);
+        return new OmdbMediaProvider(context, template, mediaManagerConfig.getOmdbApiKey());
     }
 }

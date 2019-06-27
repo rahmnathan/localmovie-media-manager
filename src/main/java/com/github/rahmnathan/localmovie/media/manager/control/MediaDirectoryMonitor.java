@@ -7,7 +7,6 @@ import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaExce
 import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;

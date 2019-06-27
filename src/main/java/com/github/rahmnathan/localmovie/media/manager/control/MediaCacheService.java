@@ -3,7 +3,6 @@ package com.github.rahmnathan.localmovie.media.manager.control;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.github.rahmnathan.localmovie.media.manager.config.MediaManagerConfig;
 import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFileEvent;
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,11 +26,11 @@ public class MediaCacheService {
     private final ObjectMapper objectMapper;
     private final JedisPool jedisPool;
 
-    public MediaCacheService(MediaManagerConfig mediaManagerConfig) {
-        this.jedisPool = new JedisPool(new JedisPoolConfig(), mediaManagerConfig.getJedisHost());
+    public MediaCacheService(JedisPool jedisPool) {
         this.objectMapper = new ObjectMapper()
                 .registerModule(new ParameterNamesModule())
                 .registerModule(new JavaTimeModule());
+        this.jedisPool = jedisPool;
     }
 
     public void addMedia(MediaFile mediaFile) {
