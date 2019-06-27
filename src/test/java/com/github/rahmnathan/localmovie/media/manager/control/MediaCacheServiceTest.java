@@ -10,6 +10,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static com.github.rahmnathan.localmovie.domain.CachePrefix.*;
@@ -88,7 +89,7 @@ public class MediaCacheServiceTest {
         String mediaEventType = MediaEventType.ENTRY_CREATE.getMovieEventString();
         MediaFileEvent mediaFileEvent = new MediaFileEvent(mediaEventType, null, mediaPath);
 
-        mediaCacheService.addEvent(mediaFileEvent);
+        mediaCacheService.addEvents(List.of(mediaFileEvent));
 
         verify(jedis).set(MEDIA_EVENTS.name(), MAPPER.writeValueAsString(Set.of(mediaFileEvent)));
     }
