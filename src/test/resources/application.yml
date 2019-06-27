@@ -1,0 +1,29 @@
+endpoints.prometheus.enabled: true
+logging.pattern.level: "%5p %mdc"
+management.endpoints.web.exposure.include: "*"
+server:
+  port: 8080
+  ssl:
+    enabled: false
+service:
+  directoryMonitor:
+    concurrentConversionLimit: 3
+    ffprobeLocation: "/usr/bin/ffprobe"
+  jedisHost: redis-master
+  mediaPaths: "/opt/localmovie/data/internal/LocalMedia/,/opt/localmovie/data/external1/LocalMedia/,/opt/localmovie/data/external2/LocalMedia/"
+  notificationsEnabled: false
+  omdbApiKey: "api-key"
+  repository:
+    updateFrequencyDays: 4
+    updateLimit: 201
+spring:
+  datasource:
+    password:
+    url: "jdbc:h2:mem:AZ;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: sa
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    properties.hibernate.jdbc.lob.non_contextual_creation: true
+    show-sql: false
