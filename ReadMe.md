@@ -1,5 +1,7 @@
 <h1>LocalMovies</h1>
 
+[![Build Status](https://nathanrahm-jenkins.ddns.net/buildStatus/icon?job=localmovie-media-manager)](https://nathanrahm-jenkins.ddns.net/job/localmovie-media-manager/)
+
 This project is a video streaming service for my media collection. The project consists of
 several components: Android client, web client, and the back-end system. The backend system
 is deployed in an on-prem Kubernetes instance. The web service exposes a set of endpoints
