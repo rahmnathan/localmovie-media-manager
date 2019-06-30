@@ -31,7 +31,7 @@ public class Media {
     private LocalDateTime updated;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "media")
+    @OneToOne(mappedBy = "media", cascade = CascadeType.ALL)
     private MediaFile mediaFile;
 
     public MediaType getMediaType() {

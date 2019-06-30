@@ -14,6 +14,7 @@ public class MediaFile {
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_file_sequence_generator")
     @SequenceGenerator(name="media_file_sequence_generator", sequenceName="MEDIA_FILE_SEQUENCE")
     private Long id;
+    @Column(unique = true)
     private String path;
     private String fileName;
     private long created;
@@ -25,7 +26,7 @@ public class MediaFile {
     private Media media;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "mediaFile")
+    @OneToOne(mappedBy = "mediaFile", cascade = CascadeType.ALL)
     private MediaFileEvent mediaFileEvent;
 
     @Version

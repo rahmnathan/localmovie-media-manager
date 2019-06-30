@@ -4,10 +4,13 @@ import com.github.rahmnathan.localmovie.media.manager.config.MediaManagerConfig;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaCacheService;
 import com.github.rahmnathan.localmovie.media.manager.control.MediaDataService;
 import com.github.rahmnathan.localmovie.media.manager.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.manager.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.media.manager.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.media.manager.persistence.repository.MediaFileRepository;
+import com.github.rahmnathan.localmovie.media.manager.persistence.repository.MediaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,15 +24,18 @@ public class MediaRepositoryMonitor {
     private final MediaManagerConfig.MediaRepositoryMonitorConfig repositoryMonitorConfig;
     private final MediaFileRepository mediaFileRepository;
     private final MediaDataService mediaDataService;
+    private final MediaRepository mediaRepository;
     private final MediaCacheService cacheService;
 
     public MediaRepositoryMonitor(MediaFileRepository mediaFileRepository,
+                                  MediaRepository mediaRepository,
                                   MediaCacheService cacheService,
                                   MediaDataService mediaDataService,
                                   MediaManagerConfig mediaManagerConfig) {
         this.repositoryMonitorConfig = mediaManagerConfig.getRepository();
         this.mediaFileRepository = mediaFileRepository;
         this.mediaDataService = mediaDataService;
+        this.mediaRepository = mediaRepository;
         this.cacheService = cacheService;
     }
 
@@ -40,16 +46,22 @@ public class MediaRepositoryMonitor {
         logger.info("Performing update of existing media. Frequency days: {} Update limit: {}", updateFrequencyDays, updateLimit);
 
         LocalDateTime queryCutoff = LocalDateTime.now().minusDays(updateFrequencyDays);
-        mediaFileRepository.findAllByUpdatedBeforeOrderByUpdated(queryCutoff).stream()
-                .limit(updateLimit)
+        mediaFileRepository.findAllByUpdatedBeforeOrderByUpdated(queryCutoff, PageRequest.of(0, updateLimit))
                 .forEach(mediaFile -> {
                     try {
                         logger.info("Updating media at path: {}", mediaFile.getPath());
-                        MediaFile updatedMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
-                        mediaFile.setMedia(updatedMediaFile.getMedia());
+                        MediaFile newMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
+
+                        Media oldMedia = mediaFile.getMedia();
+                        oldMedia.setMediaFile(null);
+                        mediaRepository.delete(oldMedia);
+
+                        Media newMedia = newMediaFile.getMedia();
+                        newMedia.setMediaFile(mediaFile);
+                        mediaFile.setMedia(newMedia);
 
                         mediaFileRepository.save(mediaFile);
-                        cacheService.addMedia(updatedMediaFile);
+                        cacheService.addMedia(newMediaFile);
                     } catch (InvalidMediaException e) {
                         logger.error("Failure loading media data.", e);
                     }
