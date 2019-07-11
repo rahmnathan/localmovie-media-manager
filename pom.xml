@@ -130,7 +130,7 @@
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <version>1.4.8</version>
                 <configuration>
-                    <repository>192.168.1.8:5000/localmovie-media-manager</repository>
+                    <repository>rahmnathan/localmovie-media-manager</repository>
                     <tag>latest</tag>
                     <buildArgs>
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
