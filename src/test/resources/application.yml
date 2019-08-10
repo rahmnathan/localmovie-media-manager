@@ -9,7 +9,7 @@ service:
   directoryMonitor:
     concurrentConversionLimit: 3
     ffprobeLocation: "/usr/bin/ffprobe"
-  jedisHost: redis-master
+  jedisHost: stub
   mediaPaths: "/opt/localmovie/data/internal/LocalMedia/,/opt/localmovie/data/external1/LocalMedia/,/opt/localmovie/data/external2/LocalMedia/"
   notificationsEnabled: false
   omdbApiKey: "api-key"
@@ -27,3 +27,8 @@ spring:
       ddl-auto: create
     properties.hibernate.jdbc.lob.non_contextual_creation: true
     show-sql: false
+  profiles:
+    active: stub
+
+keycloak:
+  enabled: false

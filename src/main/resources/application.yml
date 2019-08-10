@@ -1,6 +1,7 @@
 endpoints.prometheus.enabled: true
-logging.pattern.level: "%5p %mdc"
-management.endpoints.web.exposure.include: "*"
+logging:
+  pattern.level: "correlation-id=%X{x-correlation-id} client-address=%X{client-address}"
+
 server:
   port: 8080
   ssl:
@@ -9,17 +10,16 @@ service:
   directoryMonitor:
     concurrentConversionLimit: 3
     ffprobeLocation: "/usr/bin/ffprobe"
-  jedisHost: redis-master
-  mediaPaths: "/opt/localmovie/data/internal/LocalMedia/,/opt/localmovie/data/external1/LocalMedia/,/opt/localmovie/data/external2/LocalMedia/"
+  mediaPaths: "/media/nathan/LocalMedia/"
   notificationsEnabled: false
-  omdbApiKey: "api-key"
+  omdbApiKey: "a825746e"
   repository:
     updateFrequencyDays: 4
     updateLimit: 201
 spring:
   datasource:
     password: pw123
-    url: "jdbc:postgresql://postgres-postgresql:5432/localmovies"
+    url: "jdbc:postgresql://localhost:5432/localmovies"
     username: localmovies
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -27,3 +27,38 @@ spring:
       ddl-auto: create
     properties.hibernate.jdbc.lob.non_contextual_creation: true
     show-sql: false
+
+keycloak:
+  auth-server-url: https://localmovies.hopto.org/auth
+  public-client: true
+  realm: LocalMovies
+  resource: localmovie-login
+  security-constraints:
+    - authRoles:
+        - movieuser
+      security-collections:
+        - name: "secure stuff"
+          patterns:
+            - "/*"
+    - authRoles:
+      security-collections:
+        - name: "insecure stuff"
+          patterns:
+            - "/actuator/*"
+  ssl-required: external
+  enabled: false
+
+management:
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  metrics:
+    export:
+      prometheus:
+        enabled: true
