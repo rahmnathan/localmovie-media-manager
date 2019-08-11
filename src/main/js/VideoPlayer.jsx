@@ -1,5 +1,5 @@
 import React from 'react';
-import { buildPosterUri } from "./Media";
+import { buildPosterUri } from "./Media.jsx";
 
 const videoBaseUri = 'localmovie/v2/media/stream.mp4?path=';
 

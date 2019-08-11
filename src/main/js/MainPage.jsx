@@ -1,6 +1,6 @@
 import React from 'react';
-import { MediaList } from './MediaList';
-import { ControlBar } from './ControlBar';
+import { MediaList } from './MediaList.jsx';
+import { ControlBar } from './ControlBar.jsx';
 
 const layoutProps = {
     textAlign: 'center'

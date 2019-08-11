@@ -1,8 +1,8 @@
 import React from 'react';
-import { SearchBox } from "./SearchBox";
-import { Category } from "./Category";
-import { Genre } from "./Genre";
-import { Sort } from './Sort';
+import { SearchBox } from "./SearchBox.jsx";
+import { Category } from "./Category.jsx";
+import { Genre } from "./Genre.jsx";
+import { Sort } from './Sort.jsx';
 
 const controlBarStyle = {
     textAlign: 'center',

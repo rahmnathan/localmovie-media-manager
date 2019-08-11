@@ -1,7 +1,7 @@
 import React from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import {viewingVideos} from "./VideoPlayer";
+import {viewingVideos} from "./VideoPlayer.jsx";
 
 const movieStyle = {
     borderStyle: 'solid',
@@ -112,11 +112,23 @@ export class Media extends React.Component {
         if (media.releaseYear !== null) {
             year = media.releaseYear;
         }
-
         let rating = '';
         if (media.imdbRating !== null) {
             rating = media.imdbRating;
         }
+
+        let currentPosition = 0;
+        if(mediaFile.mediaViews.length !== 0){
+            currentPosition = mediaFile.mediaViews[0].position;
+        }
+
+        let currentPositionStyle = {
+            maxWidth: "90%",
+            width: ((currentPosition/mediaFile.length) * 100) + "%",
+            color: "#FF0000",
+            backgroundColor: "#FF0000",
+            height: 10
+        };
 
         if (this.state !== null && this.state.hovered) {
             return (
@@ -129,6 +141,7 @@ export class Media extends React.Component {
                     <div style={hoveredMovieStyle} onClick={this.selectMedia} onMouseEnter={this.handleHover} onMouseLeave={this.removeHover}>
                         <div>
                             <LazyLoadImage src={buildPosterUri(mediaFile.path)} onError={(e) => {e.target.onerror = null; e.target.src = "noPicture.gif"}} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition}/>
+                            <div style={currentPositionStyle}/>
                             <p style={hoveredTitleStyle}>{title}</p>
                             <p style={textStyle}>Year: {year}</p>
                             <p style={textStyle}>IMDB: {rating}</p>
@@ -148,6 +161,7 @@ export class Media extends React.Component {
                 <div style={movieStyle} onClick={this.selectMedia} onMouseEnter={this.handleHover} onMouseLeave={this.removeHover}>
                     <div>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}} src={buildPosterUri(mediaFile.path)} alt={title} style={posterStyle} scrollPosition={this.props.scrollPosition}/>
+                        <div style={currentPositionStyle}/>
                         <p style={titleStyle}>{title}</p>
                         <p style={textStyle}>Year: {year}</p>
                         <p style={textStyle}>IMDB: {rating}</p>
