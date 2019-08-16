@@ -45,14 +45,32 @@ const buttonStyle = {
     borderColor: 'black'
 };
 
-export const VideoPlayer = ({ videoPath }) => {
-    return (
-        <div style={videoPlayerStyle}>
-            <video width="100%" controls poster={buildPosterUri(videoPath)}>
-                <source src={buildVideoPath(videoPath)} type="video/mp4"/>
-            </video>
-            <button style={buttonStyle} onClick={() => {window.history.back()}}>Exit Video</button>
-            <div style={backgroundTintStyle}/>;
-        </div>
-    );
-};
+export class VideoPlayer extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.handleVideoMounted = this.handleVideoMounted.bind(this);
+    }
+
+    handleVideoMounted(element) {
+        if (element !== null) {
+            let position = element.target.duration * (this.props.videoStartPercent * .915);
+            element.target.currentTime = isNaN(position) ? 0 : position;
+        }
+    };
+
+    render() {
+        return (
+            <div style={videoPlayerStyle}>
+                <video width="100%" controls poster={buildPosterUri(this.props.videoPath)} onLoadedMetadata={this.handleVideoMounted}>
+                    <source src={buildVideoPath(this.props.videoPath)} type="video/mp4"/>
+                </video>
+                <button style={buttonStyle} onClick={() => {
+                    window.history.back()
+                }}>Exit Video
+                </button>
+                <div style={backgroundTintStyle}/>
+            </div>
+        );
+    };
+}

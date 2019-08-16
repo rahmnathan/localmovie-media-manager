@@ -3,9 +3,6 @@ package com.github.rahmnathan.localmovie.web.web;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.github.rahmnathan.localmovie.web.MediaResource;
-import com.github.rahmnathan.localmovie.data.MediaClient;
-import com.github.rahmnathan.localmovie.web.data.MediaRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +28,6 @@ import static org.mockito.Mockito.when;
 public class MediaResourceTest {
     private static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
     private static final String PATH = "Series";
-    private MediaResource mediaResource;
 
 //    @MockBean
 //    private MediaDataServiceWeb dataService;

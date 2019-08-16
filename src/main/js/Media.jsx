@@ -89,8 +89,8 @@ export class Media extends React.Component {
         this.removeHover = this.removeHover.bind(this);
     }
 
-    selectMedia() {
-        this.props.setPath(this.props.media.path);
+    selectMedia(startPercent) {
+        this.props.setPathAndStartPercent(this.props.media.path, startPercent);
     }
 
     buildMedia() {
@@ -117,14 +117,14 @@ export class Media extends React.Component {
             rating = media.imdbRating;
         }
 
-        let currentPosition = 0;
+        let videoStartPercent = 0;
         if(mediaFile.mediaViews.length !== 0){
-            currentPosition = mediaFile.mediaViews[0].position;
+            videoStartPercent = mediaFile.mediaViews[0].position / mediaFile.length;
         }
 
         let currentPositionStyle = {
             maxWidth: "90%",
-            width: ((currentPosition/mediaFile.length) * 100) + "%",
+            width: (videoStartPercent * 100) + "%",
             color: "#FF0000",
             backgroundColor: "#FF0000",
             height: 10
@@ -138,9 +138,9 @@ export class Media extends React.Component {
                     transitionAppearTimeout={500}
                     transitionEnter={true}
                     transitionLeave={true}>
-                    <div style={hoveredMovieStyle} onClick={this.selectMedia} onMouseEnter={this.handleHover} onMouseLeave={this.removeHover}>
+                    <div style={hoveredMovieStyle} onClick={() => this.selectMedia(videoStartPercent)} onMouseEnter={this.handleHover} onMouseLeave={this.removeHover}>
                         <div>
-                            <LazyLoadImage src={buildPosterUri(mediaFile.path)} onError={(e) => {e.target.onerror = null; e.target.src = "noPicture.gif"}} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition}/>
+                            <LazyLoadImage src={buildPosterUri(mediaFile.path)} onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition}/>
                             <div style={currentPositionStyle}/>
                             <p style={hoveredTitleStyle}>{title}</p>
                             <p style={textStyle}>Year: {year}</p>
@@ -158,7 +158,7 @@ export class Media extends React.Component {
                 transitionAppearTimeout={500}
                 transitionEnter={true}
                 transitionLeave={true}>
-                <div style={movieStyle} onClick={this.selectMedia} onMouseEnter={this.handleHover} onMouseLeave={this.removeHover}>
+                <div style={movieStyle} onClick={() => this.selectMedia(videoStartPercent)} onMouseEnter={this.handleHover} onMouseLeave={this.removeHover}>
                     <div>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}} src={buildPosterUri(mediaFile.path)} alt={title} style={posterStyle} scrollPosition={this.props.scrollPosition}/>
                         <div style={currentPositionStyle}/>

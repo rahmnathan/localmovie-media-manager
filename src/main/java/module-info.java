@@ -28,6 +28,6 @@ module local.movie.service {
     requires spring.core;
     requires org.apache.httpcomponents.httpcore;
     requires com.fasterxml.jackson.core;
-    requires tomcat.servlet.api;
     requires spring.security.core;
+    requires tomcat.embed.core;
 }

@@ -136,7 +136,7 @@ export class MainPage extends React.Component {
         return (
             <div style={layoutProps}>
                 <ControlBar selectSort={this.selectSort} selectGenre={this.selectGenre} filterMedia={this.filterMedia} setPath={this.props.setPath}/>
-                <MediaList media={this.state.media} setPath={this.props.setPath}/>
+                <MediaList media={this.state.media} setPathAndStartPercent={this.props.setPathAndStartPercent}/>
             </div>
         )
     }

@@ -1,17 +1,5 @@
 package com.github.rahmnathan.localmovie.web.control;
 
-import com.github.rahmnathan.localmovie.web.FileSenderService;
-import org.apache.http.HttpHeaders;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-
-import javax.servlet.http.HttpServletResponse;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public class FileSenderServiceTest {
 //    private final FileSenderService fileSenderService = new FileSenderService();
 //

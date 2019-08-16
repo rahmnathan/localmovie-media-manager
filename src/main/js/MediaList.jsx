@@ -9,9 +9,9 @@ const mediaListStyle = {
     paddingTop: 150
 };
 
-export const MediaList = ({ media, setPath}) => {
+export const MediaList = ({ media, setPathAndStartPercent }) => {
     const mediaList = media.map(media =>
-        <Media key={media.path} media={media} setPath={setPath}/>
+        <Media key={media.path} media={media} setPathAndStartPercent={setPathAndStartPercent}/>
     );
 
     return (
