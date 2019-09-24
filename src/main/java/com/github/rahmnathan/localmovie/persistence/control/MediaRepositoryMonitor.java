@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.control.MediaDataService;
+import com.github.rahmnathan.localmovie.data.Duration;
 import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @Transactional
 public class MediaRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaRepositoryMonitor.class.getName());
-    private final ServiceConfig.MediaRepositoryMonitorConfig repositoryMonitorConfig;
+    private final ServiceConfig.MediaRepositoryMonitorConfig config;
     private final MediaFileRepository mediaFileRepository;
     private final MediaDataService mediaDataService;
     private final MediaRepository mediaRepository;
@@ -29,7 +30,7 @@ public class MediaRepositoryMonitor {
                                   MediaRepository mediaRepository,
                                   MediaDataService mediaDataService,
                                   ServiceConfig serviceConfig) {
-        this.repositoryMonitorConfig = serviceConfig.getRepository();
+        this.config = serviceConfig.getRepository();
         this.mediaFileRepository = mediaFileRepository;
         this.mediaDataService = mediaDataService;
         this.mediaRepository = mediaRepository;
@@ -37,16 +38,16 @@ public class MediaRepositoryMonitor {
 
     @Scheduled(fixedDelay = 3600000, initialDelay = 120000)
     public void checkForEmptyValues() {
-        int updateFrequencyDays = repositoryMonitorConfig.getUpdateFrequencyDays();
-        int updateLimit = repositoryMonitorConfig.getUpdateLimit();
-        logger.info("Performing update of existing media. Frequency days: {} Update limit: {}", updateFrequencyDays, updateLimit);
+        Duration updateFrequency = config.getUpdateFrequency();
+        int updateLimit = config.getUpdateLimit();
+        logger.info("Performing update of existing media. Frequency unit: {} value: {} Update limit: {}", updateFrequency.getUnit(), updateFrequency.getValue(), updateLimit);
 
-        LocalDateTime queryCutoff = LocalDateTime.now().minusDays(updateFrequencyDays);
+        LocalDateTime queryCutoff = LocalDateTime.now().minus(config.getUpdateFrequency().getValue(), config.getUpdateFrequency().getUnit());
         mediaFileRepository.findAllByUpdatedBeforeOrderByUpdated(queryCutoff, PageRequest.of(0, updateLimit))
                 .forEach(mediaFile -> {
                     try {
-                        logger.info("Updating media at path: {}", mediaFile.getParentPath());
-                        MediaFile newMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getParentPath());
+                        logger.info("Updating media at path: {}", mediaFile.getPath());
+                        MediaFile newMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
 
                         Media oldMedia = mediaFile.getMedia();
                         oldMedia.setMediaFile(null);

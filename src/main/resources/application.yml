@@ -14,7 +14,9 @@ service:
   notificationsEnabled: false
   omdbApiKey: "a825746e"
   repository:
-    updateFrequencyDays: 4
+    updateFrequency:
+      unit: SECONDS
+      value: 30
     updateLimit: 201
 spring:
   datasource:

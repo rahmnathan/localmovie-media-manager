@@ -1,7 +1,10 @@
 package com.github.rahmnathan.localmovie.config;
 
+import com.github.rahmnathan.localmovie.data.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.temporal.ChronoUnit;
 
 @Configuration
 @ConfigurationProperties(prefix = "service")
@@ -62,15 +65,15 @@ public class ServiceConfig {
     }
 
     public static class MediaRepositoryMonitorConfig {
-        private int updateFrequencyDays = 3;
+        private Duration updateFrequency = new Duration(ChronoUnit.DAYS, 3L);
         private int updateLimit = 200;
 
-        public int getUpdateFrequencyDays() {
-            return updateFrequencyDays;
+        public Duration getUpdateFrequency() {
+            return updateFrequency;
         }
 
-        public void setUpdateFrequencyDays(int updateFrequencyDays) {
-            this.updateFrequencyDays = updateFrequencyDays;
+        public void setUpdateFrequency(Duration updateFrequency) {
+            this.updateFrequency = updateFrequency;
         }
 
         public int getUpdateLimit() {
