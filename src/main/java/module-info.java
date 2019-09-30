@@ -2,7 +2,6 @@ module local.movie.service {
     requires spring.context;
     requires spring.beans;
     requires guava;
-    requires slf4j.api;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.module.paramnames;
     requires com.fasterxml.jackson.datatype.jsr310;
@@ -29,5 +28,6 @@ module local.movie.service {
     requires org.apache.httpcomponents.httpcore;
     requires com.fasterxml.jackson.core;
     requires spring.security.core;
-    requires tomcat.embed.core;
+    requires tomcat.servlet.api;
+    requires org.slf4j;
 }
