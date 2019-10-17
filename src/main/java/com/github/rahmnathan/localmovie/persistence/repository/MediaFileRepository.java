@@ -21,8 +21,10 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     Optional<MediaFile> findByPath(String path);
     @Query(value = "select lo_get(cast(image as int)) from media where id = (select media_id from media_file where path = :path)", nativeQuery = true)
     byte[] findMediaPosterByPath(String path);
-    @Query(value = "select * from media_file left join media_view on media_file.id = media_view.media_file_id left join media_user on media_view.media_user_id = media_user.id and media_user.user_id = :userId where media_file.parent_path = :path", nativeQuery = true)
-    List<MediaFile> findAllByParentPath(String path, String userId);
+    @Query(value = "select * from media_file left join media_view on media_file.id = media_view.media_file_id left join media_user on media_view.media_user_id = media_user.id and media_user.user_id = :userId where media_file.parent_path = :path --#pageable\\n",
+            countQuery = "select count(*) from media_file left join media_view on media_file.id = media_view.media_file_id left join media_user on media_view.media_user_id = media_user.id and media_user.user_id = :userId where media_file.parent_path = :path",
+            nativeQuery = true)
+    List<MediaFile> findAllByParentPath(String path, String userId, Pageable pageable);
     @Query(value = "select * from media_file left join media_view on media_file.id = media_view.media_file_id left join media_user on media_view.media_user_id = media_user.id and media_user.user_id = :userId where media_file.path = :path", nativeQuery = true)
     MediaFile findByPath(String path, String userId);
 }
