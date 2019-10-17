@@ -57,8 +57,8 @@ public class MediaPersistenceService {
         }
 
         String userName = getUsername();
-        Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
-        return mediaFileRepository.findAllByParentPath(request.getPath(), userName, pageable);
+        return mediaFileRepository.findAllByParentPath(request.getPath(), userName, sort.toString(),
+                request.getResultsPerPage() * request.getPage(), request.getResultsPerPage());
     }
 
     public void addView(String path, long position) {

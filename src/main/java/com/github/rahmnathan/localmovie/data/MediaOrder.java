@@ -8,7 +8,7 @@ public enum MediaOrder {
     RATING("media.imdbRating", false),
     RELEASE_YEAR("media.releaseYear", false),
     SEASONS_EPISODES("media.number", true),
-    TITLE("path", true);
+    TITLE("fileName", true);
 
     private final Sort sort;
 
