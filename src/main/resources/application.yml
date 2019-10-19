@@ -8,12 +8,14 @@ server:
     enabled: false
 service:
   directoryMonitor:
+    enabled: true
     concurrentConversionLimit: 3
     ffprobeLocation: "/usr/bin/ffprobe"
   mediaPaths: "/media/nathan/LocalMedia/"
   notificationsEnabled: false
   omdbApiKey: "a825746e"
   repository:
+    enabled: true
     updateFrequency:
       unit: SECONDS
       value: 30

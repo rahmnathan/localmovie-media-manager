@@ -1,12 +1,17 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
 @Entity
-//@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"media_file_id", "media_user_id)"}))
+@EqualsAndHashCode(exclude="mediaFile")
 public class MediaView {
 
     @Id
@@ -30,10 +35,6 @@ public class MediaView {
         this.position = position;
     }
 
-    public MediaView() {
-
-    }
-
     @PrePersist
     public void setCreated(){
         created = LocalDateTime.now();
@@ -45,32 +46,8 @@ public class MediaView {
         updated = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public MediaUser getMediaUser(){
-        return mediaUser;
-    }
-
     @JsonIgnore
     public MediaFile getMediaFile(){
         return mediaFile;
-    }
-
-    public LocalDateTime getCreated() {
-        return created;
-    }
-
-    public LocalDateTime getUpdated() {
-        return updated;
-    }
-
-    public Long getPosition() {
-        return position;
-    }
-
-    public void setPosition(Long position) {
-        this.position = position;
     }
 }

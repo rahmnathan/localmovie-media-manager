@@ -2,13 +2,16 @@ package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.control.MediaDataServiceWeb;
+import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
+import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
 import com.github.rahmnathan.localmovie.web.data.MediaRequest;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,16 +38,23 @@ public class MediaResource {
     }
 
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+    public ResponseEntity<List> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         logger.info("Received request: {}", mediaRequest.toString());
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
 
-        List<MediaFile> movieInfoList = metadataService.loadMediaFileList(mediaRequest);
-
-        logger.info("Returning {} movies", movieInfoList.size());
-        return movieInfoList;
+        if(mediaRequest.getClient() == MediaClient.WEBAPP){
+            logger.info("Loading redacted media files for webapp.");
+            List<RedactedMediaFile> redactedMediaFiles = metadataService.loadRedactedMediaFileList(mediaRequest);
+            logger.info("Returning media list. Size: {}", redactedMediaFiles.size());
+            return ResponseEntity.ok(redactedMediaFiles);
+        } else {
+            logger.info("Loading full media files for Android.");
+            List<MediaFile> mediaFiles = metadataService.loadMediaFileList(mediaRequest);
+            logger.info("Returning media list. Size: {}", mediaFiles.size());
+            return ResponseEntity.ok(mediaFiles);
+        }
     }
 
     @GetMapping(value = "/count")

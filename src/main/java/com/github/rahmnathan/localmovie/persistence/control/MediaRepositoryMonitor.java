@@ -10,6 +10,7 @@ import com.github.rahmnathan.localmovie.persistence.repository.MediaFileReposito
 import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 
 @Service
 @Transactional
+@ConditionalOnProperty(name = "service.repository.enabled", havingValue = "true")
 public class MediaRepositoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaRepositoryMonitor.class.getName());
     private final ServiceConfig.MediaRepositoryMonitorConfig config;

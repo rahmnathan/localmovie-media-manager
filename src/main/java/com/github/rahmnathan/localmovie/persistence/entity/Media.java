@@ -2,12 +2,14 @@ package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rahmnathan.omdb.data.MediaType;
+import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
+@Data
 @Entity
 public class Media {
 
@@ -35,73 +37,9 @@ public class Media {
     @OneToOne(mappedBy = "media", cascade = CascadeType.ALL)
     private MediaFile mediaFile;
 
-    public void removePoster(){
-        this.image = null;
-    }
-
-    public MediaType getMediaType() {
-        return mediaType;
-    }
-
-    public byte[] getImage() {
-        return image;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getImdbRating() {
-        return imdbRating;
-    }
-
-    public String getMetaRating() {
-        return metaRating;
-    }
-
-    public String getReleaseYear() {
-        return releaseYear;
-    }
-
-    public String getActors() {
-        return actors;
-    }
-
-    public String getPlot() {
-        return plot;
-    }
-
-    public String getGenre() {
-        return genre;
-    }
-
-    public Integer getNumber() {
-        return number;
-    }
-
-    public Long getId(){
-        return id;
-    }
-
-    public LocalDateTime getCreated() {
-        return created;
-    }
-
-    public LocalDateTime getUpdated() {
-        return updated;
-    }
-
     @JsonIgnore
     public MediaFile getMediaFile(){
         return mediaFile;
-    }
-
-    public void setMediaFile(MediaFile mediaFile){
-        this.mediaFile = mediaFile;
-    }
-
-    public void removeMediaFile(){
-        this.mediaFile = null;
     }
 
     @PrePersist

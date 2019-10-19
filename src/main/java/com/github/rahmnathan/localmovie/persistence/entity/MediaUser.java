@@ -1,6 +1,9 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -8,7 +11,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+@Data
+@NoArgsConstructor
 @Entity
+@EqualsAndHashCode(exclude="mediaView")
 public class MediaUser {
 
     @Id
@@ -25,10 +31,6 @@ public class MediaUser {
 
     public MediaUser(String userId){
         this.userId = userId;
-    }
-
-    public MediaUser(){
-
     }
 
     @PrePersist
@@ -49,25 +51,5 @@ public class MediaUser {
 
     public void addMediaView(MediaView mediaView) {
         this.mediaView.add(mediaView);
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDateTime getCreated() {
-        return created;
-    }
-
-    public LocalDateTime getUpdated() {
-        return updated;
     }
 }

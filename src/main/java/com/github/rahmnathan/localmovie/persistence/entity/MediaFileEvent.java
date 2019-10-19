@@ -1,9 +1,14 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
+@NoArgsConstructor
 public class MediaFileEvent {
 
     @Id
@@ -19,9 +24,6 @@ public class MediaFileEvent {
     @ManyToOne(cascade = CascadeType.ALL)
     private MediaFile mediaFile;
 
-    public MediaFileEvent() {
-    }
-
     public MediaFileEvent(String event, MediaFile mediaFile, String relativePath) {
         this.relativePath = relativePath;
         this.mediaFile = mediaFile;
@@ -31,38 +33,6 @@ public class MediaFileEvent {
     @PrePersist
     public void setTimestamp(){
         this.timestamp = LocalDateTime.now();
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setRelativePath(String relativePath) {
-        this.relativePath = relativePath;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    public void setMediaFile(MediaFile mediaFile) {
-        this.mediaFile = mediaFile;
-    }
-
-    public String getRelativePath() {
-        return relativePath;
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public MediaFile getMediaFile() {
-        return mediaFile;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
     }
 
     @Override

@@ -1,13 +1,8 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaUser;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaView;
+import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaUserRepository;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaViewRepository;
 import com.github.rahmnathan.localmovie.web.data.MediaRequest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,15 +24,10 @@ import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 public class MediaPersistenceService {
     private final MediaFileEventRepository mediaFileEventRepository;
     private final MediaFileRepository mediaFileRepository;
-    private final MediaUserRepository userRepository;
-    private final MediaViewRepository viewRepository;
 
-    public MediaPersistenceService(MediaFileEventRepository mediaFileEventRepository, MediaFileRepository mediaFileRepository,
-                                   MediaViewRepository viewRepository, MediaUserRepository userRepository) {
+    public MediaPersistenceService(MediaFileEventRepository mediaFileEventRepository, MediaFileRepository mediaFileRepository) {
         this.mediaFileEventRepository = mediaFileEventRepository;
         this.mediaFileRepository = mediaFileRepository;
-        this.userRepository = userRepository;
-        this.viewRepository = viewRepository;
     }
 
     public byte[] getMediaImage(String path){
@@ -56,9 +46,20 @@ public class MediaPersistenceService {
             sort = request.getOrder().getSort();
         }
 
-        String userName = getUsername();
-        return mediaFileRepository.findAllByParentPath(request.getPath(), userName, sort.toString(),
-                request.getResultsPerPage() * request.getPage(), request.getResultsPerPage());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
+        return mediaFileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
+    }
+
+    public List<RedactedMediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
+        Sort sort;
+        if (request.getPath().split(File.separator).length > 1) {
+            sort = SEASONS_EPISODES.getSort();
+        } else {
+            sort = request.getOrder().getSort();
+        }
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
+        return mediaFileRepository.findAllByParentPathNoPoster(request.getPath(), getUsername(), pageable);
     }
 
     public void addView(String path, long position) {

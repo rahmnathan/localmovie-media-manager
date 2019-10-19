@@ -1,15 +1,14 @@
 package com.github.rahmnathan.localmovie.control;
 
-import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
+import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
 import com.github.rahmnathan.localmovie.web.data.MediaRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,15 +33,12 @@ public class MediaDataServiceWeb {
         return persistenceService.getMediaImage(path);
     }
 
+    public List<RedactedMediaFile> loadRedactedMediaFileList(MediaRequest mediaRequest){
+        return persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+    }
+
     public List<MediaFile> loadMediaFileList(MediaRequest mediaRequest) {
-        List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPath(mediaRequest);
-
-        if (mediaRequest.getClient() == MediaClient.WEBAPP) {
-            logger.info("Removing images for webapp");
-            mediaFiles.forEach(mediaFile -> mediaFile.getMedia().removePoster());
-        }
-
-        return mediaFiles;
+        return persistenceService.getMediaFilesByParentPath(mediaRequest);
     }
 
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime dateTime){

@@ -7,13 +7,15 @@ server:
     enabled: false
 service:
   directoryMonitor:
+    enabled: false
     concurrentConversionLimit: 3
     ffprobeLocation: "/usr/bin/ffprobe"
   jedisHost: stub
-  mediaPaths: "/opt/localmovie/data/internal/LocalMedia/,/opt/localmovie/data/external1/LocalMedia/,/opt/localmovie/data/external2/LocalMedia/"
+  mediaPaths: "/test/LocalMedia/"
   notificationsEnabled: false
   omdbApiKey: "api-key"
   repository:
+    enabled: false
     updateFrequencyDays: 4
     updateLimit: 201
 spring:

@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.io.File;
@@ -9,7 +10,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+@Data
 @Entity
+@Table(indexes = @Index(name = "idx_media_file_path", columnList = "path", unique = true))
 public class MediaFile {
 
     @Id
@@ -51,14 +54,6 @@ public class MediaFile {
         updated = LocalDateTime.now();
     }
 
-    public void setLength(long length) {
-        this.length = length;
-    }
-
-    public long getLength() {
-        return length;
-    }
-
     public Collection<MediaView> getMediaViews() {
         if(mediaViews == null){
             mediaViews = new HashSet<>();
@@ -67,56 +62,8 @@ public class MediaFile {
         return mediaViews;
     }
 
-    public void setMedia(Media media){
-        this.media = media;
-    }
-
     public void addMediaView(MediaView mediaView) {
         this.mediaViews.add(mediaView);
-    }
-
-    public void setMediaFileEvent(MediaFileEvent mediaFileEvent){
-        this.mediaFileEvent = mediaFileEvent;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getParentPath() {
-        return parentPath;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public LocalDateTime getCreated() {
-        return created;
-    }
-
-    public LocalDateTime getUpdated() {
-        return updated;
-    }
-
-    public int getViews() {
-        return views;
-    }
-
-    public Media getMedia() {
-        return media;
-    }
-
-    public MediaFileEvent getMediaFileEvent() {
-        return mediaFileEvent;
-    }
-
-    public long getVersion() {
-        return version;
     }
 
     @Override

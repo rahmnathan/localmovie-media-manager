@@ -6,6 +6,7 @@ import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@ConditionalOnProperty(name = "service.directoryMonitor.enabled", havingValue = "true")
 public class MediaDirectoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaDirectoryMonitor.class);
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
@@ -57,13 +59,9 @@ public class MediaDirectoryMonitor {
         }
     }
 
-    File[] listFiles(String absolutePath) {
+    private File[] listFiles(String absolutePath) {
         logger.info("Listing files at - {}", absolutePath);
-        Optional<File[]> optionalFiles = Optional.ofNullable(new File(absolutePath).listFiles());
-
-        if (optionalFiles.isEmpty()) return new File[0];
-
-        File[] files = optionalFiles.get();
+        File[] files = Optional.ofNullable(new File(absolutePath).listFiles()).orElse(new File[0]);
         logger.info("Found {} files.", files.length);
         return files;
     }
