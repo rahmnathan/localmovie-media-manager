@@ -6,7 +6,7 @@ import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
-import com.github.rahmnathan.localmovie.web.data.MediaRequest;
+import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

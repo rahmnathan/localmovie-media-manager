@@ -3,7 +3,7 @@ package com.github.rahmnathan.localmovie.persistence.control;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
-import com.github.rahmnathan.localmovie.web.data.MediaRequest;
+import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

@@ -2,11 +2,9 @@ package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
-import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
-import com.github.rahmnathan.localmovie.web.data.MediaRequest;
-import com.github.rahmnathan.omdb.data.MediaType;
+import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

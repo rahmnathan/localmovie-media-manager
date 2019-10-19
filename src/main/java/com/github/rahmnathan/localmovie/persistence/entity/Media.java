@@ -91,17 +91,17 @@ public class Media {
     }
 
     public com.github.rahmnathan.omdb.data.Media toOmdbMedia(){
-        return com.github.rahmnathan.omdb.data.Media.Builder.newInstance()
-                .setTitle(this.title)
-                .setReleaseYear(this.releaseYear)
-                .setPlot(this.plot)
-                .setNumber(this.number)
-                .setMediaType(this.mediaType)
-                .setMetaRating(this.metaRating)
-                .setIMDBRating(this.imdbRating)
-                .setImage(Base64.getEncoder().encodeToString(this.image))
-                .setGenre(this.genre)
-                .setActors(this.actors)
+        return com.github.rahmnathan.omdb.data.Media.builder()
+                .title(this.title)
+                .releaseYear(this.releaseYear)
+                .plot(this.plot)
+                .number(this.number)
+                .mediaType(this.mediaType)
+                .metaRating(this.metaRating)
+                .imdbRating(this.imdbRating)
+                .image(Base64.getEncoder().encodeToString(this.image))
+                .genre(this.genre)
+                .actors(this.actors)
                 .build();
     }
 }

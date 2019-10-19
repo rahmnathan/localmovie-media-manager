@@ -80,7 +80,7 @@ public class MediaDataService {
                 return mediaProvider.getMovie(title);
             } catch (MediaProviderException e) {
                 logger.error("Error getting media from provider", e);
-                return Media.Builder.newInstance().setTitle(title).build();
+                return Media.builder().title(title).build();
             }
         }
     }
@@ -102,6 +102,6 @@ public class MediaDataService {
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
         Integer number = isEpisode(path) ? getEpisodeNumber(filename) : getSeasonNumber(filename);
-        return Media.Builder.copyWithNewTitleNumberAndType(parentInfo.getMedia().toOmdbMedia(), getTitle(filename), number, mediaType);
+        return Media.copyWithNewTitleNumberAndType(parentInfo.getMedia().toOmdbMedia(), getTitle(filename), number, mediaType);
     }
 }
