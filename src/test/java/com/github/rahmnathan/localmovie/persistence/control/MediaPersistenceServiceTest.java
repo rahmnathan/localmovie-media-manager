@@ -43,7 +43,7 @@ public class MediaPersistenceServiceTest {
 
         save(mediaFile);
 
-        MediaRequest mediaRequest = new MediaRequest("Movies", 1, 5, MediaClient.ANDROID, MediaOrder.TITLE);
+        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 5, MediaClient.ANDROID, MediaOrder.TITLE);
 
         List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPath(mediaRequest);
 
