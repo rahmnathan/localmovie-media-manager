@@ -15,6 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @EqualsAndHashCode(exclude="mediaView")
+@Table(indexes = @Index(name = "idx_media_user_user_id", columnList = "user_id"))
 public class MediaUser {
 
     @Id

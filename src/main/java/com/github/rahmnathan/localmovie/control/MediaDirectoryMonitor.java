@@ -46,14 +46,17 @@ public class MediaDirectoryMonitor {
     public void loadMediaData(File file) {
         try {
             String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
+            if (dataService.existsInDatabase(relativePath)) {
+                logger.debug("Path already exists in database: {}", relativePath);
+                return;
+            }
+
             MediaFile mediaFile = dataService.loadMediaFile(relativePath);
 
             long fileSize = file.length();
             mediaFile.setLength(fileSize);
 
-            if (!dataService.existsInDatabase(mediaFile.getPath())) {
-                dataService.saveMediaFile(mediaFile);
-            }
+            dataService.saveMediaFile(mediaFile);
         } catch (InvalidMediaException e) {
             logger.error("Failure loading media data.", e);
         }
