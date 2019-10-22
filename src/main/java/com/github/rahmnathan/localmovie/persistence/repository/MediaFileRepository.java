@@ -49,4 +49,5 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     long countAllByParentPath(String parentPath);
     Optional<MediaFile> findByPath(String path);
     boolean existsByPath(String path);
+    void deleteByPath(String path);
 }

@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.github.rahmnathan.localmovie.control.MediaDirectoryMonitor.ROOT_MEDIA_FOLDER;
@@ -26,19 +27,18 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     }
 
     @Override
-    public void directoryModified(WatchEvent event, Path inputPath) {
-        String absolutePath = inputPath.toFile().getAbsolutePath();
+    public void directoryModified(WatchEvent.Kind event, File inputPath) {
+        String absolutePath = inputPath.getAbsolutePath();
+        MDC.put("correlation-id", UUID.randomUUID().toString());
+        logger.info("Detected media event at path: {}", absolutePath);
 
-        MDC.put("Path", absolutePath);
-        logger.info("Detected media event.");
-
-        if(!activeConversions.contains(absolutePath)) {
+        if (!activeConversions.contains(absolutePath)) {
             String relativePath = inputPath.toString().split(ROOT_MEDIA_FOLDER)[1];
 
-            if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+            if (event == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(inputPath);
                 eventService.handleCreateEvent(relativePath, inputPath, activeConversions);
-            } else if (event.kind() == StandardWatchEventKinds.ENTRY_DELETE){
+            } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
                 eventService.handleDeleteEvent(relativePath);
             }
         } else {
@@ -46,20 +46,18 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         }
     }
 
-    private void waitForWriteComplete(Path filePath){
-        while(true) {
-            File file = filePath.toFile();
+    private void waitForWriteComplete(File file) {
+        while (true) {
             long beforeLastModified = file.lastModified();
 
             try {
                 Thread.sleep(3000);
-            } catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 logger.error("Failure waiting for file to finish writing", e);
             }
 
             long afterLastModified = file.lastModified();
-
-            if(beforeLastModified == afterLastModified){
+            if (beforeLastModified == afterLastModified) {
                 return;
             }
         }

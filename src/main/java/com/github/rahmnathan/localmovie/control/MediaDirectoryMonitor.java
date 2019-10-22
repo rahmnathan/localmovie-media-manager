@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.control;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
+import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @ConditionalOnProperty(name = "service.directoryMonitor.enabled", havingValue = "true")
@@ -24,17 +24,14 @@ public class MediaDirectoryMonitor {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final DirectoryMonitor directoryMonitor;
     private final MediaDataService dataService;
-    private final String[] mediaPaths;
 
-    public MediaDirectoryMonitor(ServiceConfig serviceConfig, MediaDataService dataService) {
-        this.mediaPaths = serviceConfig.getMediaPaths();
-        this.directoryMonitor = new DirectoryMonitor();
+    public MediaDirectoryMonitor(ServiceConfig serviceConfig, MediaDataService dataService, Set<DirectoryMonitorObserver> observers) {
+        this.directoryMonitor = new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
         this.dataService = dataService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
-        Arrays.stream(mediaPaths).forEach(directoryMonitor::registerDirectory);
         directoryMonitor.getPaths().parallelStream()
                 .map(Path::toString)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))

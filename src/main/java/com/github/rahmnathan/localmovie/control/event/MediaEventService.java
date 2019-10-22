@@ -6,21 +6,25 @@ import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.video.cast.handbrake.control.VideoController;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import io.micrometer.core.instrument.Metrics;
 import net.bramp.ffmpeg.FFprobe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static com.github.rahmnathan.localmovie.control.MediaDirectoryMonitor.ROOT_MEDIA_FOLDER;
 
@@ -29,13 +33,15 @@ public class MediaEventService {
     private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final Logger logger = LoggerFactory.getLogger(MediaEventService.class);
     private final PushNotificationService notificationHandler;
-    private final MediaDataService metadataService;
     private final MediaFileEventRepository eventRepository;
+    private final MediaFileRepository mediaFileRepository;
+    private final MediaDataService metadataService;
     private final ExecutorService executorService;
     private FFprobe ffprobe;
 
     public MediaEventService(ServiceConfig serviceConfig,
                              MediaDataService mediaMetadataService, MediaFileEventRepository eventRepository,
+                             MediaFileRepository repository,
                              PushNotificationService notificationHandler) {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
@@ -43,6 +49,7 @@ public class MediaEventService {
         this.notificationHandler = notificationHandler;
         this.metadataService = mediaMetadataService;
         this.eventRepository = eventRepository;
+        this.mediaFileRepository = repository;
 
         try {
             this.ffprobe = new FFprobe(eventMonitorConfig.getFfprobeLocation());
@@ -51,12 +58,12 @@ public class MediaEventService {
         }
     }
 
-    void handleCreateEvent(String relativePath, Path inputPath, Set<String> activeConversions){
+    void handleCreateEvent(String relativePath, File file, Set<String> activeConversions){
         logger.info("Event type: CREATE.");
 
-        if (Files.isRegularFile(inputPath) && ffprobe != null) {
+        if (Files.isRegularFile(file.toPath()) && ffprobe != null) {
             queuedConversionGauge.getAndIncrement();
-            relativePath = launchVideoConverter(inputPath.toFile().getAbsolutePath(), activeConversions);
+            relativePath = launchVideoConverter(file.getAbsolutePath(), activeConversions);
             queuedConversionGauge.getAndDecrement();
         }
 
@@ -74,19 +81,14 @@ public class MediaEventService {
         }
     }
 
-    void handleDeleteEvent(String relativePath){
+    @Transactional
+    public void handleDeleteEvent(String relativePath){
         logger.info("Event type: DELETE.");
-
         if(metadataService.existsInDatabase(relativePath)){
-            deleteFromDatabase(relativePath);
+            logger.info("Removing media from database.");
+            eventRepository.deleteAllByRelativePath(relativePath);
+            mediaFileRepository.deleteByPath(relativePath);
         }
-
-        addDeleteEvent(relativePath);
-    }
-
-    private void deleteFromDatabase(String path){
-        logger.info("Removing media from database.");
-        eventRepository.deleteAllByRelativePath(path);
     }
 
     private MediaFile loadMediaFile(String relativePath) throws InvalidMediaException {
@@ -99,15 +101,13 @@ public class MediaEventService {
         return mediaFile;
     }
 
-    private void addDeleteEvent(String resultFilePath){
-        logger.info("Adding DELETE event to repository.");
-        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_DELETE.getMovieEventString(), null, resultFilePath);
-    }
-
-    private void addCreateEvent(String resultFilePath, MediaFile mediaFile){
+    @Transactional
+    public void addCreateEvent(String resultFilePath, MediaFile mediaFile){
         logger.info("Adding CREATE event to repository.");
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, resultFilePath);
         mediaFile.setMediaFileEvent(event);
+        eventRepository.save(event);
+        mediaFileRepository.save(mediaFile);
     }
 
     private String launchVideoConverter(String inputFilePath, Set<String> activeConversions){
@@ -117,12 +117,20 @@ public class MediaEventService {
 
         logger.info("Launching video converter.");
         try {
-            resultFilePath = CompletableFuture.supplyAsync(new VideoController(conversionJob, activeConversions), executorService).get();
+            resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoController(conversionJob, activeConversions)), executorService).get();
         } catch (InterruptedException | ExecutionException e){
             logger.error("Failure converting video.", e);
             resultFilePath = inputFilePath;
         }
 
         return resultFilePath.split(ROOT_MEDIA_FOLDER)[1];
+    }
+
+    private static <U> Supplier<U> withMdc(Supplier<U> supplier) {
+        Map<String, String> mdc = MDC.getCopyOfContextMap();
+        return (Supplier) () -> {
+            MDC.setContextMap(mdc);
+            return supplier.get();
+        };
     }
 }
