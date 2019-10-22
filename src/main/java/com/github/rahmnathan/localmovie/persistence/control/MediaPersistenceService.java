@@ -4,6 +4,8 @@ import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,6 +24,7 @@ import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 @Service
 @Transactional
 public class MediaPersistenceService {
+    private final Logger logger = LoggerFactory.getLogger(MediaPersistenceService.class);
     private final MediaFileEventRepository mediaFileEventRepository;
     private final MediaFileRepository mediaFileRepository;
 
@@ -64,6 +67,7 @@ public class MediaPersistenceService {
 
     public void addView(String path, long position) {
         String userName = getUsername();
+        logger.info("Adding view for User: {} Path: {} Position: {}", userName, path, position);
         String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
         MediaFile mediaFile = mediaFileRepository.findByPath(relativePath, userName);
         if(mediaFile.getMediaViews().isEmpty()){
