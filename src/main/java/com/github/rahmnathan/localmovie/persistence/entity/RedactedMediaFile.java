@@ -27,6 +27,7 @@ public interface RedactedMediaFile {
         String getMetaRating();
         String getActors();
         String getPlot();
+        String getReleaseYear();
         String getGenre();
         Integer getNumber();
         LocalDateTime getCreated();
