@@ -41,9 +41,8 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
 
     @Query(value = "select m1 from MediaFile m1 " +
             "left join m1.mediaViews mv " +
-            "left join mv.mediaUser mu " +
-            "where m1.path = :path " +
-            "and mu.userId = :userId")
+            "left join mv.mediaUser mu on mu.userId = :userId " +
+            "where m1.path = :path ")
     MediaFile findByPath(@Param("path") String path, @Param("userId") String userId);
 
     long countAllByParentPath(String parentPath);
