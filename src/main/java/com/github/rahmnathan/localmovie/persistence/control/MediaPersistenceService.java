@@ -4,6 +4,7 @@ import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaUserRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -32,9 +33,10 @@ public class MediaPersistenceService {
     private final MediaFileEventRepository mediaFileEventRepository;
     private final MediaFileRepository mediaFileRepository;
     private final MediaUserRepository mediaUserRepository;
+    private final MediaRepository mediaRepository;
 
     public byte[] getMediaImage(String path){
-        return mediaFileRepository.findMediaPosterByPath(path);
+        return mediaRepository.getImageByPath(path);
     }
 
     public boolean existsByPath(String path){

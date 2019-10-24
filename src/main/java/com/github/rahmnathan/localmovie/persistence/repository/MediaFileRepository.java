@@ -22,11 +22,6 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
             "order by mediaFile.updated")
     List<MediaFile> findAllByUpdatedBeforeOrderByUpdated(LocalDateTime time, Pageable pageable);
 
-    @Query(value = "select lo_get(cast(image as int)) from media " +
-            "where id = (select media_id from media_file where path = :path)",
-            nativeQuery = true)
-    byte[] findMediaPosterByPath(String path);
-
     @Query(value = "select m1 from MediaFile m1 " +
             "left join m1.mediaViews mv " +
             "left join mv.mediaUser mu on mu.userId = :userId " +
