@@ -101,6 +101,11 @@ public class MediaFile {
             return this;
         }
 
+        public Builder setLength(Long length) {
+            this.mediaFile.length = length;
+            return this;
+        }
+
         public MediaFile build(){
             MediaFile result = mediaFile;
             mediaFile = new MediaFile();

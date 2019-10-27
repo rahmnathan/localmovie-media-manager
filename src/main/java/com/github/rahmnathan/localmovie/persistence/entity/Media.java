@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.persistence.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rahmnathan.omdb.data.MediaType;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ import java.util.Base64;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class Media {
 
     @Id
@@ -33,6 +35,10 @@ public class Media {
     private Integer number;
     private LocalDateTime created;
     private LocalDateTime updated;
+
+    public Media(String title) {
+        this.title = title;
+    }
 
     @JsonIgnore
     @OneToOne(mappedBy = "media", cascade = CascadeType.ALL)

@@ -32,15 +32,16 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         MDC.put("correlation-id", UUID.randomUUID().toString());
         logger.info("Detected media event at path: {}", absolutePath);
 
-        if (!activeConversions.contains(absolutePath)) {
-            if (event == StandardWatchEventKinds.ENTRY_CREATE) {
-                waitForWriteComplete(file);
-                eventService.handleCreateEvent(file, activeConversions);
-            } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
-                eventService.handleDeleteEvent(file);
-            }
-        } else {
+        if (activeConversions.contains(absolutePath)) {
             logger.info("Media is being converted. Ignoring.");
+            return;
+        }
+
+        if (event == StandardWatchEventKinds.ENTRY_CREATE) {
+            waitForWriteComplete(file);
+            eventService.handleCreateEvent(file, activeConversions);
+        } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
+            eventService.handleDeleteEvent(file);
         }
     }
 

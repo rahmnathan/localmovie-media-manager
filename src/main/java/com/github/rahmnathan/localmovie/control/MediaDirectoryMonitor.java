@@ -30,14 +30,14 @@ public class MediaDirectoryMonitor {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
     private final Set<DirectoryMonitorObserver> observers;
-    private final MediaDataService dataService;
+    private final MediaService dataService;
     private final ServiceConfig serviceConfig;
 
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
         new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
-        Set<MediaFile> newMediaFiles = serviceConfig.getMediaPaths().parallelStream()
+        Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().parallelStream()
                 .map(Paths::get)
                 .flatMap(this::streamDirectoryTree)
                 .map(Path::toString)
@@ -47,7 +47,7 @@ public class MediaDirectoryMonitor {
                 .map(this::buildMediaFile)
                 .collect(Collectors.toUnmodifiableSet());
 
-        mediaFileRepository.saveAll(newMediaFiles);
+        mediaFileRepository.saveAll(mediaFiles);
     }
 
     private MediaFile buildMediaFile(File file) {

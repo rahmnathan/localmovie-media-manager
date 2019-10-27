@@ -1,13 +1,10 @@
 package com.github.rahmnathan.localmovie.control.event;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.control.MediaDataService;
-import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
-import com.github.rahmnathan.localmovie.persistence.entity.Media;
+import com.github.rahmnathan.localmovie.control.MediaFileService;
+import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.video.cast.handbrake.control.VideoController;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import io.micrometer.core.instrument.Metrics;
@@ -34,23 +31,21 @@ public class MediaEventService {
     private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final Logger logger = LoggerFactory.getLogger(MediaEventService.class);
     private final PushNotificationService notificationHandler;
-    private final MediaFileEventRepository eventRepository;
-    private final MediaFileRepository mediaFileRepository;
-    private final MediaDataService metadataService;
+    private final MediaPersistenceService persistenceService;
+    private final MediaFileService mediaFileService;
     private final ExecutorService executorService;
     private FFprobe ffprobe;
 
     public MediaEventService(ServiceConfig serviceConfig,
-                             MediaDataService mediaMetadataService, MediaFileEventRepository eventRepository,
-                             MediaFileRepository repository,
-                             PushNotificationService notificationHandler) {
+                             MediaPersistenceService persistenceService,
+                             PushNotificationService notificationHandler,
+                             MediaFileService mediaFileService) {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
         this.notificationHandler = notificationHandler;
-        this.metadataService = mediaMetadataService;
-        this.eventRepository = eventRepository;
-        this.mediaFileRepository = repository;
+        this.persistenceService = persistenceService;
+        this.mediaFileService = mediaFileService;
 
         try {
             this.ffprobe = new FFprobe(eventMonitorConfig.getFfprobeLocation());
@@ -59,7 +54,8 @@ public class MediaEventService {
         }
     }
 
-    void handleCreateEvent(File file, Set<String> activeConversions){
+    @Transactional
+    public void handleCreateEvent(File file, Set<String> activeConversions){
         logger.info("Event type: CREATE.");
         if (Files.isRegularFile(file.toPath()) && ffprobe != null) {
             queuedConversionGauge.getAndIncrement();
@@ -67,54 +63,28 @@ public class MediaEventService {
             queuedConversionGauge.getAndDecrement();
         }
 
-        handleCreateEvent(file);
-    }
-
-    @Transactional
-    public void handleCreateEvent(File file){
-        try {
-            MediaFile mediaFile = loadMediaFile(file);
-            addCreateEvent(file, mediaFile);
-            notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
-        } catch (InvalidMediaException e){
-            logger.error("Failure parsing media data.", e);
-        }
+        MediaFile mediaFile = mediaFileService.loadMediaFile(file);
+        addCreateEvent(file, mediaFile);
+        notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
     }
 
     @Transactional
     public void handleDeleteEvent(File file){
         logger.info("Event type: DELETE.");
         String relativePath = file.toString().split(ROOT_MEDIA_FOLDER)[1];
-        if(metadataService.existsInDatabase(relativePath)){
+        if(persistenceService.existsByPath(relativePath)){
             logger.info("Removing media from database.");
-            eventRepository.deleteAllByRelativePath(relativePath);
-            mediaFileRepository.deleteByPath(relativePath);
+            persistenceService.deleteAllByRelativePath(relativePath);
         }
     }
 
-    private MediaFile loadMediaFile(File file) throws InvalidMediaException {
-        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
-        Media media = metadataService.loadMedia(relativePath);
-        if (!mediaFileRepository.existsByPath(relativePath)) {
-            logger.info("Saving media to database.");
-            MediaFile mediaFile = MediaFile.Builder.forPath(relativePath)
-                    .setMedia(media)
-                    .setLength(file.length())
-                    .build();
-            return metadataService.saveMediaFile(mediaFile);
-        }
-
-        return mediaFileRepository.findByPath(relativePath, "");
-    }
-
-    @Transactional
-    public void addCreateEvent(File file, MediaFile mediaFile){
+    private void addCreateEvent(File file, MediaFile mediaFile){
         logger.info("Adding CREATE event to repository.");
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
         mediaFile.setMediaFileEvent(event);
-        eventRepository.save(event);
-        mediaFileRepository.save(mediaFile);
+        persistenceService.saveEvent(event);
+        persistenceService.saveMediaFile(mediaFile);
     }
 
     private void launchVideoConverter(File file, Set<String> activeConversions){

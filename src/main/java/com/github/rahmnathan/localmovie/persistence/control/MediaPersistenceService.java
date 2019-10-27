@@ -26,21 +26,45 @@ import static com.github.rahmnathan.localmovie.control.MediaDirectoryMonitor.ROO
 import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 
 @Service
-@Transactional
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class MediaPersistenceService {
     private final Logger logger = LoggerFactory.getLogger(MediaPersistenceService.class);
-    private final MediaFileEventRepository mediaFileEventRepository;
-    private final MediaFileRepository mediaFileRepository;
-    private final MediaUserRepository mediaUserRepository;
+    private final MediaFileEventRepository eventRepository;
+    private final MediaFileRepository fileRepository;
+    private final MediaUserRepository userRepository;
     private final MediaRepository mediaRepository;
+
+    public Optional<MediaFile> getMediaFileByPath(String path) {
+        return fileRepository.findByPath(path);
+    }
+
+    public void delete(Media media) {
+        mediaRepository.delete(media);
+    }
+
+    @Transactional
+    public void saveEvent(MediaFileEvent event){
+        eventRepository.save(event);
+    }
+
+    @Transactional
+    public void saveMediaFile(MediaFile mediaFile) {
+        fileRepository.save(mediaFile);
+    }
+
+    @Transactional
+    public void deleteAllByRelativePath(String path) {
+        eventRepository.deleteAllByRelativePath(path);
+        fileRepository.deleteByPath(path);
+    }
 
     public byte[] getMediaImage(String path){
         return mediaRepository.getImageByPath(path);
     }
 
     public boolean existsByPath(String path){
-        return mediaFileRepository.existsByPath(path);
+        return fileRepository.existsByPath(path);
     }
 
     public List<MediaFile> getMediaFilesByParentPath(MediaRequest request) {
@@ -52,7 +76,7 @@ public class MediaPersistenceService {
         }
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
-        return mediaFileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
+        return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
     public List<RedactedMediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
@@ -64,16 +88,17 @@ public class MediaPersistenceService {
         }
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
-        return mediaFileRepository.findAllByParentPathNoPoster(request.getPath(), getUsername(), pageable);
+        return fileRepository.findAllByParentPathNoPoster(request.getPath(), getUsername(), pageable);
     }
 
+    @Transactional
     public void addView(String path, long position) {
         String userName = getUsername();
         logger.info("Adding view for User: {} Path: {} Position: {}", userName, path, position);
         String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
-        MediaFile mediaFile = mediaFileRepository.findByPath(relativePath, userName);
+        MediaFile mediaFile = fileRepository.findByPath(relativePath, userName);
         if(mediaFile.getMediaViews().isEmpty()){
-            MediaUser mediaUser = mediaUserRepository.findByUserId(userName).orElse(new MediaUser(userName));
+            MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
             MediaView mediaView = new MediaView(mediaFile, mediaUser, position);
             mediaFile.addMediaView(mediaView);
             mediaUser.addMediaView(mediaView);
@@ -82,15 +107,15 @@ public class MediaPersistenceService {
             mediaView.setPosition(position);
         }
 
-        mediaFileRepository.save(mediaFile);
+        fileRepository.save(mediaFile);
     }
 
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime) {
-        return mediaFileEventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime);
+        return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime);
     }
 
     public long countMediaFiles(String path){
-        return mediaFileRepository.countAllByParentPath(path);
+        return fileRepository.countAllByParentPath(path);
     }
 
     private String getUsername(){

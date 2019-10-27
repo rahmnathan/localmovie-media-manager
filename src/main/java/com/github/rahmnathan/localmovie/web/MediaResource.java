@@ -1,8 +1,8 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.control.MediaDataServiceWeb;
 import com.github.rahmnathan.localmovie.data.MediaClient;
+import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
@@ -28,14 +28,14 @@ import java.util.Set;
 @RequestMapping(value = "/localmovie/v2/media")
 public class MediaResource {
     private final Logger logger = LoggerFactory.getLogger(MediaResource.class.getName());
+    private final MediaPersistenceService persistenceService;
     private final FileSenderService fileSenderService;
-    private final MediaDataServiceWeb metadataService;
     private final Set<String> mediaPaths;
 
-    public MediaResource(MediaDataServiceWeb metadataService, ServiceConfig serviceConfig, FileSenderService fileSenderService){
+    public MediaResource(MediaPersistenceService persistenceService, ServiceConfig serviceConfig, FileSenderService fileSenderService){
         this.mediaPaths = serviceConfig.getMediaPaths();
+        this.persistenceService = persistenceService;
         this.fileSenderService = fileSenderService;
-        this.metadataService = metadataService;
     }
 
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -47,12 +47,12 @@ public class MediaResource {
 
         if(mediaRequest.getClient() == MediaClient.WEBAPP){
             logger.info("Loading redacted media files for webapp.");
-            List<RedactedMediaFile> redactedMediaFiles = metadataService.loadRedactedMediaFileList(mediaRequest);
+            List<RedactedMediaFile> redactedMediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
             logger.info("Returning media list. Size: {}", redactedMediaFiles.size());
             return ResponseEntity.ok(redactedMediaFiles);
         } else {
             logger.info("Loading full media files for Android.");
-            List<MediaFile> mediaFiles = metadataService.loadMediaFileList(mediaRequest);
+            List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPath(mediaRequest);
             logger.info("Returning media list. Size: {}", mediaFiles.size());
             return ResponseEntity.ok(mediaFiles);
         }
@@ -62,7 +62,7 @@ public class MediaResource {
     public void getMediaCount(@RequestParam(value = "path") String path, HttpServletResponse response){
         logger.info("Received count request for path - {}", path);
 
-        long count = metadataService.loadMediaListLength(path);
+        long count = persistenceService.countMediaFiles(path);
 
         logger.info("Returning count of - {}", count);
         response.setHeader("Count", String.valueOf(count));
@@ -77,7 +77,7 @@ public class MediaResource {
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
         logger.info("Received streaming request - {}", path);
 
-        if(!metadataService.existsByPath(path)) return;
+        if(!persistenceService.existsByPath(path)) return;
 
         boolean found = false;
         for (String mediaPath : mediaPaths) {
@@ -102,7 +102,7 @@ public class MediaResource {
     public byte[] getPoster(@RequestParam("path") String path) {
         logger.info("Streaming poster - {}", path);
 
-        return metadataService.loadMediaPoster(path);
+        return persistenceService.getMediaImage(path);
     }
 
     /**
@@ -114,7 +114,7 @@ public class MediaResource {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
         logger.info("Request for events since: {}", localDateTime);
 
-        List<MediaFileEvent> events = metadataService.getMediaFileEvents(localDateTime);
+        List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime);
 
         logger.info("Events response. Time: {} EventList: {}", localDateTime, events);
         return events;
