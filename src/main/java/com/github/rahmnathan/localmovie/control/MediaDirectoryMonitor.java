@@ -47,6 +47,7 @@ public class MediaDirectoryMonitor {
                 .map(this::buildMediaFile)
                 .collect(Collectors.toUnmodifiableSet());
 
+        logger.info("Saving {} new media files.", mediaFiles.size());
         mediaFileRepository.saveAll(mediaFiles);
     }
 
