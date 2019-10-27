@@ -18,6 +18,7 @@ public class Media {
     @SequenceGenerator(name="media_sequence_generator", sequenceName="MEDIA_SEQUENCE")
     private Long id;
 
+    @Enumerated(value = EnumType.STRING)
     private MediaType mediaType;
     @Lob
     private byte[] image;
