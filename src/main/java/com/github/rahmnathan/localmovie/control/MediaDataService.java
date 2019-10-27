@@ -87,8 +87,8 @@ public class MediaDataService {
 
     private Media loadEpisodeFromProvider(String path, String fileName) throws MediaProviderException, InvalidMediaException {
         String seriesTitle = getParentFile(path).getName();
-        int seasonNumber = getSeasonNumber(path);
-        int episodeNumber = getEpisodeNumber(fileName);
+        int seasonNumber = parseSeasonNumber(path);
+        int episodeNumber = parseEpisodeNumber(fileName);
 
         return mediaProvider.getEpisode(seriesTitle, seasonNumber, episodeNumber);
     }
@@ -101,7 +101,7 @@ public class MediaDataService {
         logger.info("{} - Parent resolved to: {}", path, file.getPath());
 
         MediaFile parentInfo = loadMediaFile(file.getPath());
-        Integer number = isEpisode(path) ? getEpisodeNumber(filename) : getSeasonNumber(filename);
+        Integer number = isEpisode(path) ? parseEpisodeNumber(filename) : parseSeasonNumber(filename);
         return Media.copyWithNewTitleNumberAndType(parentInfo.getMedia().toOmdbMedia(), getTitle(filename), number, mediaType);
     }
 }
