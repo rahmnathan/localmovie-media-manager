@@ -73,7 +73,7 @@ public class Media {
                 '}';
     }
 
-    public static Media fromOmdbMedia(com.github.rahmnathan.omdb.data.Media inputMedia, MediaFile mediaFile){
+    public static Media fromOmdbMedia(com.github.rahmnathan.omdb.data.Media inputMedia){
         Media resultMedia = new Media();
         resultMedia.actors = inputMedia.getActors();
         resultMedia.genre = inputMedia.getGenre();
@@ -86,8 +86,6 @@ public class Media {
         resultMedia.plot = inputMedia.getPlot();
         resultMedia.releaseYear = inputMedia.getReleaseYear();
         resultMedia.title = inputMedia.getTitle();
-        resultMedia.mediaFile = mediaFile;
-
         return resultMedia;
     }
 

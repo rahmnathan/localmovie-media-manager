@@ -27,19 +27,17 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     }
 
     @Override
-    public void directoryModified(WatchEvent.Kind event, File inputPath) {
-        String absolutePath = inputPath.getAbsolutePath();
+    public void directoryModified(WatchEvent.Kind event, File file) {
+        String absolutePath = file.getAbsolutePath();
         MDC.put("correlation-id", UUID.randomUUID().toString());
         logger.info("Detected media event at path: {}", absolutePath);
 
         if (!activeConversions.contains(absolutePath)) {
-            String relativePath = inputPath.toString().split(ROOT_MEDIA_FOLDER)[1];
-
             if (event == StandardWatchEventKinds.ENTRY_CREATE) {
-                waitForWriteComplete(inputPath);
-                eventService.handleCreateEvent(relativePath, inputPath, activeConversions);
+                waitForWriteComplete(file);
+                eventService.handleCreateEvent(file, activeConversions);
             } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
-                eventService.handleDeleteEvent(relativePath);
+                eventService.handleDeleteEvent(file);
             }
         } else {
             logger.info("Media is being converted. Ignoring.");

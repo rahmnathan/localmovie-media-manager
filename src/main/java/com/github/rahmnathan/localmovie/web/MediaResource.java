@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/localmovie/v2/media")
@@ -29,7 +30,7 @@ public class MediaResource {
     private final Logger logger = LoggerFactory.getLogger(MediaResource.class.getName());
     private final FileSenderService fileSenderService;
     private final MediaDataServiceWeb metadataService;
-    private final String[] mediaPaths;
+    private final Set<String> mediaPaths;
 
     public MediaResource(MediaDataServiceWeb metadataService, ServiceConfig serviceConfig, FileSenderService fileSenderService){
         this.mediaPaths = serviceConfig.getMediaPaths();

@@ -1,10 +1,9 @@
 package com.github.rahmnathan.localmovie.control;
 
-import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
-import com.github.rahmnathan.omdb.data.Media;
 import com.github.rahmnathan.omdb.data.MediaType;
 import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import org.slf4j.Logger;
@@ -29,29 +28,25 @@ public class MediaDataService {
     }
 
     @Transactional
-    public MediaFile loadMediaFile(String path) throws InvalidMediaException {
+    public Media loadMedia(String path) {
         Optional<MediaFile> mediaFile = repository.findByPath(path);
         if (mediaFile.isPresent()) {
             logger.info("Getting from database - {}", path);
-            return mediaFile.get();
+            return mediaFile.get().getMedia();
         }
 
         return loadNewMediaFile(path);
     }
 
-    public MediaFile loadNewMediaFile(String path) throws InvalidMediaException {
-        MediaFile.Builder mediaFileBuilder = MediaFile.Builder.forPath(path);
-
-        Media media;
+    public Media loadNewMediaFile(String path) {
+        com.github.rahmnathan.omdb.data.Media media;
         if (isTopLevel(path) || isEpisode(path)) {
             media = loadMediaFromProvider(path);
         } else {
             media = loadSeriesParentInfo(path, MediaType.SEASON);
         }
 
-        MediaFile mediaFile = mediaFileBuilder.build();
-        mediaFile.setMedia(com.github.rahmnathan.localmovie.persistence.entity.Media.fromOmdbMedia(media, mediaFile));
-        return mediaFile;
+        return com.github.rahmnathan.localmovie.persistence.entity.Media.fromOmdbMedia(media);
     }
 
     public MediaFile saveMediaFile(MediaFile mediaFile){
@@ -62,7 +57,7 @@ public class MediaDataService {
         return repository.existsByPath(path);
     }
 
-    private Media loadMediaFromProvider(String path) throws InvalidMediaException {
+    private com.github.rahmnathan.omdb.data.Media loadMediaFromProvider(String path) {
         logger.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
 
@@ -80,12 +75,12 @@ public class MediaDataService {
                 return mediaProvider.getMovie(title);
             } catch (MediaProviderException e) {
                 logger.error("Error getting media from provider", e);
-                return Media.builder().title(title).build();
+                return com.github.rahmnathan.omdb.data.Media.builder().title(title).build();
             }
         }
     }
 
-    private Media loadEpisodeFromProvider(String path, String fileName) throws MediaProviderException, InvalidMediaException {
+    private com.github.rahmnathan.omdb.data.Media loadEpisodeFromProvider(String path, String fileName) throws MediaProviderException {
         String seriesTitle = getParentFile(path).getName();
         int seasonNumber = parseSeasonNumber(path);
         int episodeNumber = parseEpisodeNumber(fileName);
@@ -93,15 +88,15 @@ public class MediaDataService {
         return mediaProvider.getEpisode(seriesTitle, seasonNumber, episodeNumber);
     }
 
-    private Media loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
+    private com.github.rahmnathan.omdb.data.Media loadSeriesParentInfo(String path, MediaType mediaType) {
         logger.info("Getting info from parent - {}", path);
 
         String filename = new File(path).getName();
         File file = getParentFile(path);
         logger.info("{} - Parent resolved to: {}", path, file.getPath());
 
-        MediaFile parentInfo = loadMediaFile(file.getPath());
+        Media parentInfo = loadMedia(file.getPath());
         Integer number = isEpisode(path) ? parseEpisodeNumber(filename) : parseSeasonNumber(filename);
-        return Media.copyWithNewTitleNumberAndType(parentInfo.getMedia().toOmdbMedia(), getTitle(filename), number, mediaType);
+        return com.github.rahmnathan.omdb.data.Media.copyWithNewTitleNumberAndType(parentInfo.toOmdbMedia(), getTitle(filename), number, mediaType);
     }
 }

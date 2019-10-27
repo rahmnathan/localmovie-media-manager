@@ -3,8 +3,9 @@ package com.github.rahmnathan.localmovie.control;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,71 +19,67 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
+@AllArgsConstructor
 @ConditionalOnProperty(name = "service.directoryMonitor.enabled", havingValue = "true")
 public class MediaDirectoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaDirectoryMonitor.class);
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
-    private final Set<String> mediaPaths;
+    private final MediaFileRepository mediaFileRepository;
+    private final Set<DirectoryMonitorObserver> observers;
     private final MediaDataService dataService;
-
-    public MediaDirectoryMonitor(ServiceConfig serviceConfig, MediaDataService dataService, Set<DirectoryMonitorObserver> observers) {
-        new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
-        this.mediaPaths = serviceConfig.getMediaPaths();
-        this.dataService = dataService;
-    }
-
-    @EventListener(ApplicationReadyEvent.class)
-    public void initializeFileList() {
-        mediaPaths.parallelStream()
-                .flatMap(test -> {
-                    Set<Path> paths = new HashSet<>();
-                    try {
-                        Files.walkFileTree(Paths.get(test), new SimpleFileVisitor<>() {
-                            @Override
-                            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                                logger.info("registering {} in watcher service", dir);
-                                paths.add(dir);
-                                return FileVisitResult.CONTINUE;
-                            }
-                        });
-                    } catch (IOException e) {
-                        logger.error("Failure registering directory in directory monitor", e);
-                    }
-
-                    return paths.stream();
-                })
-                .map(Path::toString)
-                .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
-                .flatMap(mediaPath -> Arrays.stream(listFiles(mediaPath)))
-                .forEach(this::loadMediaData);
-    }
+    private final ServiceConfig serviceConfig;
 
     @Transactional
-    public void loadMediaData(File file) {
-        try {
-            String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
-            if (dataService.existsInDatabase(relativePath)) {
-                logger.debug("Path already exists in database: {}", relativePath);
-                return;
-            }
+    @EventListener(ApplicationReadyEvent.class)
+    public void initializeFileList() {
+        new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
+        Set<MediaFile> newMediaFiles = serviceConfig.getMediaPaths().parallelStream()
+                .map(Paths::get)
+                .flatMap(this::streamDirectoryTree)
+                .map(Path::toString)
+                .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
+                .flatMap(this::listFiles)
+                .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
+                .map(this::buildMediaFile)
+                .collect(Collectors.toUnmodifiableSet());
 
-            MediaFile mediaFile = dataService.loadMediaFile(relativePath);
-
-            long fileSize = file.length();
-            mediaFile.setLength(fileSize);
-
-            dataService.saveMediaFile(mediaFile);
-        } catch (InvalidMediaException e) {
-            logger.error("Failure loading media data.", e);
-        }
+        mediaFileRepository.saveAll(newMediaFiles);
     }
 
-    private File[] listFiles(String absolutePath) {
+    private MediaFile buildMediaFile(File file) {
+        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
+        return MediaFile.Builder.forPath(relativePath)
+                .setMedia(dataService.loadMedia(relativePath))
+                .setLength(file.length())
+                .build();
+    }
+
+    private Stream<Path> streamDirectoryTree(Path path) {
+        Set<Path> paths = new HashSet<>();
+        try {
+            Files.walkFileTree(path, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    logger.info("Found media directory: {}", dir);
+                    paths.add(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            logger.error("Failure registering directory in directory monitor", e);
+        }
+
+        return paths.parallelStream();
+    }
+
+    private Stream<File> listFiles(String absolutePath) {
         logger.info("Listing files at - {}", absolutePath);
         File[] files = Optional.ofNullable(new File(absolutePath).listFiles()).orElse(new File[0]);
         logger.info("Found {} files.", files.length);
-        return files;
+        return Set.of(files).parallelStream();
     }
 }

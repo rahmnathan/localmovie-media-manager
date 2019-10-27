@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.control.event;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.control.MediaDataService;
 import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
@@ -58,23 +59,22 @@ public class MediaEventService {
         }
     }
 
-    void handleCreateEvent(String relativePath, File file, Set<String> activeConversions){
+    void handleCreateEvent(File file, Set<String> activeConversions){
         logger.info("Event type: CREATE.");
-
         if (Files.isRegularFile(file.toPath()) && ffprobe != null) {
             queuedConversionGauge.getAndIncrement();
-            relativePath = launchVideoConverter(file.getAbsolutePath(), activeConversions);
+            launchVideoConverter(file, activeConversions);
             queuedConversionGauge.getAndDecrement();
         }
 
-        handleCreateEvent(relativePath);
+        handleCreateEvent(file);
     }
 
     @Transactional
-    public void handleCreateEvent(String relativePath){
+    public void handleCreateEvent(File file){
         try {
-            MediaFile mediaFile = loadMediaFile(relativePath);
-            addCreateEvent(relativePath, mediaFile);
+            MediaFile mediaFile = loadMediaFile(file);
+            addCreateEvent(file, mediaFile);
             notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
         } catch (InvalidMediaException e){
             logger.error("Failure parsing media data.", e);
@@ -82,8 +82,9 @@ public class MediaEventService {
     }
 
     @Transactional
-    public void handleDeleteEvent(String relativePath){
+    public void handleDeleteEvent(File file){
         logger.info("Event type: DELETE.");
+        String relativePath = file.toString().split(ROOT_MEDIA_FOLDER)[1];
         if(metadataService.existsInDatabase(relativePath)){
             logger.info("Removing media from database.");
             eventRepository.deleteAllByRelativePath(relativePath);
@@ -91,39 +92,44 @@ public class MediaEventService {
         }
     }
 
-    private MediaFile loadMediaFile(String relativePath) throws InvalidMediaException {
-        MediaFile mediaFile = metadataService.loadMediaFile(relativePath);
-        if (!metadataService.existsInDatabase(relativePath)) {
+    private MediaFile loadMediaFile(File file) throws InvalidMediaException {
+        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
+        Media media = metadataService.loadMedia(relativePath);
+        if (!mediaFileRepository.existsByPath(relativePath)) {
             logger.info("Saving media to database.");
-            mediaFile = metadataService.saveMediaFile(mediaFile);
+            MediaFile mediaFile = MediaFile.Builder.forPath(relativePath)
+                    .setMedia(media)
+                    .setLength(file.length())
+                    .build();
+            return metadataService.saveMediaFile(mediaFile);
         }
 
-        return mediaFile;
+        return mediaFileRepository.findByPath(relativePath, "");
     }
 
     @Transactional
-    public void addCreateEvent(String resultFilePath, MediaFile mediaFile){
+    public void addCreateEvent(File file, MediaFile mediaFile){
         logger.info("Adding CREATE event to repository.");
-        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, resultFilePath);
+        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
+        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
         mediaFile.setMediaFileEvent(event);
         eventRepository.save(event);
         mediaFileRepository.save(mediaFile);
     }
 
-    private String launchVideoConverter(String inputFilePath, Set<String> activeConversions){
-        String outputExtension = inputFilePath.endsWith(".mp4") ? ".mkv" : ".mp4";
-        String resultFilePath = inputFilePath.substring(0, inputFilePath.lastIndexOf('.')) + outputExtension;
-        SimpleConversionJob conversionJob = new SimpleConversionJob(ffprobe, new File(resultFilePath), new File(inputFilePath));
+    private void launchVideoConverter(File file, Set<String> activeConversions){
+        String inputPath = file.toString();
+        String outputExtension = inputPath.endsWith(".mp4") ? ".mkv" : ".mp4";
+        String resultFilePath = inputPath.substring(0, inputPath.lastIndexOf('.')) + outputExtension;
 
+        SimpleConversionJob conversionJob = new SimpleConversionJob(ffprobe, new File(resultFilePath), file);
         logger.info("Launching video converter.");
         try {
             resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoController(conversionJob, activeConversions)), executorService).get();
+            new File(resultFilePath).renameTo(file);
         } catch (InterruptedException | ExecutionException e){
             logger.error("Failure converting video.", e);
-            resultFilePath = inputFilePath;
         }
-
-        return resultFilePath.split(ROOT_MEDIA_FOLDER)[1];
     }
 
     private static <U> Supplier<U> withMdc(Supplier<U> supplier) {

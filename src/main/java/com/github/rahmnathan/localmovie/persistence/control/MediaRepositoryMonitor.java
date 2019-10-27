@@ -5,7 +5,6 @@ import com.github.rahmnathan.localmovie.control.MediaDataService;
 import com.github.rahmnathan.localmovie.data.Duration;
 import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import org.slf4j.Logger;
@@ -49,13 +48,12 @@ public class MediaRepositoryMonitor {
                 .forEach(mediaFile -> {
                     try {
                         logger.info("Updating media at path: {}", mediaFile.getPath());
-                        MediaFile newMediaFile = mediaDataService.loadNewMediaFile(mediaFile.getPath());
+                        Media newMedia = mediaDataService.loadNewMediaFile(mediaFile.getPath());
 
                         Media oldMedia = mediaFile.getMedia();
                         oldMedia.setMediaFile(null);
                         mediaRepository.delete(oldMedia);
 
-                        Media newMedia = newMediaFile.getMedia();
                         newMedia.setMediaFile(mediaFile);
                         mediaFile.setMedia(newMedia);
 

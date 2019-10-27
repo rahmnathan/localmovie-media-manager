@@ -27,8 +27,6 @@ spring:
     password: pw123
     url: "jdbc:postgresql://localhost:5432/localmovies"
     username: localmovies
-    hikari:
-      maximum-pool-size: 100
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
