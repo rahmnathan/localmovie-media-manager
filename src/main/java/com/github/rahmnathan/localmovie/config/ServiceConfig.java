@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
 @Data
 @Configuration
@@ -14,7 +15,7 @@ public class ServiceConfig {
     private MediaEventMonitorConfig directoryMonitor;
     private MediaRepositoryMonitorConfig repository;
     private boolean notificationsEnabled;
-    private String[] mediaPaths;
+    private Set<String> mediaPaths;
     private String omdbApiKey;
     private String jedisHost;
 

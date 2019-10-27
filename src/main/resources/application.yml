@@ -1,6 +1,8 @@
 endpoints.prometheus.enabled: true
 logging:
-  pattern.level: "correlation-id=%X{x-correlation-id} client-address=%X{client-address}"
+  pattern.level: "correlation-id=%X{x-correlation-id}"
+  level:
+    com.github.rahmnathan: info
 
 server:
   port: 8080
@@ -25,6 +27,8 @@ spring:
     password: pw123
     url: "jdbc:postgresql://localhost:5432/localmovies"
     username: localmovies
+    hikari:
+      maximum-pool-size: 100
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

@@ -4,7 +4,6 @@ import org.springframework.data.domain.Sort;
 
 public enum MediaOrder {
     DATE_ADDED("created", false),
-    MOST_VIEWS("views", false),
     RATING("media.imdbRating", false),
     RELEASE_YEAR("media.releaseYear", false),
     SEASONS_EPISODES("media.number", true),

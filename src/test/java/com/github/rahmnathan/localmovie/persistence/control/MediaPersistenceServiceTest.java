@@ -35,7 +35,6 @@ public class MediaPersistenceServiceTest {
                 .setFileName("The Matrix.mp4")
                 .setParentPath("Movies")
                 .setPath("Movies/The Matrix.mp4")
-                .setViews(2)
                 .setMedia(null)
                 .build();
 

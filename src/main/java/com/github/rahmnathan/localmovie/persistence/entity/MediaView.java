@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @Entity
+@Table(indexes = @Index(name = "idx_media_view", columnList = "media_file_id,media_user_id", unique = true))
 @EqualsAndHashCode(exclude="mediaFile")
 public class MediaView {
 

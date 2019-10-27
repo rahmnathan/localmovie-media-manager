@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.nio.file.Path;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 @Service
@@ -22,17 +24,35 @@ import java.util.*;
 public class MediaDirectoryMonitor {
     private final Logger logger = LoggerFactory.getLogger(MediaDirectoryMonitor.class);
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
-    private final DirectoryMonitor directoryMonitor;
+    private final Set<String> mediaPaths;
     private final MediaDataService dataService;
 
     public MediaDirectoryMonitor(ServiceConfig serviceConfig, MediaDataService dataService, Set<DirectoryMonitorObserver> observers) {
-        this.directoryMonitor = new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
+        new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
+        this.mediaPaths = serviceConfig.getMediaPaths();
         this.dataService = dataService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
-        directoryMonitor.getPaths().parallelStream()
+        mediaPaths.parallelStream()
+                .flatMap(test -> {
+                    Set<Path> paths = new HashSet<>();
+                    try {
+                        Files.walkFileTree(Paths.get(test), new SimpleFileVisitor<>() {
+                            @Override
+                            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                                logger.info("registering {} in watcher service", dir);
+                                paths.add(dir);
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    } catch (IOException e) {
+                        logger.error("Failure registering directory in directory monitor", e);
+                    }
+
+                    return paths.stream();
+                })
                 .map(Path::toString)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
                 .flatMap(mediaPath -> Arrays.stream(listFiles(mediaPath)))

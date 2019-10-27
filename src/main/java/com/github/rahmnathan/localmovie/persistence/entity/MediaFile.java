@@ -25,7 +25,6 @@ public class MediaFile {
     private String fileName;
     private LocalDateTime created;
     private LocalDateTime updated;
-    private int views;
     private long length;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL)
@@ -102,11 +101,6 @@ public class MediaFile {
             return this;
         }
 
-        public Builder setViews(int views) {
-            this.mediaFile.views = views;
-            return this;
-        }
-
         public MediaFile build(){
             MediaFile result = mediaFile;
             mediaFile = new MediaFile();
@@ -119,8 +113,7 @@ public class MediaFile {
             return Builder.newInstance()
                     .setFileName(file.getName())
                     .setParentPath(file.getParent())
-                    .setPath(path)
-                    .setViews(0);
+                    .setPath(path);
         }
     }
 }
