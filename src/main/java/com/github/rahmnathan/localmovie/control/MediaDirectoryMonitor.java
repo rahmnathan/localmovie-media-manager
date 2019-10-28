@@ -5,6 +5,7 @@ import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
+import io.micrometer.core.instrument.Timer;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +38,8 @@ public class MediaDirectoryMonitor {
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
         new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
-        Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().parallelStream()
-                .map(Paths::get)
+        Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
-                .map(Path::toString)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
                 .flatMap(this::listFiles)
                 .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
@@ -54,19 +53,19 @@ public class MediaDirectoryMonitor {
     private MediaFile buildMediaFile(File file) {
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         return MediaFile.Builder.forPath(relativePath)
-                .setMedia(dataService.loadMedia(relativePath))
+                .setMedia(dataService.loadNewMedia(relativePath))
                 .setLength(file.length())
                 .build();
     }
 
-    private Stream<Path> streamDirectoryTree(Path path) {
-        Set<Path> paths = new HashSet<>();
+    private Stream<String> streamDirectoryTree(String path) {
+        Set<String> paths = new HashSet<>();
         try {
-            Files.walkFileTree(path, new SimpleFileVisitor<>() {
+            Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     logger.info("Found media directory: {}", dir);
-                    paths.add(dir);
+                    paths.add(dir.toString());
                     return FileVisitResult.CONTINUE;
                 }
             });
