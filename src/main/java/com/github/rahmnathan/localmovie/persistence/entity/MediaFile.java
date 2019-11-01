@@ -27,7 +27,7 @@ public class MediaFile {
     private LocalDateTime updated;
     private long length;
 
-    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<MediaView> mediaViews;
 
     @OneToOne(cascade = CascadeType.ALL)

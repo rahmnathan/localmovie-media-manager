@@ -1,19 +1,14 @@
 package com.github.rahmnathan.localmovie.control;
 
-import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
-import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
-import io.micrometer.core.instrument.Timer;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,19 +20,15 @@ import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
-@ConditionalOnProperty(name = "service.directoryMonitor.enabled", havingValue = "true")
-public class MediaDirectoryMonitor {
-    private final Logger logger = LoggerFactory.getLogger(MediaDirectoryMonitor.class);
+public class MediaDatabaseInitializer {
+    private final Logger logger = LoggerFactory.getLogger(MediaDatabaseInitializer.class);
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
-    private final Set<DirectoryMonitorObserver> observers;
     private final MediaService dataService;
     private final ServiceConfig serviceConfig;
 
-    @Transactional
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
-        new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
         Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))

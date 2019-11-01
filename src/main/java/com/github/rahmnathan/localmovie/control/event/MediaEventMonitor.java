@@ -7,14 +7,11 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.github.rahmnathan.localmovie.control.MediaDirectoryMonitor.ROOT_MEDIA_FOLDER;
 
 @Service
 public class MediaEventMonitor implements DirectoryMonitorObserver {

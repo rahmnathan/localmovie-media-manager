@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.rahmnathan.localmovie.control.MediaDirectoryMonitor.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.ROOT_MEDIA_FOLDER;
 import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 
 @Service

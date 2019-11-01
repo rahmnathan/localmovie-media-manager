@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.util.Optional;
 
-import static com.github.rahmnathan.localmovie.control.MediaDirectoryMonitor.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.ROOT_MEDIA_FOLDER;
 
 @Service
 @AllArgsConstructor

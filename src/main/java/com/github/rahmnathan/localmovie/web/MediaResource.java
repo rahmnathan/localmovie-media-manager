@@ -7,6 +7,7 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import io.micrometer.core.instrument.Timer;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
