@@ -4,7 +4,7 @@ import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
+import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.data.MediaType;
 import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import lombok.AllArgsConstructor;
@@ -23,7 +23,7 @@ import static com.github.rahmnathan.localmovie.control.PathUtils.*;
 public class MediaService {
     private final Logger logger = LoggerFactory.getLogger(MediaService.class.getName());
     private final MediaPersistenceService persistenceService;
-    private final OmdbMediaProvider mediaProvider;
+    private final MediaProvider mediaProvider;
 
     @Transactional
     public Media loadMedia(String path) {

@@ -11,9 +11,11 @@ service:
     concurrentConversionLimit: 3
     ffprobeLocation: "/usr/bin/ffprobe"
   jedisHost: stub
-  mediaPaths: "/test/LocalMedia/"
+  mediaPaths: "src/test/resources/LocalMedia/"
   notificationsEnabled: false
-  omdbApiKey: "api-key"
+  omdb:
+    apiKey: "a825746e"
+    enabled: false
   repository:
     enabled: false
     updateFrequencyDays: 4

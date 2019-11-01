@@ -3,7 +3,9 @@ package com.github.rahmnathan.localmovie.config;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter;
-import com.github.rahmnathan.omdb.boundary.OmdbMediaProvider;
+import com.github.rahmnathan.omdb.boundary.MediaProvider;
+import com.github.rahmnathan.omdb.boundary.MediaProviderOmdb;
+import com.github.rahmnathan.omdb.boundary.MediaProviderStub;
 import lombok.AllArgsConstructor;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
@@ -34,8 +36,12 @@ public class BeanProducer {
     }
 
     @Bean
-    public OmdbMediaProvider createMovieProvider(CamelContext context, ProducerTemplate template){
-        context.setUseMDCLogging(true);
-        return new OmdbMediaProvider(context, template, serviceConfig.getOmdbApiKey());
+    public MediaProvider createMovieProvider(CamelContext context, ProducerTemplate template){
+        if(serviceConfig.getOmdb().isEnabled()) {
+            context.setUseMDCLogging(true);
+            return new MediaProviderOmdb(context, template, serviceConfig.getOmdb().getApiKey());
+        }
+
+        return new MediaProviderStub();
     }
 }

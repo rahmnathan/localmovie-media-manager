@@ -16,8 +16,8 @@ public class ServiceConfig {
     private MediaRepositoryMonitorConfig repository;
     private boolean notificationsEnabled;
     private Set<String> mediaPaths;
-    private String omdbApiKey;
     private String jedisHost;
+    private OmdbConfig omdb;
 
     @Data
     public static class MediaRepositoryMonitorConfig {
@@ -29,5 +29,11 @@ public class ServiceConfig {
     public static class MediaEventMonitorConfig {
         private String ffprobeLocation = "/usr/bin/ffprobe";
         private int concurrentConversionLimit = 3;
+    }
+
+    @Data
+    public static class OmdbConfig {
+        private boolean enabled;
+        private String apiKey;
     }
 }
