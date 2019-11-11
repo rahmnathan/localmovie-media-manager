@@ -1,6 +1,6 @@
 <h1>LocalMovies</h1>
 
-[![Build Status](https://nathanrahm-jenkins.ddns.net/buildStatus/icon?job=localmovie-media-manager)](https://nathanrahm-jenkins.ddns.net/job/localmovie-media-manager/)
+[![Build Status](https://jenkins.nathanrahm.com/buildStatus/icon?job=localmovie-media-manager)](https://jenkins.nathanrahm.com/job/localmovie-media-manager/)
 
 This project is a video streaming service for my media collection. The project consists of
 several components: Android client, web client, and the back-end system. The backend system
