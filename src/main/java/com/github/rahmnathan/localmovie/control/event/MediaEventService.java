@@ -8,7 +8,6 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.video.cast.handbrake.control.VideoController;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import io.micrometer.core.instrument.Metrics;
-import net.bramp.ffmpeg.FFprobe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +32,6 @@ public class MediaEventService {
     private final MediaPersistenceService persistenceService;
     private final MediaFileService mediaFileService;
     private final ExecutorService executorService;
-    private FFprobe ffprobe;
 
     public MediaEventService(ServiceConfig serviceConfig,
                              MediaPersistenceService persistenceService,
@@ -47,17 +44,12 @@ public class MediaEventService {
         this.persistenceService = persistenceService;
         this.mediaFileService = mediaFileService;
 
-        try {
-            this.ffprobe = new FFprobe(eventMonitorConfig.getFfprobeLocation());
-        } catch (IOException e){
-            logger.error("Failed to instantiate MediaFileEventManager", e);
-        }
     }
 
     @Transactional
     public void handleCreateEvent(File file, Set<String> activeConversions){
         logger.info("Event type: CREATE.");
-        if (Files.isRegularFile(file.toPath()) && ffprobe != null) {
+        if (Files.isRegularFile(file.toPath())) {
             queuedConversionGauge.getAndIncrement();
             launchVideoConverter(file, activeConversions);
             queuedConversionGauge.getAndDecrement();
@@ -92,7 +84,7 @@ public class MediaEventService {
         String outputExtension = inputPath.endsWith(".mp4") ? ".mkv" : ".mp4";
         String resultFilePath = inputPath.substring(0, inputPath.lastIndexOf('.')) + outputExtension;
 
-        SimpleConversionJob conversionJob = new SimpleConversionJob(ffprobe, new File(resultFilePath), file);
+        SimpleConversionJob conversionJob = new SimpleConversionJob(new File(resultFilePath), file);
         logger.info("Launching video converter.");
         try {
             resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoController(conversionJob, activeConversions)), executorService).get();
