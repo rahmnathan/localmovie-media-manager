@@ -1,6 +1,7 @@
 import React from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
+import { trackPromise } from 'react-promise-tracker';
 
 const layoutProps = {
     textAlign: 'center'
@@ -113,19 +114,21 @@ export class MainPage extends React.Component {
             this.setState({ media: this.state.originalMedia.get(this.props.mediaPath)});
         }
 
-        fetch('/localmovie/v2/media', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(buildMovieRequest(this.props.mediaPath))
-        }).then(response => response.json())
-            .then(data => {
-                let originalMedia = this.state.originalMedia;
-                originalMedia.set(this.props.mediaPath, data);
-                this.setState({media: data, originalMedia: originalMedia})
-            });
+        trackPromise(
+            fetch('/localmovie/v2/media', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(buildMovieRequest(this.props.mediaPath))
+            }).then(response => response.json())
+                .then(data => {
+                    let originalMedia = this.state.originalMedia;
+                    originalMedia.set(this.props.mediaPath, data);
+                    this.setState({media: data, originalMedia: originalMedia})
+                })
+        );
     }
 
     filterMedia(searchText){

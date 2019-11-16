@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { VideoPlayer, viewingVideos } from "./VideoPlayer.jsx";
-import { Router, navigate } from "@reach/router"
+import { Router, navigate } from "@reach/router";
 import { MainPage } from './MainPage.jsx';
+import { LoadingIndicator } from './LoadingIndicator.jsx';
 
 class App extends React.Component {
 
@@ -51,6 +52,9 @@ class App extends React.Component {
 }
 
 ReactDOM.render(
-    <App/>,
+    <div>
+        <App/>
+        <LoadingIndicator/>
+    </div>,
     document.getElementById('react')
 );
