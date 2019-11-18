@@ -1,11 +1,8 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.persistence.entity.*;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaFileEventRepository;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
+import com.github.rahmnathan.localmovie.persistence.repository.*;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaUserRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +28,7 @@ import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 public class MediaPersistenceService {
     private final Logger logger = LoggerFactory.getLogger(MediaPersistenceService.class);
     private final MediaFileEventRepository eventRepository;
+    private final MediaViewRepository mediaViewRepository;
     private final MediaFileRepository fileRepository;
     private final MediaUserRepository userRepository;
     private final MediaRepository mediaRepository;
@@ -102,6 +100,8 @@ public class MediaPersistenceService {
             MediaView mediaView = new MediaView(mediaFile, mediaUser, position);
             mediaFile.addMediaView(mediaView);
             mediaUser.addMediaView(mediaView);
+            userRepository.save(mediaUser);
+            mediaViewRepository.save(mediaView);
         } else {
             MediaView mediaView = mediaFile.getMediaViews().iterator().next();
             mediaView.setPosition(position);

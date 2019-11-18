@@ -1,8 +1,6 @@
 package com.github.rahmnathan.localmovie.control.event;
 
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
-import com.github.rahmnathan.localmovie.persistence.entity.Media;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class MediaEventServiceTest {
     private final MediaPersistenceService mediaPersistenceService;
     private final MediaEventService mediaEventService;

@@ -35,7 +35,7 @@ public class MediaFile {
     private Media media;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "mediaFile", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "mediaFile")
     private MediaFileEvent mediaFileEvent;
 
     @Version

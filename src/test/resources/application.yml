@@ -28,7 +28,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     properties.hibernate.jdbc.lob.non_contextual_creation: true
     show-sql: false
   profiles:

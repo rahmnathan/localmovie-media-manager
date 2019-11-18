@@ -41,7 +41,7 @@ public class Media {
     }
 
     @JsonIgnore
-    @OneToOne(mappedBy = "media", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "media")
     private MediaFile mediaFile;
 
     @JsonIgnore

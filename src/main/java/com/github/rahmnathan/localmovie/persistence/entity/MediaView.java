@@ -24,7 +24,7 @@ public class MediaView {
 
     @ManyToOne
     private MediaFile mediaFile;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private MediaUser mediaUser;
 
     private LocalDateTime created;
