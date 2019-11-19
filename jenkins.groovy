@@ -42,7 +42,9 @@ node {
         }
     }
     stage('Deploy to Kubernetes') {
-        withKubeConfig([credentialsId: 'Kube', serverUrl: 'https://192.168.1.8']) {
+        withCredentials([file(credentialsId: 'Kubeconfig', variable: 'FILE')]) {
+            sh 'mkdir .kube'
+            sh 'echo $FILE >> .kube/config'
             sh 'kubectl apply -f my-kubernetes-directory/'
         }
     }
