@@ -41,4 +41,9 @@ node {
             sh "'${mvnHome}/bin/mvn' dockerfile:push -Ddockerfile.username=$USERNAME -Ddockerfile.password='$PASSWORD'"
         }
     }
+    stage('Deploy to Kubernetes') {
+        withKubeConfig([credentialsId: 'Kube', serverUrl: 'https://192.168.1.8']) {
+            sh 'kubectl apply -f my-kubernetes-directory/'
+        }
+    }
 }
