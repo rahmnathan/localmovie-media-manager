@@ -14,4 +14,4 @@ data:
   spring.cloud.vault.generic.enabled: false
   spring.cloud.vault.kv.enabled: true
   spring.cloud.vault.kv.backend: localmovies
-  spring.cloud.vault.token: <my-token>
+  spring.cloud.vault.token: {{ .Values.localmovies.vaultToken }}

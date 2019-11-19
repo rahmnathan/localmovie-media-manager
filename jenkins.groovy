@@ -42,10 +42,13 @@ node {
         }
     }
     stage('Deploy to Kubernetes') {
-        withCredentials([file(credentialsId: 'Kubeconfig', variable: 'FILE')]) {
+        withCredentials([
+                file(credentialsId: 'Kubeconfig', variable: 'FILE'),
+                string(credentialsId: 'VaultToken', variable: 'VAULT_TOKEN')
+        ]) {
             sh 'mkdir .kube'
             sh 'echo $FILE >> .kube/config'
-            sh 'kubectl apply -f my-kubernetes-directory/'
+            sh 'helm upgrade localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN'
         }
     }
 }
