@@ -27,7 +27,7 @@ node {
         }
     }
     stage('Package') {
-        sh "'${mvnHome}/bin/mvn' clean package -DskipTests"
+        sh "'${mvnHome}/bin/mvn' clean install -DskipTests"
     }
     stage('Test') {
         sh "'${mvnHome}/bin/mvn' test"
