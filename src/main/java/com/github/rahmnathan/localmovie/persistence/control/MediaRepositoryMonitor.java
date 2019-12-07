@@ -9,6 +9,7 @@ import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
 
 @Service
 @Transactional
@@ -30,6 +34,7 @@ public class MediaRepositoryMonitor {
 
     @Scheduled(fixedDelay = 3600000, initialDelay = 120000)
     public void checkForEmptyValues() {
+        MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
         ServiceConfig.MediaRepositoryMonitorConfig config = serviceConfig.getRepository();
         Duration updateFrequency = config.getUpdateFrequency();
         int updateLimit = config.getUpdateLimit();
@@ -50,5 +55,8 @@ public class MediaRepositoryMonitor {
 
                     mediaFileRepository.save(mediaFile);
                 });
+
+        logger.info("Update of existing media completed successfully.");
+        MDC.clear();
     }
 }

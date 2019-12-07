@@ -13,7 +13,7 @@ import java.util.UUID;
 @Component
 @Order(1)
 public class CorrelationIdFilter implements Filter {
-    private static final String X_CORRELATION_ID = "x-correlation-id";
+    public static final String X_CORRELATION_ID = "x-correlation-id";
     private static final String CLIENT_ADDRESS = "client-address";
 
     @Override

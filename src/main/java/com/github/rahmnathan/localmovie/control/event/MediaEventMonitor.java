@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
+
 @Service
 public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final Logger logger = LoggerFactory.getLogger(MediaEventMonitor.class);
@@ -25,8 +27,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     @Override
     public void directoryModified(WatchEvent.Kind event, File file) {
+        MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
         String absolutePath = file.getAbsolutePath();
-        MDC.put("correlation-id", UUID.randomUUID().toString());
         logger.info("Detected media event at path: {}", absolutePath);
 
         if (activeConversions.contains(absolutePath)) {
@@ -40,6 +42,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
             eventService.handleDeleteEvent(file);
         }
+
+        MDC.clear();
     }
 
     private void waitForWriteComplete(File file) {
