@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     @Query("select mediaFile from MediaFile mediaFile " +
             "left join mediaFile.media media " +
-            "where media.mediaType<>1 " +
+            "where media.mediaType <> 'SEASON' " +
             "and mediaFile.updated < :time " +
             "order by mediaFile.updated")
     List<MediaFile> findAllByUpdatedBeforeOrderByUpdated(LocalDateTime time, Pageable pageable);
