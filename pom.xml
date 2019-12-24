@@ -35,9 +35,9 @@
             <version>42.2.8</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.camel</groupId>
+            <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
-            <version>3.0.0-M4</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
