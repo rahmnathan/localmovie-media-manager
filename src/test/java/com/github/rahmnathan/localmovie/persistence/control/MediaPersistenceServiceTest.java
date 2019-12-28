@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,9 +69,10 @@ public class MediaPersistenceServiceTest {
 
     @Test
     public void getMediaFileEventsTest() {
-        MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", null, "Movies");
+        MediaFile mediaFile = MediaFile.Builder.forPath("some/test/path").build();
+        MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
 
-        save(mediaFileEvent);
+        save(mediaFileEvent, mediaFile);
 
         List<MediaFileEvent> mediaFileEvents = mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES));
 
@@ -80,12 +80,7 @@ public class MediaPersistenceServiceTest {
     }
 
     @Transactional
-    public void save(MediaFileEvent mediaFileEvent) {
-        mediaPersistenceService.saveEvent(mediaFileEvent);
-    }
-
-    @Transactional
-    public void save(MediaFile mediaFile) {
-        mediaPersistenceService.saveMediaFile(mediaFile);
+    public void save(MediaFileEvent mediaFileEvent, MediaFile mediaFile) {
+        mediaPersistenceService.saveEvent(mediaFileEvent, mediaFile);
     }
 }

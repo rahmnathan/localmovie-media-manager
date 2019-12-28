@@ -42,8 +42,9 @@ public class MediaPersistenceService {
     }
 
     @Transactional
-    public void saveEvent(MediaFileEvent event){
+    public void saveEvent(MediaFileEvent event, MediaFile mediaFile){
         eventRepository.save(event);
+        fileRepository.save(mediaFile);
     }
 
     @Transactional

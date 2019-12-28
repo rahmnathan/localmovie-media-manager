@@ -5,13 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,7 +28,7 @@ public class MediaEventServiceTest {
 
     @Test
     public void handleCreateEventTest() {
-        mediaEventService.handleCreateEvent(new File("src/test/resources/LocalMedia/Movies/300.mkv"), new HashSet<>());
+        mediaEventService.handleCreateEvent(new File("src/test/resources/LocalMedia/Movies/300.mkv"));
         assertTrue(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES)).size() >= 1);
     }
 
