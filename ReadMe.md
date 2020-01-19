@@ -23,3 +23,6 @@ When a new media file is detected a series of events is triggered:
 2) Metadata is loaded from OMDB (http://www.omdbapi.com/) and stored in cache and database.
 3) File list in cache is updated to contain path to file.
 4) Push notification is sent to known Android clients.
+
+
+testing my yubikey permissions
