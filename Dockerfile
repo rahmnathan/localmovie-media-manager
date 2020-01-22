@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk13:jre
+FROM adoptopenjdk/openjdk13:debian-jre
 
 RUN apt-get update && \
     apt-get -y install apt-utils ffmpeg handbrake-cli software-properties-common wget tar && \
