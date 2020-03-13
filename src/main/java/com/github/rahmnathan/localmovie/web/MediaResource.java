@@ -117,7 +117,7 @@ public class MediaResource {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
         logger.info("Request for events since: {}", localDateTime);
 
-        if(pageable.getPageNumber() == 0)
+        if(pageable.isPaged() && pageable.getPageNumber() == 0)
             countEvents(epoch, response);
 
         List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
