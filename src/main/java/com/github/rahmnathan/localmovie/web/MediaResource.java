@@ -11,6 +11,7 @@ import io.micrometer.core.instrument.Timer;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -111,11 +112,11 @@ public class MediaResource {
      * @return - List of MediaFileEvents
      */
     @GetMapping(path = "/events")
-    public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch) {
+    public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
         logger.info("Request for events since: {}", localDateTime);
 
-        List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime);
+        List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
 
         logger.info("Events response. Time: {} EventList: {}", localDateTime, events);
         return events;

@@ -48,6 +48,11 @@ public class MediaPersistenceService {
     }
 
     @Transactional
+    public void saveEvent(MediaFileEvent event){
+        eventRepository.save(event);
+    }
+
+    @Transactional
     public void saveMediaFile(MediaFile mediaFile) {
         fileRepository.save(mediaFile);
     }
@@ -111,8 +116,8 @@ public class MediaPersistenceService {
         fileRepository.save(mediaFile);
     }
 
-    public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime) {
-        return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime);
+    public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {
+        return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime, pageable);
     }
 
     public long countMediaFiles(String path){

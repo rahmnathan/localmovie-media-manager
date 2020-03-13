@@ -21,12 +21,17 @@ public class MediaFileEvent {
     private String event;
 
     @JoinColumn
-    @ManyToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     private MediaFile mediaFile;
 
     public MediaFileEvent(String event, MediaFile mediaFile, String relativePath) {
         this.relativePath = relativePath;
         this.mediaFile = mediaFile;
+        this.event = event;
+    }
+
+    public MediaFileEvent(String event, String relativePath) {
+        this.relativePath = relativePath;
         this.event = event;
     }
 

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -49,7 +50,7 @@ public class MediaResourceTest {
 
     @Test
     public void getEventsTest() {
-        List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis());
+        List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged());
 
         assertEquals(0, events.size());
     }

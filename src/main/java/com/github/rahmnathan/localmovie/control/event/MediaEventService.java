@@ -35,6 +35,9 @@ public class MediaEventService {
             logger.info("Removing media from database.");
             persistenceService.deleteAllByRelativePath(relativePath);
         }
+
+        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_DELETE.getMovieEventString(), relativePath);
+        persistenceService.saveEvent(event);
     }
 
     private void addCreateEvent(File file, MediaFile mediaFile){
