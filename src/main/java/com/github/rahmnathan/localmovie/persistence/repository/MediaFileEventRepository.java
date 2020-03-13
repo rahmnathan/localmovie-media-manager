@@ -12,4 +12,5 @@ import java.util.List;
 public interface MediaFileEventRepository extends JpaRepository<MediaFileEvent, Long> {
     void deleteAllByRelativePath(String path);
     List<MediaFileEvent> findAllByTimestampAfterOrderByTimestamp(LocalDateTime localDateTime, Pageable pageable);
+    long countAllByTimestampAfter(LocalDateTime localDateTime);
 }

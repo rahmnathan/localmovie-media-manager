@@ -30,6 +30,7 @@ import java.util.Set;
 @RequestMapping(value = "/localmovie/v2/media")
 public class MediaResource {
     private final Logger logger = LoggerFactory.getLogger(MediaResource.class.getName());
+    private static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
     private final FileSenderService fileSenderService;
     private final Set<String> mediaPaths;
@@ -67,7 +68,7 @@ public class MediaResource {
         long count = persistenceService.countMediaFiles(path);
 
         logger.info("Returning count of - {}", count);
-        response.setHeader("Count", String.valueOf(count));
+        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
     }
 
     /**
@@ -112,13 +113,30 @@ public class MediaResource {
      * @return - List of MediaFileEvents
      */
     @GetMapping(path = "/events")
-    public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable) {
+    public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable, HttpServletResponse response) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
         logger.info("Request for events since: {}", localDateTime);
+
+        if(pageable.getPageNumber() == 0)
+            countEvents(epoch, response);
 
         List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
 
         logger.info("Events response. Time: {} EventList: {}", localDateTime, events);
         return events;
+    }
+
+    /**
+     * @param epoch - Timestamp to count events since
+     */
+    @GetMapping(path = "/events/count")
+    public void countEvents(@RequestParam("timestamp") Long epoch, HttpServletResponse response) {
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
+        logger.info("Request for event count since: {}", localDateTime);
+
+        long eventCount = persistenceService.getMediaFileEventCount(localDateTime);
+
+        logger.info("Event count response. Time: {} Event Count: {}", localDateTime, eventCount);
+        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(eventCount));
     }
 }

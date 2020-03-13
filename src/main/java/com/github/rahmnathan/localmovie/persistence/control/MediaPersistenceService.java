@@ -116,6 +116,10 @@ public class MediaPersistenceService {
         fileRepository.save(mediaFile);
     }
 
+    public Long getMediaFileEventCount(LocalDateTime localDateTime) {
+        return eventRepository.countAllByTimestampAfter(localDateTime);
+    }
+
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {
         return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime, pageable);
     }

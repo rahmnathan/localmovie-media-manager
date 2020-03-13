@@ -50,7 +50,7 @@ public class MediaResourceTest {
 
     @Test
     public void getEventsTest() {
-        List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged());
+        List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged(), new MockHttpServletResponse());
 
         assertEquals(0, events.size());
     }
