@@ -45,7 +45,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
         String absolutePath = file.getAbsolutePath();
         logger.info("Detected media event {} at path: {}", event.name(), absolutePath);
-        if (activeConversions.contains(absolutePath) || absolutePath.endsWith(".partial")) {
+        if (activeConversions.contains(absolutePath) || absolutePath.endsWith(".partial~")) {
             logger.info("Ignoring event.");
             return;
         }
