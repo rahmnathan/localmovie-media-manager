@@ -68,7 +68,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         String inputPath = file.toString();
         String resultFilePath = inputPath.substring(0, inputPath.lastIndexOf('.')) + (inputPath.endsWith(".mp4") ? ".mkv" : ".mp4");
 
-        SimpleConversionJob conversionJob = new SimpleConversionJob(new File(resultFilePath), file, MDC.get(X_CORRELATION_ID));
+        SimpleConversionJob conversionJob = new SimpleConversionJob(new File(resultFilePath), file);
         logger.info("Launching video converter.");
         try {
             queuedConversionGauge.getAndIncrement();
