@@ -25,7 +25,13 @@ public class MediaEventService {
 
     public void handleCreateEvent(File file){
         MediaFile mediaFile = mediaFileService.loadMediaFile(file);
-        addCreateEvent(file, mediaFile);
+
+        logger.info("Adding CREATE event to repository.");
+        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
+        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
+        mediaFile.setMediaFileEvent(event);
+        persistenceService.saveEvent(event, mediaFile);
+
         notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
     }
 
@@ -38,13 +44,5 @@ public class MediaEventService {
 
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_DELETE.getMovieEventString(), relativePath);
         persistenceService.saveEvent(event);
-    }
-
-    private void addCreateEvent(File file, MediaFile mediaFile){
-        logger.info("Adding CREATE event to repository.");
-        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
-        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
-        mediaFile.setMediaFileEvent(event);
-        persistenceService.saveEvent(event, mediaFile);
     }
 }

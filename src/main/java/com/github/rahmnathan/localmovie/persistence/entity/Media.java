@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -104,7 +105,7 @@ public class Media {
                 .mediaType(this.mediaType)
                 .metaRating(this.metaRating)
                 .imdbRating(this.imdbRating)
-                .image(Base64.getEncoder().encodeToString(this.image))
+                .image(Objects.isNull(this.image) ? null : Base64.getEncoder().encodeToString(this.image))
                 .genre(this.genre)
                 .actors(this.actors)
                 .build();
