@@ -11,21 +11,21 @@ import java.util.regex.Pattern;
 @UtilityClass
 class PathUtils {
 
-    static boolean isTopLevel(String currentPath){
+    boolean isTopLevel(String currentPath){
         int pathLength = currentPath.split(File.separator).length;
         return pathLength == 2;
     }
 
-    static boolean isEpisode(String currentPath){
+    boolean isEpisode(String currentPath){
         int pathLength = currentPath.split(File.separator).length;
         return pathLength == 4;
     }
 
-    static int parseEpisodeNumber(String path) throws InvalidMediaException {
+    int parseEpisodeNumber(String path) throws InvalidMediaException {
         return parseNumber(NumberParser.EPISODE, path);
     }
 
-    static int parseSeasonNumber(String path) throws InvalidMediaException {
+    int parseSeasonNumber(String path) throws InvalidMediaException {
         return parseNumber(NumberParser.SEASON, path);
     }
 
@@ -38,7 +38,7 @@ class PathUtils {
                 .orElseThrow(() -> new InvalidMediaException("Unable to parse number from String: " + path));
     }
 
-    static File getParentFile(String path){
+    File getParentFile(String path){
         int directoryDepth = path.split(File.separator).length - 2;
 
         File file = new File(path);
@@ -49,7 +49,7 @@ class PathUtils {
         return file;
     }
 
-    static String getTitle(String fileName){
+    String getTitle(String fileName){
         if (fileName.charAt(fileName.length() - 4) == '.') {
             return fileName.substring(0, fileName.length() - 4);
         }
