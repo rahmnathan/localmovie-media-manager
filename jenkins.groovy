@@ -3,7 +3,7 @@ node {
     def jdk
     stage('Setup') {
         mvnHome = tool 'Maven'
-        jdk = tool name: 'Java 13'
+        jdk = tool name: 'Java 14'
         env.JAVA_HOME = "${jdk}"
     }
     stage('Checkout') {
@@ -35,7 +35,7 @@ node {
     stage('Docker Build') {
         sh "'${mvnHome}/bin/mvn' dockerfile:build"
     }
-    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'Dockerhub',
+    withCredentials([[$class : 'UsernamePasswordMultiBinding', credentialsId: 'Dockerhub',
                       usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
         stage('Docker Push') {
             sh "'${mvnHome}/bin/mvn' dockerfile:push -Ddockerfile.username=$USERNAME -Ddockerfile.password='$PASSWORD'"
