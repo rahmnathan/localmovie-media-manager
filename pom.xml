@@ -20,6 +20,7 @@
     </properties>
 
     <scm>
+        <connection>scm:git:git@github.com:rahmnathan/localmovie-media-manager.git</connection>
         <developerConnection>scm:git:git@github.com:rahmnathan/localmovie-media-manager.git</developerConnection>
     </scm>
 
