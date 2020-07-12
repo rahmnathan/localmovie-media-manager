@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.0.RELEASE</version>
+        <version>2.3.1.RELEASE</version>
     </parent>
 
     <properties>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
-            <version>3.3.0</version>
+            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -77,7 +77,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-vault-config</artifactId>
-            <version>2.2.2.RELEASE</version>
+            <version>2.2.3.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -138,7 +138,7 @@
             <dependency>
                 <groupId>org.keycloak.bom</groupId>
                 <artifactId>keycloak-adapter-bom</artifactId>
-                <version>10.0.1</version>
+                <version>10.0.2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
