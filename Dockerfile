@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk14:ubuntu-jre
+FROM adoptopenjdk/openjdk11:ubuntu-jre
 
 RUN apt-get update && \
     apt-get -y install apt-utils ffmpeg handbrake-cli software-properties-common wget tar && \
