@@ -5,7 +5,7 @@ package "User Interface" {
   [Android Application]
 }
 
-package "Kubernetes" {
+package "On-Prem Kubernetes" {
   [nginx]
   [Keycloak]
   [Hashicorp Vault]
@@ -23,7 +23,7 @@ cloud {
   [CloudFlare]
 }
 
-cloud {
+cloud "Notifications" {
   [Firebase]
   [APNs]
 }
@@ -36,13 +36,13 @@ cloud {
 
 [CloudFlare] -down-> [nginx]
 
-[nginx] --> [Keycloak] : Authenticate/\nAuthorize
+[nginx] --> [Keycloak] : Authentication/\nAuthorization
 [nginx] --> [localmovie-media-manager]
 [nginx] --> [Hashicorp Vault] : Manage/\nQuery Secrets
 [nginx] --> [Grafana]
 
-[localmovie-media-manager] --> [Firebase] : Send\nNotification
-[localmovie-media-manager] --> [APNs] : Send\nNotification
+[localmovie-media-manager] --> [Firebase]
+[localmovie-media-manager] --> [APNs]
 [Firebase] --> [Android Application]
 [APNs] --> [Android Application]
 
