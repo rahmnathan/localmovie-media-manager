@@ -6,7 +6,9 @@ This repository is a Spring Boot video streaming service for my media collection
 
 <h4>User Interface</h4>
 There are two user interfaces available.
+
 - [Android Application](https://play.google.com/store/apps/details?id=rahm.nathan.localmovies&hl=en)
+
 - [ReactJS web application](https://movies.nathanrahm.com) (located in the src/main/js directory).
 
 <h4>APIs</h4>
