@@ -20,6 +20,14 @@ This service exposes a set of endpoints that facilitate:
 - Streaming a media file.
 - Loading media events (for persistent Android clients).
 
+<h4>Media Management</h4>
+When the service starts, configured directories are recursively scanned to locate media. Based on a naming convention, 
+each file/folder is checked against the database. If any metadata is missing, it is downloaded from OMDB and stored. 
+The directory naming convention is as follows:
+
+- root-directory/Movies/The Matrix.mp4
+- root-directory/Series/The Office/Season 1/S01E01.mp4
+
 When new media is added to a monitored directory, the following process is triggered:
 
  - Media is converted to H.264/AAC format (if necessary).
