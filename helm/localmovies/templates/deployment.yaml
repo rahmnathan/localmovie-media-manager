@@ -25,7 +25,6 @@ spec:
         - image: {{.Values.localmovies.imageRepository}}/localmovie-media-manager:@project.version@
           imagePullPolicy: Always
           name: localmovies
-          resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
@@ -39,6 +38,13 @@ spec:
             - name: secrets
               mountPath: /opt/localmovie/secrets
               readOnly: true
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "8"
+              memory: "8Gi"
       volumes:
         - name: media1
           nfs:
