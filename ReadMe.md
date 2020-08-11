@@ -8,16 +8,17 @@ This repository is a Spring Boot video streaming service for my media collection
 There are two user interfaces available.
 
 - [Android Application](https://play.google.com/store/apps/details?id=rahm.nathan.localmovies&hl=en)
-
 - [ReactJS web application](https://movies.nathanrahm.com) (located in the src/main/js directory).
 
 <h4>APIs</h4>
 This service exposes a set of endpoints that facilitate:
+
 - Loading media at a given path ('/Movies', '/Series', etc).
 - Streaming a media file.
 - Loading media events (for persistent Android clients).
 
 When new media is added to a monitored directory, the following process is triggered:
+
  - Media is converted to H.264/AAC format (if necessary).
  - Media metadata is downloaded from OMDB and stored in database.
  - 'New Media' event is added to database for processing by Android clients.
