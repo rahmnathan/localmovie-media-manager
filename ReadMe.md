@@ -2,24 +2,42 @@
 
 [![Build Status](https://jenkins.nathanrahm.com/buildStatus/icon?job=localmovie-media-manager)](https://jenkins.nathanrahm.com/job/localmovie-media-manager/)
 
-This project is a video streaming service for my media collection. The project consists of
-several components: Android client, web client, and the back-end system. The backend system
-is deployed in an on-prem Kubernetes instance. The web service exposes a set of endpoints
-through an NGINX ingress that serve up: media metadata, media events, and media streams. Helm 
-charts for Kubernetes deployment information can be found in the docker repository under the 
-kubernetes/localmovies directory.
+This repository is a Spring Boot video streaming service for my media collection.
 
-The following diagram is an attempt to show the components and data-flow of the backend
-services for this project.
+<h4>User Interface</h4>
+There are two user interfaces available.
+- [Android Application](https://play.google.com/store/apps/details?id=rahm.nathan.localmovies&hl=en)
+- [ReactJS web application](https://movies.nathanrahm.com) (located in the src/main/js directory).
 
-![Imgur Image](https://imgur.com/4hVN0WZ.png)
+<h4>APIs</h4>
+This service exposes a set of endpoints that facilitate:
+- Loading media at a given path ('/Movies', '/Series', etc).
+- Streaming a media file.
+- Loading media events (for persistent Android clients).
 
-<h2>localmovie-media-manager</h2>
+When new media is added to a monitored directory, the following process is triggered:
+ - Media is converted to H.264/AAC format (if necessary).
+ - Media metadata is downloaded from OMDB and stored in database.
+ - 'New Media' event is added to database for processing by Android clients.
+ - Push notifications are sent to Android devices to notify of new media.
+ 
+ <h4>Tech Stack</h4>
+ - Spring Boot
+ - Apache Camel
+ - Maven
+ - Postgresql
+ - Hashicorp Vault
+ - Keycloak
+ 
+ <h4>CI/CD</h4>
+ Jenkins pipeline is located in the jenkins.groovy file.
+ 
+ <h4>Monitoring</h4>
+ Monitoring is facilitated by Prometheus and Grafana.
 
-The media-manager service manages media on the filesystem, contents of the redis cache, and media events.
-When a new media file is detected a series of events is triggered:
+<h4>Deployment</h4>
+The backend system is deployed in an on-prem Kubernetes instance. Helm charts for Kubernetes deployment are located in 
+the helm/localmovies directory.
 
-1) Media is converted to natively castable format (H.264/AAC).
-2) Metadata is loaded from OMDB (http://www.omdbapi.com/) and stored in cache and database.
-3) File list in cache is updated to contain path to file.
-4) Push notification is sent to known Android clients.
+<h4>System Diagram</h4>
+![Imgur Image](https://imgur.com/hA5ur36.png)
