@@ -40,4 +40,5 @@ The backend system is deployed in an on-prem Kubernetes instance. Helm charts fo
 the helm/localmovies directory.
 
 <h4>System Diagram</h4>
+
 ![Imgur Image](https://imgur.com/hA5ur36.png)
