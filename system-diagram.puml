@@ -1,0 +1,58 @@
+@startuml
+
+package "User Interface" {
+  [Web Application]
+  [Android Application]
+}
+
+package "Kubernetes" {
+  [nginx]
+  [Keycloak]
+  [Hashicorp Vault]
+  [localmovie-media-manager]
+  [Prometheus]
+  [Grafana]
+  database "Postgresql" {
+    [LocalMovies DB]
+    [Keycloak DB]
+    [Hashicorp Vault DB]
+  }
+}
+
+cloud {
+  [CloudFlare]
+}
+
+cloud {
+  [Firebase]
+  [APNs]
+}
+
+[Web Application] --> [CloudFlare]
+[Web Application] -[hidden]down-> [nginx]
+[Android Application] --> [CloudFlare]
+[Android Application] -[hidden]down-> [nginx]
+
+
+[CloudFlare] -down-> [nginx]
+
+[nginx] --> [Keycloak] : Authenticate/\nAuthorize
+[nginx] --> [localmovie-media-manager]
+[nginx] --> [Hashicorp Vault] : Manage/\nQuery Secrets
+[nginx] --> [Grafana]
+
+[localmovie-media-manager] --> [Firebase] : Send\nNotification
+[localmovie-media-manager] --> [APNs] : Send\nNotification
+[Firebase] --> [Android Application]
+[APNs] --> [Android Application]
+
+[localmovie-media-manager] -up-> [CloudFlare]
+
+[localmovie-media-manager] --> [LocalMovies DB]
+[Keycloak] --> [Keycloak DB]
+[Hashicorp Vault] --> [Hashicorp Vault DB]
+
+[Prometheus] --> [localmovie-media-manager]
+[Grafana] --> [Prometheus]
+
+@enduml
