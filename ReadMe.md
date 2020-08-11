@@ -25,6 +25,7 @@ When new media is added to a monitored directory, the following process is trigg
  - Push notifications are sent to Android devices to notify of new media.
  
  <h4>Tech Stack</h4>
+ 
  - Spring Boot
  - Apache Camel
  - Maven
