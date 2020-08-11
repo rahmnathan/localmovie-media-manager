@@ -4,8 +4,10 @@
 
 This repository is a Spring Boot video streaming service for my media collection.
 
+<h4>Demo</h4>
+You can view a brief demo of this project [here](https://nathanrahm.com/projects).
+
 <h4>User Interface</h4>
-There are two user interfaces available.
 
 - [Android Application](https://play.google.com/store/apps/details?id=rahm.nathan.localmovies&hl=en)
 - [ReactJS web application](https://movies.nathanrahm.com) (located in the src/main/js directory).
@@ -30,18 +32,19 @@ When new media is added to a monitored directory, the following process is trigg
  - Apache Camel
  - Maven
  - Postgresql
- - Hashicorp Vault
- - Keycloak
- 
- <h4>CI/CD</h4>
- Jenkins pipeline is located in the jenkins.groovy file.
+ - [Hashicorp Vault](https://vault.nathanrahm.com)
+ - [Keycloak](https://login.nathanrahm.com/)
  
  <h4>Monitoring</h4>
- Monitoring is facilitated by Prometheus and Grafana.
+ 
+ - [Grafana](https://grafana.nathanrahm.com/d/kjj-uuJWk/localmovies?orgId=1)
+ - Prometheus
 
-<h4>Deployment</h4>
-The backend system is deployed in an on-prem Kubernetes instance. Helm charts for Kubernetes deployment are located in 
-the helm/localmovies directory.
+<h4>CI/CD</h4>
+
+- [Kubernetes](https://kube.nathanrahm.com)
+- [Jenkins](https://jenkins.nathanrahm.com)
+- Helm (chart located in helm/localmovies directory)
 
 <h4>System Diagram</h4>
 
