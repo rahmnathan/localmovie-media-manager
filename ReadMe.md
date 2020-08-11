@@ -5,6 +5,7 @@
 This repository is a Spring Boot video streaming service for my media collection.
 
 <h4>Demo</h4>
+
 You can view a brief demo of this project [here](https://nathanrahm.com/projects).
 
 <h4>User Interface</h4>
