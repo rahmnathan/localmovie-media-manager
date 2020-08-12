@@ -46,7 +46,7 @@ node {
                 file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG'),
                 string(credentialsId: 'VaultToken', variable: 'VAULT_TOKEN')
         ]) {
-            sh 'helm upgrade --install localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN --namespace localmovies --kubeconfig $KUBE_CONFIG'
+            sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN --kubeconfig $KUBE_CONFIG'
         }
     }
 }
