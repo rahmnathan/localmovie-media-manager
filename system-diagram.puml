@@ -1,22 +1,33 @@
 @startuml
 
-package "User Interface" {
-  [Web Application]
+legend top right
+|= |= Use Case |
+|<back:#FF0000>   </back>| View/Stream Media |
+|<back:#00FF00>   </back>| Authentication/Authorization |
+|<back:blue>   </back>| Monitoring |
+|<back:orange>   </back>| Notifications |
+|<back:grey>   </back>| Secret Management |
+endlegend
+
+rectangle "User Interface" {
+  [Browser]
   [Android Application]
 }
 
-package "On-Prem Kubernetes" {
+rectangle "On-Prem Kubernetes" {
   [nginx]
-  [Keycloak]
-  [Hashicorp Vault]
-  [localmovie-media-manager]
-  [Prometheus]
-  [Grafana]
+  [Keycloak]#00FF00
+  [Hashicorp Vault]#grey
+  [localmovie-media-manager]#red
+  [Prometheus]#Blue
+  [Grafana]#Blue
   database "Postgresql" {
-    [LocalMovies DB]
-    [Keycloak DB]
-    [Hashicorp Vault DB]
   }
+}
+
+rectangle "NAS" {
+ [Postgresql Data]
+ [Media Files]
 }
 
 cloud {
@@ -24,35 +35,42 @@ cloud {
 }
 
 cloud "Notifications" {
-  [Firebase]
-  [APNs]
+  [Firebase]#Orange
+  [APNs]#Orange
 }
 
-[Web Application] --> [CloudFlare]
-[Web Application] -[hidden]down-> [nginx]
-[Android Application] --> [CloudFlare]
+[Browser] --[#Red]> [CloudFlare]
+[Browser] --[#blue]> [CloudFlare]
+[Browser] --[#grey]> [CloudFlare]
+[Browser] --[#00FF00]> [CloudFlare]
+[Browser] --[hidden]down-> [nginx]
+[Android Application] -[#Red]down-> [CloudFlare]
 [Android Application] -[hidden]down-> [nginx]
 
+[CloudFlare] --[#Red]> [nginx]
+[CloudFlare] --[#grey]> [nginx]
+[CloudFlare] --[#00FF00]> [nginx]
+[CloudFlare] --[#blue]> [nginx]
 
-[CloudFlare] -down-> [nginx]
+[nginx] --[#00FF00]> [Keycloak]
+[nginx] --[#Red]> [localmovie-media-manager]
+[nginx] --[#grey]> [Hashicorp Vault]
+[nginx] -[#Blue]right-> [Grafana]
 
-[nginx] --> [Keycloak] : Authentication/\nAuthorization
-[nginx] --> [localmovie-media-manager]
-[nginx] --> [Hashicorp Vault] : Manage/\nQuery Secrets
-[nginx] --> [Grafana]
+[localmovie-media-manager] --[#Orange]> Notifications
+Notifications --[#Orange]> [Android Application]
 
-[localmovie-media-manager] --> [Firebase]
-[localmovie-media-manager] --> [APNs]
-[Firebase] --> [Android Application]
-[APNs] --> [Android Application]
+[localmovie-media-manager] --[#Red]> [Media Files]
+[localmovie-media-manager] --[#Grey]> [CloudFlare]
+[localmovie-media-manager] --[#00FF00]> [CloudFlare]
 
-[localmovie-media-manager] -up-> [CloudFlare]
+[localmovie-media-manager] --[#Red]> Postgresql
+[Keycloak] -[#00FF00]-> Postgresql
+[Hashicorp Vault] --[#grey]> Postgresql
 
-[localmovie-media-manager] --> [LocalMovies DB]
-[Keycloak] --> [Keycloak DB]
-[Hashicorp Vault] --> [Hashicorp Vault DB]
+[Prometheus] -[#Blue]-> [localmovie-media-manager]
+[Grafana] -[#Blue]-> [Prometheus]
 
-[Prometheus] --> [localmovie-media-manager]
-[Grafana] --> [Prometheus]
+Postgresql --> [Postgresql Data]
 
 @enduml
