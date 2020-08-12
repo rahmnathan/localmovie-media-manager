@@ -35,6 +35,8 @@ spec:
               mountPath: /opt/localmovie/1/LocalMedia
             - name: media2
               mountPath: /opt/localmovie/2/LocalMedia
+            - name: media3
+              mountPath: /opt/localmovie/3/LocalMedia
             - name: secrets
               mountPath: /opt/localmovie/secrets
               readOnly: true
@@ -54,6 +56,10 @@ spec:
           nfs:
             server: 192.168.1.189
             path: /LocalMedia2
+        - name: media3
+          nfs:
+            server: 192.168.1.189
+            path: /LocalMedia3
         - name: application-config
           configMap:
             name: localmovies
