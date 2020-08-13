@@ -13,15 +13,19 @@ metadata:
         nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
         nginx.ingress.kubernetes.io/modsecurity-transaction-id: "$request_id"
 spec:
-    rules:
-        - host: movies.nathanrahm.com
-          http:
-              paths:
-                  - path: /
-                    backend:
-                        serviceName: localmovies
-                        servicePort: http
-    tls:
+  rules:
+    - host: movies.nathanrahm.com
+      http:
+        paths:
+         - path: /
+           backend:
+             serviceName: localmovies
+             servicePort: http
+         - path: /actuator
+           backend:
+             serviceName: nowhere
+             servicePort: http
+  tls:
         - hosts:
               - movies.nathanrahm.com
           secretName: localmovies-tls
