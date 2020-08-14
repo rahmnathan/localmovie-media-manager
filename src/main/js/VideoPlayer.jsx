@@ -75,7 +75,7 @@ export class VideoPlayer extends React.Component {
             <div style={videoPlayerStyle}>
                 <ReactPlayer
                     url={this.buildVideoPath(this.props.mediaFileId)}
-                    light={buildPosterUri(this.props.mediaFileId)}
+                    config={ { file: { attributes: { poster: buildPosterUri(this.props.mediaFileId) } } } }
                     controls={true}
                     width={'100%'}
                     height={'100%'}
