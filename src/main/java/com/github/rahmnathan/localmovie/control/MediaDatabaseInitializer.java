@@ -32,6 +32,7 @@ public class MediaDatabaseInitializer {
         Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
+                .parallel()
                 .flatMap(this::listFiles)
                 .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
                 .map(this::buildMediaFile)
