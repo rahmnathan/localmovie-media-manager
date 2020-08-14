@@ -10,11 +10,13 @@
     "react"
   ],
   "dependencies": {
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2",
-    "rest": "^1.3.1",
     "@reach/router": "latest",
-    "react-addons-css-transition-group": "^15.6.2"
+    "react": "^16.5.2",
+    "react-addons-css-transition-group": "^15.6.2",
+    "react-dom": "^16.5.2",
+    "react-player": "^2.6.0",
+    "rest": "^1.3.1",
+    "universal-cookie": "^4.0.3"
   },
   "scripts": {
     "watch": "../node_modules/.bin/webpack --watch -d"
