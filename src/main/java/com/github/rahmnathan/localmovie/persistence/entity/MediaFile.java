@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
+
+import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.ROOT_MEDIA_FOLDER;
 
 @Data
 @Entity
@@ -25,6 +28,8 @@ public class MediaFile {
     private String fileName;
     private LocalDateTime created;
     private LocalDateTime updated;
+    private String mediaFileId;
+    private String absolutePath;
     private long length;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -106,6 +111,16 @@ public class MediaFile {
             return this;
         }
 
+        public Builder setMediaFileId(String mediaFileId) {
+            this.mediaFile.mediaFileId = mediaFileId;
+            return this;
+        }
+
+        public Builder setAbsolutePath(String path) {
+            this.mediaFile.absolutePath = path;
+            return this;
+        }
+
         public MediaFile build(){
             MediaFile result = mediaFile;
             mediaFile = new MediaFile();
@@ -114,11 +129,14 @@ public class MediaFile {
         }
 
         public static Builder forPath(String path){
-            File file = new File(path);
+            String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
+            File file = new File(relativePath);
             return Builder.newInstance()
                     .setFileName(file.getName())
                     .setParentPath(file.getParent())
-                    .setPath(path);
+                    .setMediaFileId(UUID.randomUUID().toString())
+                    .setAbsolutePath(path)
+                    .setPath(relativePath);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.instrument.Metrics;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -29,9 +31,11 @@ public class FileSenderService {
         this.persistenceService = persistenceService;
     }
 
-    public void serveResource(Path file, HttpServletRequest request, HttpServletResponse response) {
-        if (response == null || request == null || file == null)
+    public void serveResource(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
+        if (response == null || request == null)
             return;
+
+        Path file = Paths.get(mediaFile.getAbsolutePath());
 
         long totalBytes = 0L;
         try {
@@ -50,10 +54,10 @@ public class FileSenderService {
         response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + startByte + "-" + (totalBytes - 1) + "/" + totalBytes);
         response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(totalBytes - startByte));
 
-        streamFile(file, response, startByte);
+        streamFile(mediaFile, file, response, startByte);
     }
 
-    private void streamFile(Path file, HttpServletResponse response, long startByte){
+    private void streamFile(MediaFile mediaFile, Path file, HttpServletResponse response, long startByte){
         long currentPosition = startByte;
         try (InputStream input = new BufferedInputStream(Files.newInputStream(file));
              OutputStream output = response.getOutputStream()) {
@@ -75,7 +79,7 @@ public class FileSenderService {
             logger.info("Client stopped stream.");
         } finally {
             activeStreamGauge.getAndDecrement();
-            persistenceService.addView(file.toFile().getAbsolutePath(), currentPosition);
+            persistenceService.addView(mediaFile, currentPosition);
         }
     }
 }

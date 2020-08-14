@@ -16,6 +16,7 @@ public interface RedactedMediaFile {
     Set<MediaView> getMediaViews();
     RedactedMedia getMedia();
     MediaFileEvent getMediaFileEvent();
+    String getMediaFileId();
 
     interface RedactedMedia {
         Long getId();

@@ -39,8 +39,12 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
             "where m1.path = :path ")
     MediaFile findByPath(@Param("path") String path, @Param("userId") String userId);
 
+    @Query(value = "select m.image from Media m where m.id = (select m2.media from MediaFile m2 where m2.mediaFileId = :id)")
+    byte[] getImageById(String id);
+
     long countAllByParentPath(String parentPath);
     Optional<MediaFile> findByPath(String path);
     boolean existsByPath(String path);
     void deleteByPath(String path);
+    Optional<MediaFile> findByMediaFileId(String id);
 }

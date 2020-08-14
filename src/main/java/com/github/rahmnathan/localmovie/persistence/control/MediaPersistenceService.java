@@ -63,8 +63,16 @@ public class MediaPersistenceService {
         fileRepository.deleteByPath(path);
     }
 
+    public Optional<MediaFile> getMediaFileById(String id) {
+        return fileRepository.findByMediaFileId(id);
+    }
+
     public byte[] getMediaImage(String path){
         return mediaRepository.getImageByPath(path);
+    }
+
+    public byte[] getMediaImageById(String id){
+        return fileRepository.getImageById(id);
     }
 
     public boolean existsByPath(String path){
@@ -96,11 +104,11 @@ public class MediaPersistenceService {
     }
 
     @Transactional
-    public void addView(String path, long position) {
+    public void addView(MediaFile mediaFile, long position) {
+        if(mediaFile.getId() == null) return;
+
         String userName = getUsername();
-        logger.info("Adding view for User: {} Path: {} Position: {}", userName, path, position);
-        String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
-        MediaFile mediaFile = fileRepository.findByPath(relativePath, userName);
+        logger.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
         if(mediaFile.getMediaViews().isEmpty()){
             MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
             MediaView mediaView = new MediaView(mediaFile, mediaUser, position);

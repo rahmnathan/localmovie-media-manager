@@ -59,18 +59,8 @@ public class MediaPersistenceServiceTest {
     }
 
     @Test
-    public void addViewTest() {
-        mediaPersistenceService.addView("/home/user/LocalMedia/Movies/300.mkv", 400L);
-
-        Optional<MediaFile> resultMediaFile = mediaPersistenceService.getMediaFileByPath("Movies/300.mkv");
-
-        assertTrue(resultMediaFile.isPresent());
-        assertTrue(resultMediaFile.get().getMediaViews().size() >= 1);
-    }
-
-    @Test
     public void getMediaFileEventsTest() {
-        MediaFile mediaFile = MediaFile.Builder.forPath("some/test/path").build();
+        MediaFile mediaFile = MediaFile.Builder.forPath("/home/LocalMedia/some/test/path").build();
         MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
 
         save(mediaFileEvent, mediaFile);

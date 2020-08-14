@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.ROOT_MEDIA_FOLDER;
 
@@ -33,9 +34,11 @@ public class MediaFileService {
     }
 
     private MediaFile loadNewMediaFile(File file, String relativePath){
-        MediaFile mediaFile = MediaFile.Builder.forPath(relativePath)
+        MediaFile mediaFile = MediaFile.Builder.forPath(file.getAbsolutePath())
                 .setMedia(mediaService.loadNewMedia(relativePath))
                 .setLength(file.length())
+                .setMediaFileId(UUID.randomUUID().toString())
+                .setAbsolutePath(file.getAbsolutePath())
                 .build();
 
         return mediaFileRepository.save(mediaFile);

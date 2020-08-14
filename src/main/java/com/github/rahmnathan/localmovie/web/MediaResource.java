@@ -88,7 +88,7 @@ public class MediaResource {
             if (new File(mediaPath + path).exists()) {
                 logger.info("Streaming - {}{}", mediaPath, path);
                 found = true;
-                fileSenderService.serveResource(Paths.get(mediaPath + path), request, response);
+                fileSenderService.serveResource(MediaFile.Builder.forPath(mediaPath + path).build(), request, response);
                 break;
             }
         }

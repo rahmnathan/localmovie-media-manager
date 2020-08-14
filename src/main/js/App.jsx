@@ -19,11 +19,11 @@ class App extends React.Component {
         this.setPath = this.setPath.bind(this);
     }
 
-    setPathAndStartPercent(path, startPosition) {
+    setPathAndStartPercent(path, startPosition, mediaFileId) {
         if(path !== null){
             if(viewingVideos(path)){
                 this.setState( { videoPath: path, videoStartPercent: startPosition });
-                navigate('/play');
+                navigate('/play/' + mediaFileId);
             } else {
                 this.setState({ mediaPath: path });
             }
@@ -31,13 +31,8 @@ class App extends React.Component {
     }
 
     setPath(path) {
-        if(path !== null){
-            if(viewingVideos(path)){
-                this.setState( { videoPath: path });
-                navigate('/play');
-            } else {
-                this.setState({ mediaPath: path });
-            }
+        if (path !== null) {
+            this.setState({mediaPath: path});
         }
     }
 
@@ -45,7 +40,7 @@ class App extends React.Component {
         return(
             <Router>
                 <MainPage path='/' setPathAndStartPercent={this.setPathAndStartPercent} mediaPath={this.state.mediaPath} setPath={this.setPath}/>
-                <VideoPlayer path='/play' videoPath={this.state.videoPath} videoStartPercent={this.state.videoStartPercent}/>
+                <VideoPlayer path='/play/:mediaFileId' videoStartPercent={this.state.videoStartPercent}/>
             </Router>
         );
     }

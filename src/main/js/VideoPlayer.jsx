@@ -1,7 +1,7 @@
 import React from 'react';
 import { buildPosterUri } from "./Media.jsx";
 
-const videoBaseUri = 'localmovie/v2/media/stream.mp4?path=';
+const videoBaseUri = '/localmovie/v3/media/';
 
 const backgroundTintStyle = {
     zIndex: -1,
@@ -14,9 +14,9 @@ const backgroundTintStyle = {
     background: 'rgba(0, 0, 0, 0.7)'
 };
 
-const buildVideoPath = function (path) {
-    if(path !== null) {
-        return videoBaseUri + encodeURIComponent(path);
+const buildVideoPath = function (mediaFileId) {
+    if(mediaFileId !== null) {
+        return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4";
     } else {
         return videoBaseUri;
     }
@@ -62,8 +62,8 @@ export class VideoPlayer extends React.Component {
     render() {
         return (
             <div style={videoPlayerStyle}>
-                <video width="100%" controls poster={buildPosterUri(this.props.videoPath)} onLoadedMetadata={this.handleVideoMounted}>
-                    <source src={buildVideoPath(this.props.videoPath)} type="video/mp4"/>
+                <video width="100%" controls poster={buildPosterUri(this.props.mediaFileId)} onLoadedMetadata={this.handleVideoMounted}>
+                    <source src={buildVideoPath(this.props.mediaFileId)} type="video/mp4"/>
                 </video>
                 <button style={buttonStyle} onClick={() => {
                     window.history.back()

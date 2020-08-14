@@ -100,13 +100,13 @@ const hoveredPosterStyle = {
     width: '90%'
 };
 
-const posterBasePath = '/localmovie/v2/media/poster?path=';
+const posterBasePath = '/localmovie/v3/media/';
 
-export const buildPosterUri = function (path) {
-    if(path === null){
+export const buildPosterUri = function (id) {
+    if(id === null){
         return 'noPicture.gif';
     } else {
-        return posterBasePath + encodeURIComponent(path);
+        return posterBasePath + encodeURIComponent(id) + '/poster';
     }
 };
 
@@ -120,7 +120,7 @@ export class Media extends React.Component {
     }
 
     selectMedia(startPercent) {
-        this.props.setPathAndStartPercent(this.props.media.path, startPercent);
+        this.props.setPathAndStartPercent(this.props.media.path, startPercent, this.props.media.mediaFileId);
     }
 
     buildMedia() {
@@ -170,7 +170,7 @@ export class Media extends React.Component {
                         transitionEnter={true}
                         transitionLeave={true}>
                         <div style={hoveredMovieStyle} onMouseLeave={this.removeHover}>
-                                <LazyLoadImage src={buildPosterUri(mediaFile.path)} onError={(e) => {
+                                <LazyLoadImage src={buildPosterUri(mediaFile.mediaFileId)} onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = "noPicture.gif"
                                 }} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(0)}/>
@@ -199,7 +199,7 @@ export class Media extends React.Component {
                     transitionEnter={true}
                     transitionLeave={true}>
                     <div style={hoveredMovieStyle} onMouseLeave={this.removeHover}>
-                            <LazyLoadImage src={buildPosterUri(mediaFile.path)} onError={(e) => {
+                            <LazyLoadImage src={buildPosterUri(mediaFile.mediaFileId)} onError={(e) => {
                                 e.target.onerror = null;
                                 e.target.src = "noPicture.gif"
                             }} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(0)}/>
@@ -221,7 +221,7 @@ export class Media extends React.Component {
                 transitionLeave={true}>
                 <div style={movieStyle} onMouseEnter={this.handleHover}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
-                                       src={buildPosterUri(mediaFile.path)} alt={title} style={posterStyle}
+                                       src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
                                        scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(0)}/>
                         <div style={currentPositionStyle}/>
                         <p style={titleStyle}>{title}</p>

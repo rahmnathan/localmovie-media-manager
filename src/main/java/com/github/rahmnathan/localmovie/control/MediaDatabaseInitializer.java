@@ -43,9 +43,11 @@ public class MediaDatabaseInitializer {
 
     private MediaFile buildMediaFile(File file) {
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
-        return MediaFile.Builder.forPath(relativePath)
+        return MediaFile.Builder.forPath(file.getAbsolutePath())
                 .setMedia(dataService.loadNewMedia(relativePath))
                 .setLength(file.length())
+                .setMediaFileId(UUID.randomUUID().toString())
+                .setAbsolutePath(file.getAbsolutePath())
                 .build();
     }
 
