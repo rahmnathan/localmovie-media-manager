@@ -119,8 +119,12 @@ export class Media extends React.Component {
         this.removeHover = this.removeHover.bind(this);
     }
 
-    selectMedia(startPercent) {
-        this.props.setPathAndStartPercent(this.props.media.path, startPercent, this.props.media.mediaFileId);
+    selectMedia(mediaFile) {
+        this.props.selectMediaFile(mediaFile);
+    }
+
+    playMedia(mediaFile, startAtBeginning) {
+        this.props.playMedia(mediaFile, startAtBeginning)
     }
 
     buildMedia() {
@@ -153,7 +157,7 @@ export class Media extends React.Component {
         }
 
         let currentPositionStyle = {
-            width: ((videoStartPercent * 100) * .8) + '%',
+            width: (videoStartPercent * 100) + '%',
             color: "#FF0000",
             backgroundColor: "#FF0000",
             height: 10,
@@ -173,16 +177,16 @@ export class Media extends React.Component {
                                 <LazyLoadImage src={buildPosterUri(mediaFile.mediaFileId)} onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = "noPicture.gif"
-                                }} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(0)}/>
+                                }} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition} onClick={() => this.playMedia(mediaFile, false)}/>
                                 <div style={currentPositionStyle}/>
                                 <p style={hoveredTitleStyle}>{title}</p>
                                 <p style={textStyle}>Year: {year}</p>
                                 <p style={textStyle}>IMDB: {rating}</p>
                                 <div style={buttonDivStyle}>
-                                    <button style={playButtonStyle} onClick={() => this.selectMedia(0)}>
+                                    <button style={playButtonStyle} onClick={() => this.playMedia(mediaFile, true)}>
                                         Play
                                     </button>
-                                    <button style={resumeButtonStyle} onClick={() => this.selectMedia(videoStartPercent)}>
+                                    <button style={resumeButtonStyle} onClick={() => this.playMedia(mediaFile, false)}>
                                         Resume
                                     </button>
                                 </div>
@@ -202,7 +206,7 @@ export class Media extends React.Component {
                             <LazyLoadImage src={buildPosterUri(mediaFile.mediaFileId)} onError={(e) => {
                                 e.target.onerror = null;
                                 e.target.src = "noPicture.gif"
-                            }} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(0)}/>
+                            }} alt={title} style={hoveredPosterStyle} scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(mediaFile)}/>
                             <div style={currentPositionStyle}/>
                             <p style={hoveredTitleStyle}>{title}</p>
                             <p style={textStyle}>Year: {year}</p>
@@ -222,7 +226,7 @@ export class Media extends React.Component {
                 <div style={movieStyle} onMouseEnter={this.handleHover}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
-                                       scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(0)}/>
+                                       scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(mediaFile)}/>
                         <div style={currentPositionStyle}/>
                         <p style={titleStyle}>{title}</p>
                         <p style={textStyle}>Year: {year}</p>

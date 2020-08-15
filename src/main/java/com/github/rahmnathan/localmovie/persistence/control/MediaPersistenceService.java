@@ -67,6 +67,10 @@ public class MediaPersistenceService {
         return fileRepository.findByMediaFileId(id);
     }
 
+    public Optional<MediaFile> getMediaFileByIdWithViews(String id) {
+        return fileRepository.findByIdWithViews(id, getUsername());
+    }
+
     public byte[] getMediaImage(String path){
         return mediaRepository.getImageByPath(path);
     }
@@ -104,9 +108,12 @@ public class MediaPersistenceService {
     }
 
     @Transactional
-    public void addView(MediaFile mediaFile, long position) {
-        if(mediaFile.getId() == null) return;
+    public void addView(String id, Double position) {
 
+        Optional<MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
+        if(mediaFileOptional.isEmpty()) return;
+
+        MediaFile mediaFile = mediaFileOptional.get();
         String userName = getUsername();
         logger.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
         if(mediaFile.getMediaViews().isEmpty()){

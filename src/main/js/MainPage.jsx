@@ -139,7 +139,7 @@ export class MainPage extends React.Component {
         return (
             <div style={layoutProps}>
                 <ControlBar selectSort={this.selectSort} selectGenre={this.selectGenre} filterMedia={this.filterMedia} setPath={this.props.setPath}/>
-                <MediaList media={this.state.media} setPathAndStartPercent={this.props.setPathAndStartPercent}/>
+                <MediaList media={this.state.media} selectMediaFile={this.props.selectMediaFile} playMedia={this.props.playMedia}/>
             </div>
         )
     }

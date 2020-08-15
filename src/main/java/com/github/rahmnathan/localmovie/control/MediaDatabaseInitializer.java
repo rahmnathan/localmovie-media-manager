@@ -24,8 +24,9 @@ public class MediaDatabaseInitializer {
     private final Logger logger = LoggerFactory.getLogger(MediaDatabaseInitializer.class);
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
-    private final MediaService dataService;
+    private final FFProbeService ffProbeService;
     private final ServiceConfig serviceConfig;
+    private final MediaService dataService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
@@ -46,7 +47,7 @@ public class MediaDatabaseInitializer {
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         return MediaFile.Builder.forPath(file.getAbsolutePath())
                 .setMedia(dataService.loadNewMedia(relativePath))
-                .setLength(file.length())
+                .setLength(ffProbeService.loadDuration(file))
                 .setMediaFileId(UUID.randomUUID().toString())
                 .setAbsolutePath(file.getAbsolutePath())
                 .build();

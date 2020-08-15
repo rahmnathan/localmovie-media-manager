@@ -20,7 +20,7 @@ public class MediaView {
     @SequenceGenerator(name="media_view_sequence_generator", sequenceName="MEDIA_VIEW_SEQUENCE")
     private Long id;
 
-    private Long position;
+    private Double position;
 
     @ManyToOne
     private MediaFile mediaFile;
@@ -30,7 +30,7 @@ public class MediaView {
     private LocalDateTime created;
     private LocalDateTime updated;
 
-    public MediaView(MediaFile mediaFile, MediaUser mediaUser, Long position) {
+    public MediaView(MediaFile mediaFile, MediaUser mediaUser, Double position) {
         this.mediaFile = mediaFile;
         this.mediaUser = mediaUser;
         this.position = position;

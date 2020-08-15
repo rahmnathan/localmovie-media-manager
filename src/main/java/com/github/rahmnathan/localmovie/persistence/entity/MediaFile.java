@@ -30,7 +30,7 @@ public class MediaFile {
     private LocalDateTime updated;
     private String mediaFileId;
     private String absolutePath;
-    private long length;
+    private Double length;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<MediaView> mediaViews;
@@ -106,7 +106,7 @@ public class MediaFile {
             return this;
         }
 
-        public Builder setLength(Long length) {
+        public Builder setLength(Double length) {
             this.mediaFile.length = length;
             return this;
         }

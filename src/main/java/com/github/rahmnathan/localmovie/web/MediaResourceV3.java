@@ -5,11 +5,11 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 @RestController
@@ -22,6 +22,12 @@ public class MediaResourceV3 {
     public MediaResourceV3(MediaPersistenceService persistenceService, FileSenderService fileSenderService){
         this.persistenceService = persistenceService;
         this.fileSenderService = fileSenderService;
+    }
+
+    @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
+    public Optional<MediaFile> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
+        logger.info("Received media request for id - {}", mediaFileId);
+        return persistenceService.getMediaFileByIdWithViews(mediaFileId);
     }
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
@@ -44,5 +50,12 @@ public class MediaResourceV3 {
         logger.info("Streaming poster - {}", id);
 
         return persistenceService.getMediaImageById(id);
+    }
+
+    @PatchMapping(path = "/{mediaFileId}/position/{position}")
+    public void updatePosition(@PathVariable("mediaFileId") String id, @PathVariable("position") Double position) {
+        logger.info("Updating position for MediaFile id: {} position: {}", id, position);
+
+        persistenceService.addView(id, position);
     }
 }

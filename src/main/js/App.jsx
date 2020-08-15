@@ -12,22 +12,22 @@ class App extends React.Component {
         this.state = {
             mediaPath: 'Movies',
             videoPath: '',
-            videoStartPercent: 0
+            mediaFile: '',
+            startAtBeginning: false
         };
 
-        this.setPathAndStartPercent = this.setPathAndStartPercent.bind(this);
+        this.selectMediaFile = this.selectMediaFile.bind(this);
         this.setPath = this.setPath.bind(this);
+        this.playMedia = this.playMedia.bind(this);
     }
 
-    setPathAndStartPercent(path, startPosition, mediaFileId) {
-        if(path !== null){
-            if(viewingVideos(path)){
-                this.setState( { videoPath: path, videoStartPercent: startPosition });
-                navigate('/play/' + mediaFileId);
-            } else {
-                this.setState({ mediaPath: path });
-            }
-        }
+    selectMediaFile(mediaFile) {
+        this.setState({mediaPath: mediaFile.path});
+    }
+
+    playMedia(mediaFile, startAtBeginning) {
+        this.setState({ startAtBeginning: startAtBeginning })
+        navigate('/play/' + mediaFile.mediaFileId);
     }
 
     setPath(path) {
@@ -39,8 +39,8 @@ class App extends React.Component {
     render(){
         return(
             <Router>
-                <MainPage path='/' setPathAndStartPercent={this.setPathAndStartPercent} mediaPath={this.state.mediaPath} setPath={this.setPath}/>
-                <VideoPlayer path='/play/:mediaFileId' videoStartPercent={this.state.videoStartPercent}/>
+                <MainPage path='/' selectMediaFile={this.selectMediaFile} mediaPath={this.state.mediaPath} setPath={this.setPath} playMedia={this.playMedia}/>
+                <VideoPlayer path='/play/:mediaFileId' mediaFile={this.state.mediaFile} startAtBeginning={this.state.startAtBeginning}/>
             </Router>
         );
     }

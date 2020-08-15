@@ -2,6 +2,7 @@ import React from 'react';
 import { buildPosterUri } from "./Media.jsx";
 import ReactPlayer from 'react-player'
 import Cookies from 'universal-cookie';
+import {trackPromise} from "react-promise-tracker";
 
 const videoBaseUri = '/localmovie/v3/media/';
 
@@ -46,28 +47,48 @@ export class VideoPlayer extends React.Component {
 
     constructor(props) {
         super(props);
-        this.handleVideoMounted = this.handleVideoMounted.bind(this);
         this.saveProgress = this.saveProgress.bind(this);
         this.buildVideoPath = this.buildVideoPath.bind(this);
+        this.state = {
+            mediaFile: null
+        }
     }
 
-    handleVideoMounted(element) {
-        if (element !== null) {
-            let position = element.target.duration * (this.props.videoStartPercent * .915);
-            element.target.currentTime = isNaN(position) ? 0 : position;
-        }
-    };
+    componentDidMount() {
+        trackPromise(
+                fetch('/localmovie/v3/media/' + this.props.mediaFileId, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response=> response.json())
+                    .then(media=> this.setState({mediaFile: media}))
+        )
+    }
 
     saveProgress(content) {
-        cookies.set('progress-' + this.props.mediaFileId, content.playedSeconds, {sameSite: 'strict'});
+        cookies.set('progress-' + this.state.mediaFile.mediaFileId, content.playedSeconds, {sameSite: 'strict'});
+
+        fetch('/localmovie/v3/media/' + this.state.mediaFile.mediaFileId + '/position/' + content.playedSeconds, {
+            method: 'PATCH',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        })
     };
 
     buildVideoPath(mediaFileId) {
-        if(mediaFileId !== null) {
-            return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + (cookies.get('progress-' + this.props.mediaFileId) || 0);
-        } else {
-            return videoBaseUri;
+        let startPosition = 0;
+
+        if(this.props.startAtBeginning === false){
+            startPosition = cookies.get('progress-' + this.props.mediaFileId) || 0;
+            if(this.state.mediaFile !== null && this.state.mediaFile.mediaViews !== undefined && this.state.mediaFile.mediaViews.length !== 0){
+                startPosition = this.state.mediaFile.mediaViews[0].position;
+            }
         }
+
+        return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + startPosition;
     };
 
     render() {
