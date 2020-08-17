@@ -32,11 +32,7 @@ rectangle "NAS" {
 
 cloud {
   [CloudFlare]
-}
-
-cloud "Notifications" {
   [Firebase]#Orange
-  [APNs]#Orange
 }
 
 [Browser] --[#Red]> [CloudFlare]
@@ -57,8 +53,8 @@ cloud "Notifications" {
 [nginx] --[#grey]> [Hashicorp Vault]
 [nginx] -[#Blue]right-> [Grafana]
 
-[localmovie-media-manager] --[#Orange]> Notifications
-Notifications --[#Orange]> [Android Application]
+[localmovie-media-manager] --[#Orange]> Firebase
+Firebase --[#Orange]> [Android Application]
 
 [localmovie-media-manager] --[#Red]> [Media Files]
 [localmovie-media-manager] --[#Grey]> [CloudFlare]
