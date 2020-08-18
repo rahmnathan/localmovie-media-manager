@@ -49,4 +49,19 @@ node {
             sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN --kubeconfig $KUBE_CONFIG'
         }
     }
+    stage('Wait for Deployment') {
+        sh 'sleep 60s'
+    }
+    stage('Functional Test') {
+        withCredentials([
+                usernamePassword(credentialsId: 'Kubeconfig', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')
+        ]) {
+            sh 'jmeter -n -t src/test/jmeter/localmovie-web-test.jmx -Jusername=$USERNAME -Jpassword=$PASSWORD'
+        }
+    }
+    post {
+        failure {
+            mail bcc: '', body: "<b>Jenkins Job Failure</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL de build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "rahm.nathan@protonmail.com";
+        }
+    }
 }
