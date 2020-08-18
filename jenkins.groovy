@@ -1,12 +1,11 @@
 pipeline {
+    agent any
+    environment {
+        mvnHome = tool 'Maven'
+        jdk = tool name: 'Java 14'
+        env.JAVA_HOME = "${jdk}"
+    }
     stages {
-        def mvnHome
-        def jdk
-        stage('Setup') {
-            mvnHome = tool 'Maven'
-            jdk = tool name: 'Java 14'
-            env.JAVA_HOME = "${jdk}"
-        }
         stage('Checkout') {
             git 'https://github.com/rahmnathan/localmovie-media-manager.git'
         }
