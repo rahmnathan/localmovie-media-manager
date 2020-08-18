@@ -57,4 +57,4 @@ When new media is added to a monitored directory, the following process is trigg
 
 <h4>System Diagram</h4>
 
-![Imgur Image](https://imgur.com/NhY10ry.png)
+![Imgur Image](https://imgur.com/5Hse9Nv.png)

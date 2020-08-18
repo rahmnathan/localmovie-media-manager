@@ -40,6 +40,8 @@ cloud {
 [Browser] --[#grey]> [CloudFlare]
 [Browser] --[#00FF00]> [CloudFlare]
 [Browser] --[hidden]down-> [nginx]
+
+[Android Application] -[#00FF00]down-> [CloudFlare]
 [Android Application] -[#Red]down-> [CloudFlare]
 [Android Application] -[hidden]down-> [nginx]
 
