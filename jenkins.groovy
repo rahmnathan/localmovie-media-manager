@@ -1,4 +1,4 @@
-node {
+pipeline {
     stages {
         def mvnHome
         def jdk
