@@ -54,7 +54,7 @@ node {
     }
     stage('Functional Test') {
         withCredentials([
-                usernamePassword(credentialsId: 'Kubeconfig', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')
+                usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')
         ]) {
             sh 'jmeter -n -t src/test/jmeter/localmovie-web-test.jmx -Jusername=$USERNAME -Jpassword=$PASSWORD'
         }
