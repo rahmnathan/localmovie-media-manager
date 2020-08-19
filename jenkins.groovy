@@ -7,7 +7,10 @@ pipeline {
     }
     stages {
         stage('Checkout') {
-            git 'https://github.com/rahmnathan/localmovie-media-manager.git'
+            steps {
+                git branch: 'master',
+                        url: 'https://github.com/rahmnathan/localmovie-media-manager.git'
+            }
         }
         stage('Set Version') {
             PROJECT_VERSION = sh(
