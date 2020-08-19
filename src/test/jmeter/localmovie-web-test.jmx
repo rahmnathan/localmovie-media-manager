@@ -292,6 +292,17 @@
           </ResponseAssertion>
           <hashTree/>
         </hashTree>
+        <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="Process Result" enabled="true">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if ((prev.getResponseCode() as int) &gt; 299) {
+    System.out.println(&apos;HTTP status code for URL: &apos; + prev.getUrlAsString() + &apos; was &apos; + prev.getResponseCode())
+    System.exit(-1)
+}</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Assertion>
+        <hashTree/>
       </hashTree>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
