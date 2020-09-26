@@ -15,7 +15,7 @@ node {
 
             rtMaven = Artifactory.newMavenBuild()
             rtMaven.tool = 'Maven'
-            rtMaven.deployer releaseRepo: 'rahmnathan-libraries', snapshotRepo: 'rahmnathan-libraries', server: server
+            rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
 
             buildInfo = Artifactory.newBuildInfo()
         }
