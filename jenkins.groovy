@@ -1,11 +1,23 @@
 node {
     def mvnHome
     def jdk
+    def server
+    def buildInfo
+    def rtMaven
+
     try {
         stage('Setup') {
             mvnHome = tool 'Maven'
             jdk = tool name: 'Java 11'
             env.JAVA_HOME = "${jdk}"
+
+            server = Artifactory.server 'Artifactory'
+
+            rtMaven = Artifactory.newMavenBuild()
+            rtMaven.tool = 'Maven'
+            rtMaven.deployer releaseRepo: 'rahmnathan-libraries', snapshotRepo: 'rahmnathan-libraries', server: server
+
+            buildInfo = Artifactory.newBuildInfo()
         }
         stage('Checkout') {
             git 'https://github.com/rahmnathan/localmovie-media-manager.git'
@@ -27,11 +39,11 @@ node {
                 sh "'${mvnHome}/bin/mvn' -Dtag=${NEW_VERSION} scm:tag"
             }
         }
-        stage('Package') {
-            sh "'${mvnHome}/bin/mvn' clean install -DskipTests"
-        }
         stage('Test') {
             sh "'${mvnHome}/bin/mvn' test"
+        }
+        stage('Package & Deploy Jar to Artifactory') {
+            rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
         }
         stage('Docker Build') {
             sh "'${mvnHome}/bin/mvn' dockerfile:build"
