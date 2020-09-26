@@ -55,22 +55,22 @@
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
             <artifactId>directory-monitor</artifactId>
-            <version>1</version>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.adapters</groupId>
             <artifactId>google-pushnotification</artifactId>
-            <version>1</version>
+            <version>1.4</version>
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.adapters</groupId>
             <artifactId>omdb-client</artifactId>
-            <version>1</version>
+            <version>1.4</version>
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
             <artifactId>cast-video-converter-handbrake</artifactId>
-            <version>1</version>
+            <version>1.6</version>
         </dependency>
 
         <!-- Spring -->
