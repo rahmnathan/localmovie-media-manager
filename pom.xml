@@ -17,6 +17,9 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+
+        <internal-utils.version>1.8</internal-utils.version>
+        <internal-adapters.version>1.4</internal-adapters.version>
     </properties>
 
     <scm>
@@ -55,22 +58,22 @@
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
             <artifactId>directory-monitor</artifactId>
-            <version>1.6</version>
+            <version>${internal-utils.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.adapters</groupId>
             <artifactId>google-pushnotification</artifactId>
-            <version>1.4</version>
+            <version>${internal-adapters.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.adapters</groupId>
             <artifactId>omdb-client</artifactId>
-            <version>1.4</version>
+            <version>${internal-adapters.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
             <artifactId>cast-video-converter-handbrake</artifactId>
-            <version>1.6</version>
+            <version>${internal-utils.version}</version>
         </dependency>
 
         <!-- Spring -->
