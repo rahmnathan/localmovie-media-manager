@@ -73,7 +73,12 @@ export class Media extends React.Component {
     }
 
     selectMedia(mediaFile) {
-        this.props.selectMediaFile(mediaFile);
+        let path = mediaFile.path;
+        if((path.includes("Movies") && path.split("/").length === 2) || path.split("/").length === 4){
+            this.props.playMedia(mediaFile, true)
+        } else {
+            this.props.selectMediaFile(mediaFile)
+        }
     }
 
     buildMedia() {
@@ -109,7 +114,7 @@ export class Media extends React.Component {
                 transitionAppearTimeout={500}
                 transitionEnter={true}
                 transitionLeave={true}>
-                <div style={movieStyle}>
+                <div style={movieStyle} onClick={() => this.selectMedia(mediaFile)}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
                                        scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(mediaFile)}/>

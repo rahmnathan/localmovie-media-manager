@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { VideoPlayer, viewingVideos } from "./VideoPlayer.jsx";
+import { VideoPlayer } from "./VideoPlayer.jsx";
 import { Router, navigate } from "@reach/router";
 import { MainPage } from './MainPage.jsx';
 import { LoadingIndicator } from './LoadingIndicator.jsx';
