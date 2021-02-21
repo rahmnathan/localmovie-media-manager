@@ -23,11 +23,17 @@ const textStyle = {
     margin: 2
 };
 
+const plotStyle = {
+    color: 'white',
+    fontSize: 14,
+    wordWrap: 'normal',
+    margin: 2
+};
+
 const ratingStyle = {
     color: 'white',
     fontSize: 14,
-    margin: 2,
-    float: 'left'
+    margin: 2
 };
 
 const titleStyle = {
@@ -48,8 +54,7 @@ const posterStyle = {
 
 const imdbIconStyle = {
     height: '10%',
-    width: '10%',
-    float: 'left'
+    width: '10%'
 };
 
 const posterBasePath = '/localmovie/v3/media/';
@@ -65,10 +70,8 @@ export const buildPosterUri = function (id) {
 export class Media extends React.Component {
     constructor(props) {
         super(props);
-        this.state = ({ hovered: false });
+        this.state = ({});
         this.selectMedia = this.selectMedia.bind(this);
-        this.handleHover = this.handleHover.bind(this);
-        this.removeHover = this.removeHover.bind(this);
     }
 
     selectMedia(mediaFile) {
@@ -115,12 +118,12 @@ export class Media extends React.Component {
                         <div>
                             <p style={titleStyle}>{title}</p>
                             <p style={textStyle}>{year}</p>
-                            <div style={{ width: '100%'}}>
+                            <div style={{ display: 'flex'}}>
                                 <img src={'imdb.png'} alt={'IMDB'} style={imdbIconStyle}/>
                                 <p style={ratingStyle}>{rating}</p>
                             </div>
                             <p style={textStyle}>{genre}</p>
-                            <p style={textStyle}>{plot}</p>
+                            <p style={plotStyle}>{plot}</p>
                         </div>
                 </div>
             </ReactCSSTransitionGroup>
@@ -129,13 +132,5 @@ export class Media extends React.Component {
 
     render() {
         return this.buildMedia();
-    }
-
-    handleHover() {
-        this.setState( {hovered: true});
-    }
-
-    removeHover() {
-        this.setState( {hovered: false});
     }
 }
