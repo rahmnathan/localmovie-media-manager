@@ -10,7 +10,8 @@ const movieStyle = {
     width: 375,
     padding: 3,
     height: 295,
-    display: 'inline-block',
+    float: 'left',
+    display: 'flex',
     margin: 8,
     verticalAlign: 'top',
     overflow: 'hidden'
@@ -20,26 +21,22 @@ const textStyle = {
     color: 'white',
     fontSize: 14,
     wordWrap: 'normal',
-    margin: 2
+    margin: 2,
+    fontWeight: 'bold'
 };
 
 const plotStyle = {
     color: 'white',
     fontSize: 14,
     wordWrap: 'normal',
-    margin: 2
-};
-
-const ratingStyle = {
-    color: 'white',
-    fontSize: 14,
-    margin: 2
+    margin: 2,
+    marginTop: '10px'
 };
 
 const titleStyle = {
     fontWeight: 'bold',
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     wordWrap: 'normal',
     margin: 2,
     maxHeight: '15%',
@@ -54,7 +51,8 @@ const posterStyle = {
 
 const imdbIconStyle = {
     height: '10%',
-    width: '10%'
+    width: '10%',
+    float: 'left'
 };
 
 const posterBasePath = '/localmovie/v3/media/';
@@ -111,16 +109,16 @@ export class Media extends React.Component {
                 transitionAppearTimeout={500}
                 transitionEnter={true}
                 transitionLeave={true}>
-                <div style={movieStyle} onMouseEnter={this.handleHover}>
+                <div style={movieStyle}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
                                        scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(mediaFile)}/>
-                        <div>
+                        <div style={{textAlign: 'left', paddingLeft: '10px', width: '50%'}}>
                             <p style={titleStyle}>{title}</p>
-                            <p style={textStyle}>{year}</p>
+                            <p style={titleStyle}>{year}</p>
                             <div style={{ display: 'flex'}}>
                                 <img src={'imdb.png'} alt={'IMDB'} style={imdbIconStyle}/>
-                                <p style={ratingStyle}>{rating}</p>
+                                <p style={textStyle}>{rating}</p>
                             </div>
                             <p style={textStyle}>{genre}</p>
                             <p style={plotStyle}>{plot}</p>
