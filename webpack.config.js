@@ -1,8 +1,7 @@
-var path = require('path');
+const path = require('path');
 
 module.exports = {
     entry: './src/main/js/App.jsx',
-    devtool: 'sourcemaps',
     cache: true,
     mode: 'production',
     output: {
