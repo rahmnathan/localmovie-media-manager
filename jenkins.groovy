@@ -67,9 +67,7 @@ node {
         }
         stage('Functional Test') {
             try {
-                withCredentials([
-                        usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')
-                ]) {
+                withCredentials([usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh 'jmeter -n -t src/test/jmeter/localmovie-web-test.jmx -Jusername=$USERNAME -Jpassword=$PASSWORD'
                 }
             } catch (e) {
