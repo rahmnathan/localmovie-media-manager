@@ -229,7 +229,7 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v15.9.0</nodeVersion>
+                            <nodeVersion>v14.0.0</nodeVersion>
                         </configuration>
                     </execution>
                     <execution>
