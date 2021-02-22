@@ -5,7 +5,7 @@ import { LazyLoadImage, trackWindowScroll } from 'react-lazy-load-image-componen
 const mediaListStyle = {
     margin: 10,
     display: 'inline-block',
-    width: '95%',
+    width: '97%',
     paddingTop: 150
 };
 

@@ -1,6 +1,6 @@
 body {
-    background-color: rgb(21, 21, 30);
-    font-family: 'Roboto', "OpenSans", "Verdana", Georgia, Serif, serif;
+    background-color: rgb(0, 0, 0);
+    font-family: 'Arial', "OpenSans", "Verdana", Georgia, Serif, serif;
     margin: 0;
 }
 
@@ -11,4 +11,14 @@ body {
 .fadein-appear.fadein-appear-active {
     opacity: 1;
     transition: opacity .3s ease-in;
+}
+
+.container {
+    overflow-y: scroll;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
+.container::-webkit-scrollbar { /* WebKit */
+    width: 0;
+    height: 0;
 }

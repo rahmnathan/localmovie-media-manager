@@ -25,6 +25,15 @@ const textStyle = {
     fontWeight: 'bold'
 };
 
+const ratingStyle = {
+    color: 'white',
+    fontSize: 14,
+    wordWrap: 'normal',
+    margin: 2,
+    fontWeight: 'bold',
+    marginTop: 6
+};
+
 const plotStyle = {
     color: 'white',
     fontSize: 14,
@@ -50,10 +59,18 @@ const posterStyle = {
 };
 
 const imdbIconStyle = {
-    height: '10%',
-    width: '10%',
+    height: '15%',
+    width: '15%',
     float: 'left'
 };
+
+const descriptionStyle = {
+    textAlign: 'left',
+    paddingLeft: '10px',
+    width: '50%',
+    height: 295,
+    overflowY: 'scroll'
+}
 
 const posterBasePath = '/localmovie/v3/media/';
 
@@ -118,12 +135,12 @@ export class Media extends React.Component {
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
                                        scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(mediaFile)}/>
-                        <div style={{textAlign: 'left', paddingLeft: '10px', width: '50%'}}>
+                        <div style={descriptionStyle} class='container'>
                             <p style={titleStyle}>{title}</p>
                             <p style={titleStyle}>{year}</p>
                             <div style={{ display: 'flex'}}>
                                 <img src={'imdb.png'} alt={'IMDB'} style={imdbIconStyle}/>
-                                <p style={textStyle}>{rating}</p>
+                                <p style={ratingStyle}>{rating}</p>
                             </div>
                             <p style={textStyle}>{genre}</p>
                             <p style={plotStyle}>{plot}</p>

@@ -10,7 +10,7 @@ const controlBarStyle = {
     left: '50%',
     marginLeft: '-50%',
     width: '100%',
-    background: 'rgb(21, 21, 30)',
+    background: 'rgb(0,0,0)',
     marginTop: 0
 };
 
