@@ -47,7 +47,7 @@ const titleStyle = {
     fontSize: 18,
     wordWrap: 'normal',
     margin: 2,
-    maxHeight: '15%',
+    maxHeight: '50%',
     overflow: 'hidden'
 };
 
