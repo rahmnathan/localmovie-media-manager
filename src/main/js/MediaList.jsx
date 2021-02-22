@@ -1,12 +1,13 @@
 import React from 'react';
 import { Media } from './Media.jsx';
-import { LazyLoadImage, trackWindowScroll } from 'react-lazy-load-image-component';
+import { trackWindowScroll } from 'react-lazy-load-image-component';
 
 const mediaListStyle = {
     margin: 10,
     display: 'inline-block',
     width: '97%',
-    paddingTop: 150
+    paddingTop: 150,
+    textAlign: 'center'
 };
 
 export const MediaList = ({ media, selectMediaFile, playMedia }) => {

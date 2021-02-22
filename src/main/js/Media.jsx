@@ -10,8 +10,7 @@ const movieStyle = {
     width: 375,
     padding: 3,
     height: 295,
-    float: 'left',
-    display: 'flex',
+    display: 'inline-block',
     margin: 8,
     verticalAlign: 'top',
     overflow: 'hidden'
