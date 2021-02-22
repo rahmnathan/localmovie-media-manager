@@ -66,25 +66,25 @@ node {
             sh 'sleep 60s'
         }
         stage('Functional Test') {
-            withCredentials([
-                    usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')
-            ]) {
-                try {
+            try {
+                withCredentials([
+                        usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')
+                ]) {
                     sh 'jmeter -n -t src/test/jmeter/localmovie-web-test.jmx -Jusername=$USERNAME -Jpassword=$PASSWORD'
-                } catch(e) {
-                    stage('Rollback') {
-                        withCredentials([file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG')]) {
-                            sh 'helm -n localmovies rollback localmovies 0 --kubeconfig $KUBE_CONFIG'
-                        }
-                    }
-
-                    throw e
                 }
+            } catch (e) {
+                stage('Rollback') {
+                    withCredentials([file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG')]) {
+                        sh 'helm -n localmovies rollback localmovies 0 --kubeconfig $KUBE_CONFIG'
+                    }
+                }
+
+                throw e
             }
         }
-    } catch(e) {
+    } catch (e) {
         currentBuild.result = "FAILED"
-        emailext (
+        emailext(
                 subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
                 body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
         <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
