@@ -32,18 +32,6 @@ spec:
         stage('Checkout') {
             steps {
                 script {
-                    def server Artifactory.server 'Artifactory'
-                    def rtMaven = Artifactory.newMavenBuild()
-                    rtMaven.tool = 'Maven'
-                    rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
-
-                    def buildInfo = Artifactory.newBuildInfo()
-                }
-            }
-        }
-        stage('Checkout') {
-            steps {
-                script {
                     git 'https://github.com/rahmnathan/localmovie-media-manager.git'
                 }
             }
@@ -96,6 +84,17 @@ spec:
         stage('Package & Deploy Jar to Artifactory') {
             steps {
                 script {
+                    def server
+                    def rtMaven
+                    def buildInfo
+
+                    server Artifactory.server 'Artifactory'
+                    rtMaven = Artifactory.newMavenBuild()
+                    rtMaven.tool = 'Maven'
+                    rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
+
+                    buildInfo = Artifactory.newBuildInfo()
+
                     rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
                 }
             }
