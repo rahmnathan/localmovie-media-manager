@@ -1,6 +1,7 @@
 pipeline {
     agent {
         kubernetes {
+            defaultContainer 'builder'
             yaml """
 kind: Pod
 metadata:
