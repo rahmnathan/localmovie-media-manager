@@ -47,22 +47,24 @@ spec:
                 }
             }
         }
-        stage('Tag') {
-            steps {
-                script {
-                    sh 'git config --global user.email "rahm.nathan@gmail.com"'
-                    sh 'git config --global user.name "rahmnathan"'
-                    sshagent(credentials: ['Github-Git']) {
-                        sh 'mkdir -p /home/jenkins/.ssh'
-                        sh 'ssh-keyscan  github.com >> ~/.ssh/known_hosts'
-                        sh "mvn -Dtag=${NEW_VERSION} scm:tag"
+        parallel {
+            stage('Tag') {
+                steps {
+                    script {
+                        sh 'git config --global user.email "rahm.nathan@gmail.com"'
+                        sh 'git config --global user.name "rahmnathan"'
+                        sshagent(credentials: ['Github-Git']) {
+                            sh 'mkdir -p /home/jenkins/.ssh'
+                            sh 'ssh-keyscan  github.com >> ~/.ssh/known_hosts'
+                            sh "mvn -Dtag=${NEW_VERSION} scm:tag"
+                        }
                     }
                 }
             }
-        }
-        stage('Unit Test') {
-            steps {
-                sh 'mvn test'
+            stage('Unit Test') {
+                steps {
+                    sh 'mvn test'
+                }
             }
         }
         stage('Package & Deploy Jar to Artifactory') {
