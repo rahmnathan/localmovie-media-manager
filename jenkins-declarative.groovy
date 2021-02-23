@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: jnlp
-    image: rahmnathan/jnlp-slave:4.6-1
+    image: rahmnathan/jnlp-slave:4.6-1.1
     imagePullPolicy: Always
     tty: true
     volumeMounts:
