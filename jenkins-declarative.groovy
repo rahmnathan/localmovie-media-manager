@@ -1,7 +1,6 @@
 pipeline {
     agent {
         kubernetes {
-            label 'jenkins-builder'
             yaml """
 kind: Pod
 metadata:
