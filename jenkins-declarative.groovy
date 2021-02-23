@@ -1,36 +1,40 @@
 pipeline {
     agent {
-        docker {
-            image 'rahmnathan/jnlp-slave:4.6-1'
-            label 'builder'
-            args  '-v /var/run/docker.sock:/var/run/docker.sock'
+        kubernetes {
+            label jenkins-builder
+            yaml """
+kind: Pod
+metadata:
+  name: jenkins-agent
+spec:
+  containers:
+  - name: builder
+    image: rahmnathan/jnlp-slave:4.6-1
+    imagePullPolicy: Always
+    tty: true
+    volumeMounts:
+      - name: docker
+        mountPath: /var/run/docker.sock
+  volumes:
+    - name: docker
+      hostPath:
+        path: '/var/run/docker.sock'
+"""
         }
     }
 
-    def mvnHome
-    def jdk
-    def server
-    def buildInfo
-    def rtMaven
+    tools {
+        mvnHome 'Maven'
+        jdk 'Java 11'
+        server Artifactory.server 'Artifactory'
+        rtMaven = Artifactory.newMavenBuild()
+        rtMaven.tool = 'Maven'
+        rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
+
+        buildInfo = Artifactory.newBuildInfo()
+    }
 
     stages {
-        stage('Setup') {
-            steps {
-                script {
-                    mvnHome = tool 'Maven'
-                    jdk = tool name: 'Java 11'
-                    env.JAVA_HOME = "${jdk}"
-
-                    server = Artifactory.server 'Artifactory'
-
-                    rtMaven = Artifactory.newMavenBuild()
-                    rtMaven.tool = 'Maven'
-                    rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
-
-                    buildInfo = Artifactory.newBuildInfo()
-                }
-            }
-        }
         stage('Checkout') {
             steps {
                 script {
