@@ -1,14 +1,13 @@
 pipeline {
     agent {
         kubernetes {
-            defaultContainer 'builder'
             yaml """
 kind: Pod
 metadata:
   name: jenkins-agent
 spec:
   containers:
-  - name: builder
+  - name: jnlp
     image: rahmnathan/jnlp-slave:4.6-1
     imagePullPolicy: Always
     tty: true
