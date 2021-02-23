@@ -43,7 +43,7 @@ node {
             sh "'${mvnHome}/bin/mvn' test"
         }
         stage('Package & Deploy Jar to Artifactory') {
-            rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
+            rtMaven.run pom: 'pom.xml', goals: 'install -DskipTests', buildInfo: buildInfo
         }
         stage('Docker Build') {
             sh "'${mvnHome}/bin/mvn' dockerfile:build"
