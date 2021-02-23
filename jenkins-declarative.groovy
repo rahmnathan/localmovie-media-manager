@@ -79,7 +79,7 @@ spec:
 
                     buildInfo = Artifactory.newBuildInfo()
 
-                    rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
+                    rtMaven.run pom: 'pom.xml', goals: 'install -DskipTests', buildInfo: buildInfo
                 }
             }
         }
