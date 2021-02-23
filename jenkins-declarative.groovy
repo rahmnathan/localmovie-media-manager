@@ -1,7 +1,7 @@
 pipeline {
     agent {
         kubernetes {
-            label jenkins-builder
+            label 'jenkins-builder'
             yaml """
 kind: Pod
 metadata:
@@ -79,10 +79,7 @@ spec:
         }
         stage('Unit Test') {
             steps {
-                script {
-                    def mvnHome = tool 'Maven'
-                    sh "'${mvnHome}/bin/mvn' test"
-                }
+                mvn 'test'
             }
         }
         stage('Package & Deploy Jar to Artifactory') {
@@ -112,26 +109,21 @@ spec:
             }
         }
         stage('Docker Push') {
+            environment {
+                DOCKERHUB = credentials('Dockerhub')
+                VAULT_TOKEN = credentials('VaultToken')
+            }
             steps {
-                script {
-                    def mvnHome = tool 'Maven'
-                    withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'Dockerhub',
-                                      usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                        sh "'${mvnHome}/bin/mvn' dockerfile:push -Ddockerfile.username=$USERNAME -Ddockerfile.password='$PASSWORD'"
-                    }
-                }
+                mvn "dockerfile:push -Ddockerfile.username=$DOCKERHUB_USR -Ddockerfile.password='$DOCKERHUB_PSW'"
             }
         }
         stage('Deploy to Kubernetes') {
+            environment {
+                KUBE_CONFIG = credentials('Kubeconfig')
+                VAULT_TOKEN = credentials('VaultToken')
+            }
             steps {
-                script {
-                    withCredentials([
-                            file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG'),
-                            string(credentialsId: 'VaultToken', variable: 'VAULT_TOKEN')
-                    ]) {
-                        sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN --kubeconfig $KUBE_CONFIG'
-                    }
-                }
+                sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN --kubeconfig $KUBE_CONFIG'
             }
         }
         stage('Wait for Deployment') {
