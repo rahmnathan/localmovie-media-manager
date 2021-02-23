@@ -79,7 +79,7 @@ spec:
         }
         stage('Unit Test') {
             steps {
-                mvn 'test'
+                sh 'mvn test'
             }
         }
         stage('Package & Deploy Jar to Artifactory') {
@@ -102,10 +102,7 @@ spec:
         }
         stage('Docker Build') {
             steps {
-                script {
-                    def mvnHome = tool 'Maven'
-                    sh "'${mvnHome}/bin/mvn' dockerfile:build"
-                }
+                sh "mvn dockerfile:build"
             }
         }
         stage('Docker Push') {
@@ -114,7 +111,7 @@ spec:
                 VAULT_TOKEN = credentials('VaultToken')
             }
             steps {
-                mvn "dockerfile:push -Ddockerfile.username=$DOCKERHUB_USR -Ddockerfile.password='$DOCKERHUB_PSW'"
+                sh "mvn dockerfile:push -Ddockerfile.username=$DOCKERHUB_USR -Ddockerfile.password='$DOCKERHUB_PSW'"
             }
         }
         stage('Deploy to Kubernetes') {
