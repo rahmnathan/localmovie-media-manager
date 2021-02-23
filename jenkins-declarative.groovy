@@ -26,15 +26,21 @@ spec:
     tools {
         mvnHome 'Maven'
         jdk 'Java 11'
-        server Artifactory.server 'Artifactory'
-        rtMaven = Artifactory.newMavenBuild()
-        rtMaven.tool = 'Maven'
-        rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
-
-        buildInfo = Artifactory.newBuildInfo()
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    def server Artifactory.server 'Artifactory'
+                    def rtMaven = Artifactory.newMavenBuild()
+                    rtMaven.tool = 'Maven'
+                    rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
+
+                    def buildInfo = Artifactory.newBuildInfo()
+                }
+            }
+        }
         stage('Checkout') {
             steps {
                 script {
