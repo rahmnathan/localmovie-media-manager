@@ -68,11 +68,7 @@ spec:
         stage('Package & Deploy Jar to Artifactory') {
             steps {
                 script {
-                    def server
-                    def rtMaven
-                    def buildInfo
-
-                    server Artifactory.server 'Artifactory'
+                    server = Artifactory.server 'Artifactory'
                     rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'Maven'
                     rtMaven.deployer releaseRepo: 'rahmnathan-services', snapshotRepo: 'rahmnathan-services', server: server
