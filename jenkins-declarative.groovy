@@ -24,7 +24,7 @@ spec:
     }
 
     tools {
-        mvnHome 'Maven'
+        maven 'Maven'
         jdk 'Java 11'
     }
 
@@ -39,6 +39,7 @@ spec:
         stage('Set Version') {
             steps {
                 script {
+                    def mvnHome = tool 'Maven'
                     PROJECT_VERSION = sh(
                             script: "'${mvnHome}/bin/mvn' help:evaluate -Dexpression=project.version -q -DforceStdout",
                             returnStdout: true
@@ -51,6 +52,7 @@ spec:
         stage('Tag') {
             steps {
                 script {
+                    def mvnHome = tool 'Maven'
                     sh 'git config --global user.email "rahm.nathan@gmail.com"'
                     sh 'git config --global user.name "rahmnathan"'
                     sshagent(credentials: ['Github-Git']) {
@@ -64,6 +66,7 @@ spec:
         stage('Tag') {
             steps {
                 script {
+                    def mvnHome = tool 'Maven'
                     sh 'git config --global user.email "rahm.nathan@gmail.com"'
                     sh 'git config --global user.name "rahmnathan"'
                     sshagent(credentials: ['Github-Git']) {
@@ -77,6 +80,7 @@ spec:
         stage('Unit Test') {
             steps {
                 script {
+                    def mvnHome = tool 'Maven'
                     sh "'${mvnHome}/bin/mvn' test"
                 }
             }
@@ -102,6 +106,7 @@ spec:
         stage('Docker Build') {
             steps {
                 script {
+                    def mvnHome = tool 'Maven'
                     sh "'${mvnHome}/bin/mvn' dockerfile:build"
                 }
             }
@@ -109,6 +114,7 @@ spec:
         stage('Docker Push') {
             steps {
                 script {
+                    def mvnHome = tool 'Maven'
                     withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'Dockerhub',
                                       usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                         sh "'${mvnHome}/bin/mvn' dockerfile:push -Ddockerfile.username=$USERNAME -Ddockerfile.password='$PASSWORD'"
