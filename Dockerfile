@@ -13,5 +13,7 @@ RUN chown -R localmovie:localmovie /opt/localmovie
 
 USER localmovie
 
+ENV SPRING_CONFIG_LOCATION=optional:classpath:/,optional:classpath:/config/,optional:file:./,optional:file:./config/
+
 WORKDIR /opt/localmovie/
 ENTRYPOINT java -jar localmovie-media-manager.jar
