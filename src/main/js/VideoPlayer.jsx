@@ -81,12 +81,12 @@ export class VideoPlayer extends React.Component {
     buildVideoPath(mediaFileId) {
         let startPosition = 0;
 
-        // if(this.props.startAtBeginning === false){
-        //     startPosition = cookies.get('progress-' + this.props.mediaFileId) || 0;
-        //     if(this.state.mediaFile !== null && this.state.mediaFile.mediaViews !== undefined && this.state.mediaFile.mediaViews.length !== 0){
-        //         startPosition = this.state.mediaFile.mediaViews[0].position;
-        //     }
-        // }
+        if(this.props.startAtBeginning === false){
+            startPosition = cookies.get('progress-' + this.props.mediaFileId) || 0;
+            if(this.state.mediaFile !== null && this.state.mediaFile.mediaViews !== undefined && this.state.mediaFile.mediaViews.length !== 0){
+                startPosition = this.state.mediaFile.mediaViews[0].position;
+            }
+        }
 
         return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + startPosition;
     };
