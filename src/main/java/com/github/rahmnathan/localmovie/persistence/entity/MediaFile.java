@@ -17,7 +17,7 @@ import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.
 @Entity
 @Table(indexes = {
         @Index(name = "idx_media_file_path", columnList = "path", unique = true),
-        @Index(name = "idx_media_file_parent_path", columnList = "parent_path")
+        @Index(name = "idx_media_file_parent_path", columnList = "parentPath")
 })
 public class MediaFile {
 
