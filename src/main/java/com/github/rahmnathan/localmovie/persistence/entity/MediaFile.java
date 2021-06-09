@@ -42,10 +42,6 @@ public class MediaFile {
     @JoinColumn
     private Media media;
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "mediaFile")
-    private MediaFileEvent mediaFileEvent;
-
     @Version
     @JsonIgnore
     private long version;

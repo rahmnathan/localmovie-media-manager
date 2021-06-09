@@ -63,7 +63,7 @@ public class MediaPersistenceServiceTest {
         MediaFile mediaFile = MediaFile.Builder.forPath("/home/LocalMedia/some/test/path").build();
         MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
 
-        save(mediaFileEvent, mediaFile);
+        save(mediaFileEvent);
 
         List<MediaFileEvent> mediaFileEvents = mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged());
 
@@ -71,7 +71,7 @@ public class MediaPersistenceServiceTest {
     }
 
     @Transactional
-    public void save(MediaFileEvent mediaFileEvent, MediaFile mediaFile) {
-        mediaPersistenceService.saveEvent(mediaFileEvent, mediaFile);
+    public void save(MediaFileEvent mediaFileEvent) {
+        mediaPersistenceService.saveEvent(mediaFileEvent);
     }
 }

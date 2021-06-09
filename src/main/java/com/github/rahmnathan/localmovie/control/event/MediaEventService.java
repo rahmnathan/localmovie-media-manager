@@ -29,8 +29,7 @@ public class MediaEventService {
         logger.info("Adding CREATE event to repository.");
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
-        mediaFile.setMediaFileEvent(event);
-        persistenceService.saveEvent(event, mediaFile);
+        persistenceService.saveEvent(event);
 
         notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
     }
