@@ -35,7 +35,7 @@ public class MediaFile {
     private String absolutePath;
     private Double length;
 
-    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<MediaView> mediaViews;
 
     @OneToOne(cascade = CascadeType.ALL)

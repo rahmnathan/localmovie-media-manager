@@ -29,8 +29,9 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
 
     @Query(value = "select m1 from MediaFile m1 " +
             "left join fetch m1.mediaViews mv " +
-            "left join fetch mv.mediaUser mu on mu.userId = :userId " +
-            "where m1.parentPath = :path ")
+            "left join mv.mediaUser mu " +
+            "on mu.userId = :userId " +
+            "where m1.parentPath = :path")
     List<RedactedMediaFile> findAllByParentPathNoPoster(@Param("path") String path, @Param("userId") String userId, Pageable pageable);
 
     @Query(value = "select m1 from MediaFile m1 " +
