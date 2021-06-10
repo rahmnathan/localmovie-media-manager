@@ -20,8 +20,8 @@ public class MediaFileEvent {
     private String relativePath;
     private String event;
 
-    @PrimaryKeyJoinColumn
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "mediaFileId", referencedColumnName = "mediaFileId", unique = true)
+    @OneToOne(targetEntity = MediaFile.class, cascade = CascadeType.ALL, orphanRemoval = true)
     private MediaFile mediaFile;
 
     public MediaFileEvent(String event, MediaFile mediaFile, String relativePath) {

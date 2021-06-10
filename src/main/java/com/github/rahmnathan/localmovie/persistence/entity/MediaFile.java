@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.
         @Index(name = "idx_media_file_path", columnList = "path", unique = true),
         @Index(name = "idx_media_file_parent_path", columnList = "parentPath")
 })
-public class MediaFile {
+public class MediaFile implements Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_file_sequence_generator")
