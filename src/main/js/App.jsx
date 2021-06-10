@@ -23,6 +23,7 @@ class App extends React.Component {
 
     selectMediaFile(mediaFile) {
         this.setState({mediaPath: mediaFile.path});
+        navigate('?path=' + encodeURIComponent(mediaFile.path))
     }
 
     playMedia(mediaFile, startAtBeginning) {
@@ -33,6 +34,7 @@ class App extends React.Component {
     setPath(path) {
         if (path !== null) {
             this.setState({mediaPath: path});
+            navigate('?path=' + encodeURIComponent(path))
         }
     }
 

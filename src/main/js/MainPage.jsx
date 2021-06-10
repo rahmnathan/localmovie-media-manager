@@ -2,6 +2,7 @@ import React from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
+import * as queryString from "query-string";
 
 const layoutProps = {
     textAlign: 'center'
@@ -35,6 +36,15 @@ export class MainPage extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
+        let currentPath = queryString.parse(this.props.location.search).path;
+        const previousPath = queryString.parse(prevProps.location.search).path;
+        if (currentPath !== previousPath) {
+            if(currentPath === undefined){
+                currentPath = 'Movies'
+            }
+            this.props.setPath(currentPath);
+        }
+
         if (this.props.mediaPath !== prevProps.mediaPath) {
             this.loadMedia();
             this.setState({searchText: '', genre: 'all'})
