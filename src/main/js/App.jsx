@@ -9,6 +9,7 @@ class App extends React.Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             mediaPath: 'Movies',
             videoPath: '',
@@ -16,14 +17,8 @@ class App extends React.Component {
             startAtBeginning: false
         };
 
-        this.selectMediaFile = this.selectMediaFile.bind(this);
         this.setPath = this.setPath.bind(this);
         this.playMedia = this.playMedia.bind(this);
-    }
-
-    selectMediaFile(mediaFile) {
-        this.setState({mediaPath: mediaFile.path});
-        navigate('?path=' + encodeURIComponent(mediaFile.path))
     }
 
     playMedia(mediaFile, startAtBeginning) {
@@ -33,7 +28,6 @@ class App extends React.Component {
 
     setPath(path) {
         if (path !== null) {
-            this.setState({mediaPath: path});
             navigate('?path=' + encodeURIComponent(path))
         }
     }
@@ -41,7 +35,7 @@ class App extends React.Component {
     render(){
         return(
             <Router>
-                <MainPage path='/' selectMediaFile={this.selectMediaFile} mediaPath={this.state.mediaPath} setPath={this.setPath} playMedia={this.playMedia}/>
+                <MainPage path='/' mediaPath={this.state.mediaPath} setPath={this.setPath} playMedia={this.playMedia}/>
                 <VideoPlayer path='/play/:mediaFileId' mediaFile={this.state.mediaFile} startAtBeginning={this.state.startAtBeginning}/>
             </Router>
         );
