@@ -22,9 +22,11 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     List<MediaFile> findAllByUpdatedBeforeOrderByUpdated(LocalDateTime time, Pageable pageable);
 
     @Query(value = "select m1 from MediaFile m1 " +
-            "left join m1.mediaViews mv " +
-            "left join mv.mediaUser mu on mu.userId = :userId " +
-            "where m1.parentPath = :path ")
+            "inner join fetch m1.media " +
+            "left join fetch m1.mediaViews mv " +
+            "left join fetch mv.mediaUser mu " +
+            "where (mu.userId is null OR mu.userId = :userId) " +
+            "and m1.parentPath = :path ")
     List<MediaFile> findAllByParentPath(String path, String userId, Pageable pageable);
 
     @Query(value = "select m1 from MediaFile m1 " +
