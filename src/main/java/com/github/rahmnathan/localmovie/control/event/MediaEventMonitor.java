@@ -2,15 +2,21 @@ package com.github.rahmnathan.localmovie.control.event;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.video.cast.handbrake.control.VideoController;
-import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
+import com.github.rahmnathan.video.boundary.VideoConverterFFmpeg;
+import com.github.rahmnathan.video.converter.data.AudioCodec;
+import com.github.rahmnathan.video.converter.data.ContainerFormat;
+import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
+import com.github.rahmnathan.video.converter.data.VideoCodec;
 import io.micrometer.core.instrument.Metrics;
+import net.bramp.ffmpeg.FFmpeg;
+import net.bramp.ffmpeg.FFprobe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -27,16 +33,19 @@ import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_
 public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final Logger logger = LoggerFactory.getLogger(MediaEventMonitor.class);
-    private volatile Set<String> activeConversions = ConcurrentHashMap.newKeySet();
+    private final Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final ExecutorService executorService;
-
     private final MediaEventService eventService;
+    private final FFprobe fFprobe;
+    private final FFmpeg fFmpeg;
 
-    public MediaEventMonitor(MediaEventService eventService, ServiceConfig serviceConfig) {
+    public MediaEventMonitor(MediaEventService eventService, ServiceConfig serviceConfig) throws IOException {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
         this.eventService = eventService;
+        this.fFmpeg = new FFmpeg("/usr/bin/ffmpeg");
+        this.fFprobe = new FFprobe("/usr/bin/ffprobe");
     }
 
     @Override
@@ -68,11 +77,20 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         String inputPath = file.toString();
         String resultFilePath = inputPath.substring(0, inputPath.lastIndexOf('.')) + (inputPath.endsWith(".mp4") ? ".mkv" : ".mp4");
 
-        SimpleConversionJob conversionJob = new SimpleConversionJob(new File(resultFilePath), file);
+        SimpleConversionJob conversionJob = SimpleConversionJob.builder()
+                .outputFile(new File(resultFilePath))
+                .inputFile(file)
+                .ffmpeg(fFmpeg)
+                .ffprobe(fFprobe)
+                .containerFormat(ContainerFormat.MKV)
+                .videoCodec(VideoCodec.H264)
+                .audioCodec(AudioCodec.AAC)
+                .build();
+
         logger.info("Launching video converter.");
         try {
             queuedConversionGauge.getAndIncrement();
-            resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoController(conversionJob, activeConversions)), executorService).get();
+            resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoConverterFFmpeg(conversionJob, activeConversions)), executorService).get();
             new File(resultFilePath).renameTo(file);
         } catch (InterruptedException | ExecutionException e){
             logger.error("Failure converting video.", e);

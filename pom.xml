@@ -18,7 +18,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
 
-        <internal-utils.version>1.8</internal-utils.version>
+        <internal-utils.version>1.11</internal-utils.version>
         <internal-adapters.version>1.6</internal-adapters.version>
     </properties>
 
@@ -72,7 +72,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
-            <artifactId>cast-video-converter-handbrake</artifactId>
+            <artifactId>video-converter-ffmpeg</artifactId>
             <version>${internal-utils.version}</version>
         </dependency>
 
