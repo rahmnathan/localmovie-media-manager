@@ -36,6 +36,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final ExecutorService executorService;
     private final MediaEventService eventService;
+    private final ServiceConfig serviceConfig;
     private final FFprobe fFprobe;
     private final FFmpeg fFmpeg;
 
@@ -43,6 +44,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
+        this.serviceConfig = serviceConfig;
         this.eventService = eventService;
         this.fFmpeg = new FFmpeg("/usr/bin/ffmpeg");
         this.fFprobe = new FFprobe("/usr/bin/ffprobe");
@@ -85,6 +87,12 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                 .containerFormat(ContainerFormat.MKV)
                 .videoCodec(VideoCodec.H264)
                 .audioCodec(AudioCodec.AAC)
+                .forceConvert(serviceConfig.isForceConvert())
+                .audioBitrate(96000L)
+                .videoBitrate(10000000L)
+                .videoHeight(1920)
+                .videoWidth(1080)
+                .frameRate(30.0)
                 .build();
 
         logger.info("Launching video converter.");
