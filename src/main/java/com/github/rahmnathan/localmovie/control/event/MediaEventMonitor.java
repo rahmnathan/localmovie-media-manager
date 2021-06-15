@@ -90,8 +90,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                 .forceConvert(serviceConfig.isForceConvert())
                 .audioBitrate(96000L)
                 .videoBitrate(10000000L)
-                .videoHeight(1920)
-                .videoWidth(1080)
+                .videoHeight(1080)
+                .videoWidth(1920)
                 .frameRate(30.0)
                 .build();
 
