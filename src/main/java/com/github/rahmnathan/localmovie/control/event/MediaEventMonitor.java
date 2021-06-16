@@ -2,11 +2,8 @@ package com.github.rahmnathan.localmovie.control.event;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.video.boundary.VideoConverterFFmpeg;
-import com.github.rahmnathan.video.converter.data.AudioCodec;
-import com.github.rahmnathan.video.converter.data.ContainerFormat;
+import com.github.rahmnathan.video.cast.handbrake.boundary.VideoConverterHandbrake;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
-import com.github.rahmnathan.video.converter.data.VideoCodec;
 import io.micrometer.core.instrument.Metrics;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFprobe;
@@ -36,7 +33,6 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final ExecutorService executorService;
     private final MediaEventService eventService;
-    private final ServiceConfig serviceConfig;
     private final FFprobe fFprobe;
     private final FFmpeg fFmpeg;
 
@@ -44,7 +40,6 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
-        this.serviceConfig = serviceConfig;
         this.eventService = eventService;
         this.fFmpeg = new FFmpeg("/usr/bin/ffmpeg");
         this.fFprobe = new FFprobe("/usr/bin/ffprobe");
@@ -84,21 +79,12 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                 .inputFile(file)
                 .ffmpeg(fFmpeg)
                 .ffprobe(fFprobe)
-                .containerFormat(ContainerFormat.MKV)
-                .videoCodec(VideoCodec.H264)
-                .audioCodec(AudioCodec.AAC)
-                .forceConvert(serviceConfig.isForceConvert())
-                .audioBitrate(96000L)
-                .videoBitrate(5000000L)
-                .videoHeight(1080)
-                .videoWidth(1920)
-                .frameRate(30.0)
                 .build();
 
         logger.info("Launching video converter.");
         try {
             queuedConversionGauge.getAndIncrement();
-            resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoConverterFFmpeg(conversionJob, activeConversions)), executorService).get();
+            resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoConverterHandbrake(conversionJob, activeConversions)), executorService).get();
             new File(resultFilePath).renameTo(file);
         } catch (InterruptedException | ExecutionException e){
             logger.error("Failure converting video.", e);
