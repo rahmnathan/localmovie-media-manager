@@ -7,10 +7,9 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import io.micrometer.core.instrument.Timer;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,17 +18,16 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/localmovie/v2/media")
 public class MediaResource {
-    private final Logger logger = LoggerFactory.getLogger(MediaResource.class.getName());
     private static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
     private final FileSenderService fileSenderService;
@@ -43,31 +41,31 @@ public class MediaResource {
 
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
-        logger.info("Received request: {}", mediaRequest.toString());
+        log.info("Received request: {}", mediaRequest.toString());
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
 
         if(mediaRequest.getClient() == MediaClient.WEBAPP){
-            logger.info("Loading redacted media files for webapp.");
+            log.info("Loading redacted media files for webapp.");
             List<RedactedMediaFile> redactedMediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
-            logger.info("Returning media list. Size: {}", redactedMediaFiles.size());
+            log.info("Returning media list. Size: {}", redactedMediaFiles.size());
             return ResponseEntity.ok(redactedMediaFiles);
         } else {
-            logger.info("Loading full media files for Android.");
+            log.info("Loading full media files for Android.");
             List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPath(mediaRequest);
-            logger.info("Returning media list. Size: {}", mediaFiles.size());
+            log.info("Returning media list. Size: {}", mediaFiles.size());
             return ResponseEntity.ok(mediaFiles);
         }
     }
 
     @GetMapping(value = "/count")
     public void getMediaCount(@RequestParam(value = "path") String path, HttpServletResponse response){
-        logger.info("Received count request for path - {}", path);
+        log.info("Received count request for path - {}", path);
 
         long count = persistenceService.countMediaFiles(path);
 
-        logger.info("Returning count of - {}", count);
+        log.info("Returning count of - {}", count);
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
     }
 
@@ -78,22 +76,22 @@ public class MediaResource {
     public void streamVideo(@RequestParam("path") String path, HttpServletResponse response, HttpServletRequest request) {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
-        logger.info("Received streaming request - {}", path);
+        log.info("Received streaming request - {}", path);
 
         if(!persistenceService.existsByPath(path)) return;
 
         boolean found = false;
         for (String mediaPath : mediaPaths) {
-            logger.info("Checking if mediaPath {} contains requested path {}", mediaPath, path);
+            log.info("Checking if mediaPath {} contains requested path {}", mediaPath, path);
             if (new File(mediaPath + path).exists()) {
-                logger.info("Streaming - {}{}", mediaPath, path);
+                log.info("Streaming - {}{}", mediaPath, path);
                 found = true;
                 fileSenderService.serveResource(MediaFile.Builder.forPath(mediaPath + path).build(), request, response);
                 break;
             }
         }
         if (!found) {
-            logger.warn("Path not found in mediaPaths: {}", path);
+            log.warn("Path not found in mediaPaths: {}", path);
         }
     }
 
@@ -103,7 +101,7 @@ public class MediaResource {
      */
     @GetMapping(path = "/poster")
     public byte[] getPoster(@RequestParam("path") String path) {
-        logger.info("Streaming poster - {}", path);
+        log.info("Streaming poster - {}", path);
 
         return persistenceService.getMediaImage(path);
     }
@@ -115,14 +113,14 @@ public class MediaResource {
     @GetMapping(path = "/events")
     public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable, HttpServletResponse response) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
-        logger.info("Request for events since: {}", localDateTime);
+        log.info("Request for events since: {}", localDateTime);
 
         if(pageable.isPaged() && pageable.getPageNumber() == 0)
             countEvents(epoch, response);
 
         List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
 
-        logger.info("Events response. Time: {} EventList: {}", localDateTime, events);
+        log.info("Events response. Time: {} EventList: {}", localDateTime, events);
         return events;
     }
 
@@ -132,11 +130,11 @@ public class MediaResource {
     @GetMapping(path = "/events/count")
     public void countEvents(@RequestParam("timestamp") Long epoch, HttpServletResponse response) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
-        logger.info("Request for event count since: {}", localDateTime);
+        log.info("Request for event count since: {}", localDateTime);
 
         long eventCount = persistenceService.getMediaFileEventCount(localDateTime);
 
-        logger.info("Event count response. Time: {} Event Count: {}", localDateTime, eventCount);
+        log.info("Event count response. Time: {} Event Count: {}", localDateTime, eventCount);
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(eventCount));
     }
 }

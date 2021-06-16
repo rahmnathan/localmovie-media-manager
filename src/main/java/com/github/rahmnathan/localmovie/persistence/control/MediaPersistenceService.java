@@ -37,18 +37,9 @@ public class MediaPersistenceService {
         return fileRepository.findByPath(path);
     }
 
-    public void delete(Media media) {
-        mediaRepository.delete(media);
-    }
-
     @Transactional
     public void saveEvent(MediaFileEvent event){
         eventRepository.save(event);
-    }
-
-    @Transactional
-    public void saveMediaFile(MediaFile mediaFile) {
-        fileRepository.save(mediaFile);
     }
 
     @Transactional
