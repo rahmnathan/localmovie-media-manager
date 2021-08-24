@@ -50,7 +50,7 @@ class PathUtils {
     }
 
     String getTitle(String fileName){
-        if (fileName.charAt(fileName.length() - 4) == '.') {
+        if (fileName.length() > 4 && fileName.charAt(fileName.length() - 4) == '.') {
             return fileName.substring(0, fileName.length() - 4);
         }
 
