@@ -2,9 +2,9 @@ package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,21 +12,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
+@Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping(value = "/localmovie/v3/media")
 public class MediaResourceV3 {
-    private final Logger logger = LoggerFactory.getLogger(MediaResourceV3.class.getName());
     private final MediaPersistenceService persistenceService;
     private final FileSenderService fileSenderService;
 
-    public MediaResourceV3(MediaPersistenceService persistenceService, FileSenderService fileSenderService){
-        this.persistenceService = persistenceService;
-        this.fileSenderService = fileSenderService;
-    }
-
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFile> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
-        logger.info("Received media request for id - {}", mediaFileId);
+        log.info("Received media request for id - {}", mediaFileId);
         return persistenceService.getMediaFileByIdWithViews(mediaFileId);
     }
 
@@ -34,11 +30,11 @@ public class MediaResourceV3 {
     public void streamVideo(@PathVariable("mediaFileId") String mediaFileId, HttpServletResponse response, HttpServletRequest request) {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
-        logger.info("Received streaming request - {}", mediaFileId);
+        log.info("Received streaming request - {}", mediaFileId);
 
         Optional<MediaFile> mediaFileOptional = persistenceService.getMediaFileById(mediaFileId);
         if(mediaFileOptional.isEmpty()){
-            logger.warn("Media file not found for id.");
+            log.warn("Media file not found for id.");
             return;
         }
 
@@ -47,14 +43,14 @@ public class MediaResourceV3 {
 
     @GetMapping(path = "/{mediaFileId}/poster")
     public byte[] getPoster(@PathVariable("mediaFileId") String id) {
-        logger.info("Streaming poster - {}", id);
+        log.info("Streaming poster - {}", id);
 
         return persistenceService.getMediaImageById(id);
     }
 
     @PatchMapping(path = "/{mediaFileId}/position/{position}")
     public void updatePosition(@PathVariable("mediaFileId") String id, @PathVariable("position") Double position) {
-        logger.info("Updating position for MediaFile id: {} position: {}", id, position);
+        log.info("Updating position for MediaFile id: {} position: {}", id, position);
 
         persistenceService.addView(id, position);
     }

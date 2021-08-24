@@ -2,6 +2,7 @@ import React from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
+import * as queryString from "query-string";
 
 const layoutProps = {
     textAlign: 'center'
@@ -35,10 +36,14 @@ export class MainPage extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props.mediaPath !== prevProps.mediaPath) {
-            this.loadMedia();
+        let currentPath = queryString.parse(this.props.location.search).path;
+        const previousPath = queryString.parse(prevProps.location.search).path;
+        if (currentPath !== previousPath) {
+            this.loadMedia(currentPath)
             this.setState({searchText: '', genre: 'all'})
-        } else if (this.state.genre !== prevState.genre ||
+        }
+
+        if (this.state.genre !== prevState.genre ||
             this.state.searchText !== prevState.searchText ||
             this.state.sort !== prevState.sort) {
 
@@ -106,12 +111,18 @@ export class MainPage extends React.Component {
     }
 
     componentDidMount() {
-        this.loadMedia();
+        let path = queryString.parse(this.props.location.search).path;
+        if (path === undefined) {
+            path = 'Movies'
+            this.props.setPath(path)
+        }
+
+        this.loadMedia(path);
     }
 
-    loadMedia() {
-        if(this.state.originalMedia.has(this.props.mediaPath)){
-            this.setState({ media: this.state.originalMedia.get(this.props.mediaPath)});
+    loadMedia(path) {
+        if(this.state.originalMedia.has(path)){
+            this.setState({ media: this.state.originalMedia.get(path)});
         }
 
         trackPromise(
@@ -121,11 +132,11 @@ export class MainPage extends React.Component {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(buildMovieRequest(this.props.mediaPath))
+                body: JSON.stringify(buildMovieRequest(path))
             }).then(response => response.json())
                 .then(data => {
                     let originalMedia = this.state.originalMedia;
-                    originalMedia.set(this.props.mediaPath, data);
+                    originalMedia.set(path, data);
                     this.setState({media: data, originalMedia: originalMedia})
                 })
         );
@@ -139,7 +150,7 @@ export class MainPage extends React.Component {
         return (
             <div style={layoutProps}>
                 <ControlBar selectSort={this.selectSort} selectGenre={this.selectGenre} filterMedia={this.filterMedia} setPath={this.props.setPath}/>
-                <MediaList media={this.state.media} selectMediaFile={this.props.selectMediaFile} playMedia={this.props.playMedia}/>
+                <MediaList media={this.state.media} setPath={this.props.setPath} playMedia={this.props.playMedia}/>
             </div>
         )
     }

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,8 +16,11 @@ import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.
 
 @Data
 @Entity
-@Table(indexes = @Index(name = "idx_media_file_path", columnList = "path", unique = true))
-public class MediaFile {
+@Table(indexes = {
+        @Index(name = "idx_media_file_path", columnList = "path", unique = true),
+        @Index(name = "idx_media_file_parent_path", columnList = "parentPath")
+})
+public class MediaFile implements Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_file_sequence_generator")
@@ -32,16 +36,12 @@ public class MediaFile {
     private String absolutePath;
     private Double length;
 
-    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<MediaView> mediaViews;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn
     private Media media;
-
-    @JsonIgnore
-    @OneToOne(mappedBy = "mediaFile")
-    private MediaFileEvent mediaFileEvent;
 
     @Version
     @JsonIgnore

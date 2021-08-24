@@ -18,6 +18,7 @@ public class ServiceConfig {
     private Set<String> mediaPaths;
     private String jedisHost;
     private OmdbConfig omdb;
+    private boolean forceConvert;
 
     @Data
     public static class MediaRepositoryMonitorConfig {

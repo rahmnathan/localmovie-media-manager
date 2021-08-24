@@ -101,10 +101,6 @@ export class VideoPlayer extends React.Component {
                     width={'100%'}
                     height={'100%'}
                     onProgress={this.saveProgress}/>
-                <button style={buttonStyle} onClick={() => {
-                    window.history.back()
-                }}>Exit Video
-                </button>
                 <div style={backgroundTintStyle}/>
             </div>
         );

@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.persistence.repository;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -22,24 +23,22 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     List<MediaFile> findAllByUpdatedBeforeOrderByUpdated(LocalDateTime time, Pageable pageable);
 
     @Query(value = "select m1 from MediaFile m1 " +
+            "inner join m1.media " +
             "left join m1.mediaViews mv " +
-            "left join mv.mediaUser mu on mu.userId = :userId " +
+            "left join mv.mediaUser mu " +
+            "on mu.userId = :userId " +
             "where m1.parentPath = :path ")
     List<MediaFile> findAllByParentPath(String path, String userId, Pageable pageable);
 
     @Query(value = "select m1 from MediaFile m1 " +
-            "left join m1.mediaViews mv " +
-            "left join mv.mediaUser mu on mu.userId = :userId " +
-            "where m1.parentPath = :path ")
+            "inner join fetch m1.media " +
+            "left join fetch m1.mediaViews mv " +
+            "left join fetch mv.mediaUser mu " +
+            "where (mu.userId is null OR mu.userId = :userId) " +
+            "and m1.parentPath = :path")
     List<RedactedMediaFile> findAllByParentPathNoPoster(@Param("path") String path, @Param("userId") String userId, Pageable pageable);
 
-    @Query(value = "select m1 from MediaFile m1 " +
-            "left join m1.mediaViews mv " +
-            "left join mv.mediaUser mu on mu.userId = :userId " +
-            "where m1.path = :path ")
-    MediaFile findByPath(@Param("path") String path, @Param("userId") String userId);
-
-    @Query(value = "select m.image from Media m where m.id = (select m2.media from MediaFile m2 where m2.mediaFileId = :id)")
+    @Query(value = "select m.image from Media m where m.id = (select m2.media.id from MediaFile m2 where m2.mediaFileId = :id)")
     byte[] getImageById(String id);
 
     long countAllByParentPath(String parentPath);

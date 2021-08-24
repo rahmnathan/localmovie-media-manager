@@ -93,7 +93,7 @@ export class Media extends React.Component {
         if((path.includes("Movies") && path.split("/").length === 2) || path.split("/").length === 4){
             this.props.playMedia(mediaFile, true)
         } else {
-            this.props.selectMediaFile(mediaFile)
+            this.props.setPath(mediaFile.path)
         }
     }
 
