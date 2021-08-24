@@ -36,6 +36,10 @@ spring:
     properties.hibernate.jdbc.lob.non_contextual_creation: true
     show-sql: false
 
+opentracing:
+  jaeger:
+    enabled: false
+
 keycloak:
   auth-server-url: https://localmovies.hopto.org/auth
   public-client: true
