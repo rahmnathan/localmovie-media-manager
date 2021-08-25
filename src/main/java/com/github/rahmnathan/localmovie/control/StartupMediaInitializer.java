@@ -3,9 +3,9 @@ package com.github.rahmnathan.localmovie.control;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
+import io.micrometer.core.annotation.Timed;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -18,16 +18,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @AllArgsConstructor
-public class MediaDatabaseInitializer {
-    private final Logger logger = LoggerFactory.getLogger(MediaDatabaseInitializer.class);
+public class StartupMediaInitializer {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
     private final FFProbeService ffProbeService;
     private final ServiceConfig serviceConfig;
     private final MediaService dataService;
 
+    @Timed
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
         Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().stream()
@@ -39,7 +40,7 @@ public class MediaDatabaseInitializer {
                 .map(this::buildMediaFile)
                 .collect(Collectors.toUnmodifiableSet());
 
-        logger.info("Saving {} new media files.", mediaFiles.size());
+        log.info("Saving {} new media files.", mediaFiles.size());
         mediaFileRepository.saveAll(mediaFiles);
     }
 
@@ -59,22 +60,22 @@ public class MediaDatabaseInitializer {
             Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    logger.info("Found media directory: {}", dir);
+                    log.info("Found media directory: {}", dir);
                     paths.add(dir.toString());
                     return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException e) {
-            logger.error("Failure registering directory in directory monitor", e);
+            log.error("Failure registering directory in directory monitor", e);
         }
 
         return paths.parallelStream();
     }
 
     private Stream<File> listFiles(String absolutePath) {
-        logger.info("Listing files at - {}", absolutePath);
+        log.info("Listing files at - {}", absolutePath);
         File[] files = Optional.ofNullable(new File(absolutePath).listFiles()).orElse(new File[0]);
-        logger.info("Found {} files.", files.length);
+        log.info("Found {} files.", files.length);
         return Set.of(files).parallelStream();
     }
 }

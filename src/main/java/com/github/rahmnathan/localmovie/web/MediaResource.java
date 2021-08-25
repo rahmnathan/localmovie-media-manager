@@ -7,7 +7,6 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.data.domain.Pageable;
@@ -86,7 +85,7 @@ public class MediaResource {
             if (new File(mediaPath + path).exists()) {
                 log.info("Streaming - {}{}", mediaPath, path);
                 found = true;
-                fileSenderService.serveResource(MediaFile.Builder.forPath(mediaPath + path).build(), request, response);
+                fileSenderService.streamMediaFile(MediaFile.Builder.forPath(mediaPath + path).build(), request, response);
                 break;
             }
         }

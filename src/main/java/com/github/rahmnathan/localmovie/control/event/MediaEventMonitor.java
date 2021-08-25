@@ -5,10 +5,9 @@ import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.video.cast.handbrake.boundary.VideoConverterHandbrake;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import io.micrometer.core.instrument.Metrics;
+import lombok.extern.slf4j.Slf4j;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFprobe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +25,10 @@ import java.util.function.Supplier;
 
 import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
 
+@Slf4j
 @Service
 public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
-    private final Logger logger = LoggerFactory.getLogger(MediaEventMonitor.class);
     private final Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final ExecutorService executorService;
     private final MediaEventService eventService;
@@ -38,7 +37,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     public MediaEventMonitor(MediaEventService eventService, ServiceConfig serviceConfig) throws IOException {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
-        logger.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
+        log.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
         this.eventService = eventService;
         this.fFmpeg = new FFmpeg("/usr/bin/ffmpeg");
@@ -50,9 +49,9 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
 
         String absolutePath = file.getAbsolutePath();
-        logger.info("Detected media event {} at path: {}", event.name(), absolutePath);
+        log.info("Detected media event {} at path: {}", event.name(), absolutePath);
         if (activeConversions.contains(absolutePath) || absolutePath.endsWith(".partial~")) {
-            logger.info("Ignoring event.");
+            log.info("Ignoring event.");
             return;
         }
 
@@ -81,13 +80,13 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                 .ffprobe(fFprobe)
                 .build();
 
-        logger.info("Launching video converter.");
+        log.info("Launching video converter.");
         try {
             queuedConversionGauge.getAndIncrement();
             resultFilePath = CompletableFuture.supplyAsync(withMdc(new VideoConverterHandbrake(conversionJob, activeConversions)), executorService).get();
             new File(resultFilePath).renameTo(file);
         } catch (InterruptedException | ExecutionException e){
-            logger.error("Failure converting video.", e);
+            log.error("Failure converting video.", e);
         } finally {
             queuedConversionGauge.getAndDecrement();
         }
@@ -108,7 +107,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
-                logger.error("Failure waiting for file to finish writing", e);
+                log.error("Failure waiting for file to finish writing", e);
             }
 
             long afterLastModified = file.lastModified();

@@ -8,8 +8,7 @@ import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.data.MediaType;
 import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +17,10 @@ import java.util.Optional;
 
 import static com.github.rahmnathan.localmovie.control.PathUtils.*;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class MediaService {
-    private final Logger logger = LoggerFactory.getLogger(MediaService.class.getName());
     private final MediaPersistenceService persistenceService;
     private final MediaProvider mediaProvider;
 
@@ -29,7 +28,7 @@ public class MediaService {
     public Media loadMedia(String path) {
         Optional<MediaFile> mediaFile = persistenceService.getMediaFileByPath(path);
         if (mediaFile.isPresent()) {
-            logger.info("Getting from database - {}", path);
+            log.info("Getting from database - {}", path);
             return mediaFile.get().getMedia();
         }
 
@@ -53,14 +52,14 @@ public class MediaService {
     }
 
     private com.github.rahmnathan.omdb.data.Media loadMediaFromProvider(String path) throws InvalidMediaException, MediaProviderException {
-        logger.info("Loading MediaFile from provider - {}", path);
+        log.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
 
         if(isEpisode(path)){
             try {
                 return loadEpisodeFromProvider(path, fileName);
             } catch (MediaProviderException e) {
-                logger.error("Error getting media from provider", e);
+                log.error("Error getting media from provider", e);
                 return loadSeriesParentInfo(path, MediaType.EPISODE);
             }
         } else {
@@ -78,11 +77,11 @@ public class MediaService {
     }
 
     private com.github.rahmnathan.omdb.data.Media loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
-        logger.info("Getting info from parent - {}", path);
+        log.info("Getting info from parent - {}", path);
 
         String filename = new File(path).getName();
         File file = getParentFile(path);
-        logger.info("{} - Parent resolved to: {}", path, file.getPath());
+        log.info("{} - Parent resolved to: {}", path, file.getPath());
 
         Media parentInfo = loadMedia(file.getPath());
         Integer number = isEpisode(path) ? parseEpisodeNumber(filename) : parseSeasonNumber(filename);

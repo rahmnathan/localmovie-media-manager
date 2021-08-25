@@ -5,20 +5,19 @@ import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceServ
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 
-import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
 
+@Slf4j
 @Service
 @Transactional
 @AllArgsConstructor
 public class MediaEventService {
-    private final Logger logger = LoggerFactory.getLogger(MediaEventService.class);
     private final PushNotificationService notificationHandler;
     private final MediaPersistenceService persistenceService;
     private final MediaFileService mediaFileService;
@@ -26,7 +25,7 @@ public class MediaEventService {
     public void handleCreateEvent(File file){
         MediaFile mediaFile = mediaFileService.loadMediaFile(file);
 
-        logger.info("Adding CREATE event to repository.");
+        log.info("Adding CREATE event to repository.");
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
         persistenceService.saveEvent(event);
@@ -37,7 +36,7 @@ public class MediaEventService {
     public void handleDeleteEvent(File file){
         String relativePath = file.toString().split(ROOT_MEDIA_FOLDER)[1];
         if(persistenceService.existsByPath(relativePath)){
-            logger.info("Removing media from database.");
+            log.info("Removing media from database.");
             persistenceService.deleteAllByRelativePath(relativePath);
         }
 

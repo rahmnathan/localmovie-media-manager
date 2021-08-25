@@ -38,7 +38,7 @@ public class MediaResourceV3 {
             return;
         }
 
-        fileSenderService.serveResource(mediaFileOptional.get(), request, response);
+        fileSenderService.streamMediaFile(mediaFileOptional.get(), request, response);
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")

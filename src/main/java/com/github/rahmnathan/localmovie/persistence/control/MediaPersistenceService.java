@@ -4,8 +4,7 @@ import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,14 +18,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.rahmnathan.localmovie.control.MediaDatabaseInitializer.ROOT_MEDIA_FOLDER;
 import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
 public class MediaPersistenceService {
-    private final Logger logger = LoggerFactory.getLogger(MediaPersistenceService.class);
     private final MediaFileEventRepository eventRepository;
     private final MediaViewRepository mediaViewRepository;
     private final MediaFileRepository fileRepository;
@@ -100,7 +98,7 @@ public class MediaPersistenceService {
 
         MediaFile mediaFile = mediaFileOptional.get();
         String userName = getUsername();
-        logger.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
+        log.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
         if(mediaFile.getMediaViews().isEmpty()){
             MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
             MediaView mediaView = new MediaView(mediaFile, mediaUser, position);
