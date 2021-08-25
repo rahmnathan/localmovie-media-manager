@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FileSenderService {
     private final AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active", new AtomicInteger(0));
 
-    @Timed(longTask = true)
+    @Timed(value = "MEDIA_STREAM", longTask = true)
     public void streamMediaFile(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
         if (response == null || request == null)
             return;

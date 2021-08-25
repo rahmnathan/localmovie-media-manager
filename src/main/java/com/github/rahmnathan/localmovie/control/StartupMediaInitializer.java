@@ -28,7 +28,7 @@ public class StartupMediaInitializer {
     private final ServiceConfig serviceConfig;
     private final MediaService dataService;
 
-    @Timed
+    @Timed(value = "FILE_LIST_INITIALIZATION")
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
         Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().stream()

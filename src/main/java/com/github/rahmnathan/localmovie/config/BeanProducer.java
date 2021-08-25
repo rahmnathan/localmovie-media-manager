@@ -6,6 +6,7 @@ import com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.boundary.MediaProviderOmdb;
 import com.github.rahmnathan.omdb.boundary.MediaProviderStub;
+import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AllArgsConstructor;
 import org.apache.camel.CamelContext;
@@ -17,12 +18,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Lazy;
 
 import java.util.Set;
 
 @Configuration
 @AllArgsConstructor
+@EnableAspectJAutoProxy
 public class BeanProducer {
     private final ServiceConfig serviceConfig;
 
@@ -57,5 +60,10 @@ public class BeanProducer {
         MetricsProperties.Data.Repository properties = metricsProperties.getData().getRepository();
         return new MetricsRepositoryMethodInvocationListener(registry, tagsProvider, properties.getMetricName(),
                 properties.getAutotime());
+    }
+
+    @Bean
+    public TimedAspect timedAspect(MeterRegistry registry) {
+        return new TimedAspect(registry);
     }
 }
