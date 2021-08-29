@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.omdb.data.MediaType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Data
 @Entity
 @NoArgsConstructor
-public class Media {
+public class Media implements MediaFile.Media {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_sequence_generator")
@@ -43,10 +44,10 @@ public class Media {
 
     @JsonIgnore
     @OneToOne(mappedBy = "media")
-    private MediaFile mediaFile;
+    private com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile;
 
     @JsonIgnore
-    public MediaFile getMediaFile(){
+    public com.github.rahmnathan.localmovie.persistence.entity.MediaFile getMediaFile(){
         return mediaFile;
     }
 

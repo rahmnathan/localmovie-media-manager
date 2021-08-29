@@ -2,9 +2,8 @@ package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
-import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
+import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,20 +34,20 @@ public class MediaPersistenceServiceTest {
     @Test
     public void getMediaFilesByParentPathTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 5, MediaClient.ANDROID, MediaOrder.TITLE);
-        List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPath(mediaRequest);
+        List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPath(mediaRequest);
         assertTrue(mediaFiles.size() > 0);
     }
 
     @Test
     public void getMediaImageTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 5, MediaClient.ANDROID, MediaOrder.TITLE);
-        List<RedactedMediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }
 
     @Test
     public void getMediaFileByPathTest() {
-        Optional<MediaFile> resultMediaFile = mediaPersistenceService.getMediaFileByPath("Movies/300.mkv");
+        Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> resultMediaFile = mediaPersistenceService.getMediaFileByPath("Movies/300.mkv");
         assertTrue(resultMediaFile.isPresent());
     }
 
@@ -60,7 +59,7 @@ public class MediaPersistenceServiceTest {
 
     @Test
     public void getMediaFileEventsTest() {
-        MediaFile mediaFile = MediaFile.Builder.forPath("/home/LocalMedia/some/test/path").build();
+        com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = com.github.rahmnathan.localmovie.persistence.entity.MediaFile.Builder.forPath("/home/LocalMedia/some/test/path").build();
         MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
 
         save(mediaFileEvent);

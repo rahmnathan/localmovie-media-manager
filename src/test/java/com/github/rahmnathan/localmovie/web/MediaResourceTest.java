@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.data.MediaClient;
+import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
@@ -33,11 +34,11 @@ public class MediaResourceTest {
 
     @Test
     public void getMediaTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 1, 10, MediaClient.ANDROID, MediaOrder.TITLE);
+        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 10, MediaClient.ANDROID, MediaOrder.TITLE);
 
-        ResponseEntity<List> response = mediaResource.getMedia(mediaRequest, new MockHttpServletResponse());
+        List<? extends MediaFile> response = mediaResource.getMedia(mediaRequest, new MockHttpServletResponse());
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.size() > 0);
     }
 
     @Test

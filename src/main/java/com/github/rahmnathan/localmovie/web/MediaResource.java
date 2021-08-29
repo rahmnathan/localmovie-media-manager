@@ -1,17 +1,14 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
-import com.github.rahmnathan.localmovie.persistence.entity.RedactedMediaFile;
+import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,23 +36,16 @@ public class MediaResource {
     }
 
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+    public List<? extends MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
 
-        if(mediaRequest.getClient() == MediaClient.WEBAPP){
-            log.info("Loading redacted media files for webapp.");
-            List<RedactedMediaFile> redactedMediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
-            log.info("Returning media list. Size: {}", redactedMediaFiles.size());
-            return ResponseEntity.ok(redactedMediaFiles);
-        } else {
-            log.info("Loading full media files for Android.");
-            List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPath(mediaRequest);
-            log.info("Returning media list. Size: {}", mediaFiles.size());
-            return ResponseEntity.ok(mediaFiles);
-        }
+        log.info("Loading redacted media files for client: {}", mediaRequest.getClient());
+        List<? extends MediaFile> mediaFiles = mediaRequest.getClient().getMediaProvider().getMedia(persistenceService, mediaRequest);
+        log.info("Returning media list. Size: {}", mediaFiles.size());
+        return mediaFiles;
     }
 
     @GetMapping(value = "/count")
@@ -85,7 +75,7 @@ public class MediaResource {
             if (new File(mediaPath + path).exists()) {
                 log.info("Streaming - {}{}", mediaPath, path);
                 found = true;
-                fileSenderService.streamMediaFile(MediaFile.Builder.forPath(mediaPath + path).build(), request, response);
+                fileSenderService.streamMediaFile(com.github.rahmnathan.localmovie.persistence.entity.MediaFile.Builder.forPath(mediaPath + path).build(), request, response);
                 break;
             }
         }

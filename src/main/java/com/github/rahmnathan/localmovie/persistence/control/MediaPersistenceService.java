@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
+import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
@@ -31,7 +32,7 @@ public class MediaPersistenceService {
     private final MediaUserRepository userRepository;
     private final MediaRepository mediaRepository;
 
-    public Optional<MediaFile> getMediaFileByPath(String path) {
+    public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileByPath(String path) {
         return fileRepository.findByPath(path);
     }
 
@@ -46,11 +47,11 @@ public class MediaPersistenceService {
         fileRepository.deleteByPath(path);
     }
 
-    public Optional<MediaFile> getMediaFileById(String id) {
+    public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileById(String id) {
         return fileRepository.findByMediaFileId(id);
     }
 
-    public Optional<MediaFile> getMediaFileByIdWithViews(String id) {
+    public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileByIdWithViews(String id) {
         return fileRepository.findByIdWithViews(id, getUsername());
     }
 
@@ -66,7 +67,7 @@ public class MediaPersistenceService {
         return fileRepository.existsByPath(path);
     }
 
-    public List<MediaFile> getMediaFilesByParentPath(MediaRequest request) {
+    public List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFilesByParentPath(MediaRequest request) {
         Sort sort;
         if (request.getPath().split(File.separator).length > 1) {
             sort = SEASONS_EPISODES.getSort();
@@ -78,7 +79,7 @@ public class MediaPersistenceService {
         return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
-    public List<RedactedMediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
+    public List<MediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
         Sort sort;
         if (request.getPath().split(File.separator).length > 1) {
             sort = SEASONS_EPISODES.getSort();
@@ -93,10 +94,10 @@ public class MediaPersistenceService {
     @Transactional
     public void addView(String id, Double position) {
 
-        Optional<MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
+        Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
         if(mediaFileOptional.isEmpty()) return;
 
-        MediaFile mediaFile = mediaFileOptional.get();
+        com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = mediaFileOptional.get();
         String userName = getUsername();
         log.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
         if(mediaFile.getMediaViews().isEmpty()){

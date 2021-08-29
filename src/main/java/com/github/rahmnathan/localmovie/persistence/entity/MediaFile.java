@@ -7,7 +7,6 @@ import javax.persistence.*;
 import java.io.File;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -20,7 +19,7 @@ import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.R
         @Index(name = "idx_media_file_path", columnList = "path", unique = true),
         @Index(name = "idx_media_file_parent_path", columnList = "parentPath")
 })
-public class MediaFile implements Serializable {
+public class MediaFile implements Serializable, com.github.rahmnathan.localmovie.data.MediaFile {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_file_sequence_generator")
@@ -41,7 +40,7 @@ public class MediaFile implements Serializable {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn
-    private Media media;
+    private com.github.rahmnathan.localmovie.persistence.entity.Media media;
 
     @Version
     @JsonIgnore
@@ -58,7 +57,7 @@ public class MediaFile implements Serializable {
         updated = LocalDateTime.now();
     }
 
-    public Collection<MediaView> getMediaViews() {
+    public Set<MediaView> getMediaViews() {
         if(mediaViews == null){
             mediaViews = new HashSet<>();
         }
@@ -91,7 +90,7 @@ public class MediaFile implements Serializable {
             return this;
         }
 
-        public Builder setMedia(Media media) {
+        public Builder setMedia(com.github.rahmnathan.localmovie.persistence.entity.Media media) {
             this.mediaFile.media = media;
             return this;
         }

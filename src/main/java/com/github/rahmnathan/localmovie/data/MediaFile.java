@@ -1,23 +1,24 @@
-package com.github.rahmnathan.localmovie.persistence.entity;
+package com.github.rahmnathan.localmovie.data;
 
+import com.github.rahmnathan.localmovie.persistence.entity.MediaView;
 import com.github.rahmnathan.omdb.data.MediaType;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
-public interface RedactedMediaFile {
+public interface MediaFile {
     Long getId();
     String getParentPath();
     String getPath();
     String getFileName();
     LocalDateTime getCreated();
     LocalDateTime getUpdated();
-    Long getLength();
+    Double getLength();
     Set<MediaView> getMediaViews();
-    RedactedMedia getMedia();
+    Media getMedia();
     String getMediaFileId();
 
-    interface RedactedMedia {
+    interface Media {
         Long getId();
         MediaType getMediaType();
         String getTitle();
