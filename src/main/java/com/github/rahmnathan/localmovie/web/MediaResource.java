@@ -42,7 +42,7 @@ public class MediaResource {
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
 
-        log.info("Loading redacted media files for client: {}", mediaRequest.getClient());
+        log.info("Loading media files for client: {}", mediaRequest.getClient());
         List<? extends MediaFile> mediaFiles = mediaRequest.getClient().getMediaProvider().getMedia(persistenceService, mediaRequest);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
