@@ -15,16 +15,17 @@ import java.io.IOException;
 public class FFProbeService {
     private FFprobe fFprobe;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void initFFprobe() {
+    public FFProbeService() {
         try {
             this.fFprobe = new FFprobe("ffprobe");
         } catch (IOException e) {
-            log.warn("Failure loading FFprobe. Won't be able to determine video duration.");
+            log.error("Failure loading FFprobe. Won't be able to determine video duration.", e);
         }
     }
 
     public Double loadDuration(File file) {
+        if(fFprobe == null) return Double.NaN;
+
         try {
             FFmpegProbeResult probeResult = fFprobe.probe(file.getAbsolutePath());
             return probeResult.getFormat().duration;
