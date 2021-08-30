@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.control.event;
 
+import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,9 +23,15 @@ public class MediaEventServiceTest {
     private final MediaEventService mediaEventService;
 
     @Autowired
-    public MediaEventServiceTest(MediaPersistenceService mediaPersistenceService, MediaEventService mediaEventService) {
+    public MediaEventServiceTest(MediaPersistenceService mediaPersistenceService, MediaEventService mediaEventService, StartupMediaInitializer initializer) {
         this.mediaPersistenceService = mediaPersistenceService;
         this.mediaEventService = mediaEventService;
+
+        try {
+            initializer.getInitializationFuture().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

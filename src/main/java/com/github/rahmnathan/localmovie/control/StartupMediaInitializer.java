@@ -35,11 +35,7 @@ public class StartupMediaInitializer {
     }
 
     @Timed(value = "file_list_initialization")
-    public void initializeFileListSynchronous() {
-        if(initializationFuture != null && !initializationFuture.isDone()){
-            initializationFuture.cancel(true);
-        }
-
+    private void initializeFileListSynchronous() {
         serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
@@ -83,5 +79,9 @@ public class StartupMediaInitializer {
         File[] files = Optional.ofNullable(new File(absolutePath).listFiles()).orElse(new File[0]);
         log.info("Found {} files.", files.length);
         return Set.of(files).parallelStream();
+    }
+
+    public CompletableFuture<Void> getInitializationFuture() {
+        return initializationFuture;
     }
 }

@@ -28,10 +28,14 @@ public class MediaPersistenceServiceTest {
     private final MediaPersistenceService mediaPersistenceService;
 
     @Autowired
-    public MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, StartupMediaInitializer mediaInitializer) {
+    public MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, StartupMediaInitializer initializer) {
         this.mediaPersistenceService = mediaPersistenceService;
 
-        mediaInitializer.initializeFileListSynchronous();
+        try {
+            initializer.getInitializationFuture().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
