@@ -20,13 +20,13 @@ public class PushNotificationService {
         this.enabled = serviceConfig.isNotificationsEnabled();
     }
 
-    void sendPushNotifications(String fileName, String path) {
+    void sendPushNotifications(String title, String path) {
         if (enabled) {
             log.info("Sending notification of new movie: {} to {} clients", path, MOVIE_TOPIC);
             PushNotification pushNotification = PushNotification.Builder.newInstance()
                     .setTopic(MOVIE_TOPIC)
                     .setTitle("New Movie!")
-                    .setBody(fileName)
+                    .setBody(title)
                     .addData("path", path)
                     .build();
 
