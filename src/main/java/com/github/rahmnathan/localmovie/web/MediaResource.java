@@ -3,8 +3,8 @@ package com.github.rahmnathan.localmovie.web;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
-import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.data.domain.Pageable;
@@ -36,14 +36,14 @@ public class MediaResource {
     }
 
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<? extends MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+    public List<MediaFileNoPoster> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
 
-        log.info("Loading media files for client: {}", mediaRequest.getClient());
-        List<? extends MediaFile> mediaFiles = mediaRequest.getClient().getMediaProvider().getMedia(persistenceService, mediaRequest);
+        log.info("Loading media files for webapp.");
+        List<MediaFileNoPoster> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }
@@ -93,37 +93,5 @@ public class MediaResource {
         log.info("Streaming poster - {}", path);
 
         return persistenceService.getMediaImage(path);
-    }
-
-    /**
-     * @param epoch - Timestamp to collect events since
-     * @return - List of MediaFileEvents
-     */
-    @GetMapping(path = "/events")
-    public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable, HttpServletResponse response) {
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
-        log.info("Request for events since: {}", localDateTime);
-
-        if(pageable.isPaged() && pageable.getPageNumber() == 0)
-            countEvents(epoch, response);
-
-        List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
-
-        log.info("Events response. Time: {} EventList: {}", localDateTime, events);
-        return events;
-    }
-
-    /**
-     * @param epoch - Timestamp to count events since
-     */
-    @GetMapping(path = "/events/count")
-    public void countEvents(@RequestParam("timestamp") Long epoch, HttpServletResponse response) {
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
-        log.info("Request for event count since: {}", localDateTime);
-
-        long eventCount = persistenceService.getMediaFileEventCount(localDateTime);
-
-        log.info("Event count response. Time: {} Event Count: {}", localDateTime, eventCount);
-        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(eventCount));
     }
 }

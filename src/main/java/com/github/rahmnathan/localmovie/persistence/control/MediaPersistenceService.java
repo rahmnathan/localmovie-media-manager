@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
-import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
 import com.github.rahmnathan.localmovie.data.MediaRequest;

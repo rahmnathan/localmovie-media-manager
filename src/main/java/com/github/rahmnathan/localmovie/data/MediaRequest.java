@@ -9,7 +9,5 @@ public class MediaRequest {
     private final String path;
     private final Integer page;
     private final Integer resultsPerPage;
-    @NonNull
-    private final MediaClient client;
     private final MediaOrder order;
 }

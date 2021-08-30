@@ -19,7 +19,7 @@ import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.R
         @Index(name = "idx_media_file_path", columnList = "path", unique = true),
         @Index(name = "idx_media_file_parent_path", columnList = "parentPath")
 })
-public class MediaFile implements Serializable, com.github.rahmnathan.localmovie.data.MediaFile {
+public class MediaFile implements Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_file_sequence_generator")

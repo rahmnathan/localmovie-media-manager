@@ -1,16 +1,13 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
-import com.github.rahmnathan.localmovie.data.MediaClient;
-import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,9 +35,9 @@ public class MediaResourceTest {
 
     @Test
     public void getMediaTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 10, MediaClient.ANDROID, MediaOrder.TITLE);
+        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 10, MediaOrder.TITLE);
 
-        List<? extends MediaFile> response = mediaResource.getMedia(mediaRequest, new MockHttpServletResponse());
+        List<MediaFileNoPoster> response = mediaResource.getMedia(mediaRequest, new MockHttpServletResponse());
 
         assertTrue(response.size() > 0);
     }
@@ -51,13 +48,6 @@ public class MediaResourceTest {
         mediaResource.getMediaCount("Movies", response);
 
         assertTrue(response.getHeaderNames().contains("Count"));
-    }
-
-    @Test
-    public void getEventsTest() {
-        List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged(), new MockHttpServletResponse());
-
-        assertEquals(0, events.size());
     }
 
     @Test
