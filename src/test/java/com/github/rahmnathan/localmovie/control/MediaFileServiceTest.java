@@ -18,8 +18,14 @@ public class MediaFileServiceTest {
     private final MediaFileService mediaFileService;
 
     @Autowired
-    public MediaFileServiceTest(MediaFileService mediaFileService) {
+    public MediaFileServiceTest(MediaFileService mediaFileService, StartupMediaInitializer initializer) {
         this.mediaFileService = mediaFileService;
+
+        try {
+            initializer.getInitializationFuture().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
