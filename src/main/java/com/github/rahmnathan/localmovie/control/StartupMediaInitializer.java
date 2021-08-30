@@ -29,12 +29,12 @@ public class StartupMediaInitializer {
     private final MediaService dataService;
     private CompletableFuture<Void> initializationFuture;
 
-    @Timed(value = "file_list_initialization")
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
         this.initializationFuture = CompletableFuture.runAsync(this::initializeFileListSynchronous);
     }
 
+    @Timed(value = "file_list_initialization")
     public void initializeFileListSynchronous() {
         if(initializationFuture != null && !initializationFuture.isDone()){
             initializationFuture.cancel(true);
