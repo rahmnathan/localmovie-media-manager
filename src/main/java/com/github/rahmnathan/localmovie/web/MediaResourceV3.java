@@ -5,6 +5,7 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ public class MediaResourceV3 {
         Optional<MediaFile> mediaFileOptional = persistenceService.getMediaFileById(mediaFileId);
         if(mediaFileOptional.isEmpty()){
             log.warn("Media file not found for id.");
+            response.setStatus(HttpStatus.NOT_FOUND.value());
             return;
         }
 

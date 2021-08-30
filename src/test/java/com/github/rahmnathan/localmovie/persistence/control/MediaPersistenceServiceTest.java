@@ -4,8 +4,8 @@ import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
-import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class MediaPersistenceServiceTest {
     @Test
     public void getMediaImageTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 5, MediaClient.ANDROID, MediaOrder.TITLE);
-        List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFileNoPoster> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }
 

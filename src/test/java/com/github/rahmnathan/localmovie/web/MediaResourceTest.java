@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.web;
 
+import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.data.MediaFile;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
@@ -10,8 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,8 +27,13 @@ public class MediaResourceTest {
     private final MediaResource mediaResource;
 
     @Autowired
-    public MediaResourceTest(MediaResource mediaResource) {
+    public MediaResourceTest(MediaResource mediaResource, StartupMediaInitializer initializer) {
         this.mediaResource = mediaResource;
+        try {
+            initializer.getInitializationFuture().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

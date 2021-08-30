@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.repository;
 
-import com.github.rahmnathan.localmovie.data.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -34,7 +34,7 @@ public interface MediaFileRepository extends CrudRepository<com.github.rahmnatha
             "left join fetch mv.mediaUser mu " +
             "where (mu.userId is null OR mu.userId = :userId) " +
             "and m1.parentPath = :path")
-    List<MediaFile> findAllByParentPathNoPoster(@Param("path") String path, @Param("userId") String userId, Pageable pageable);
+    List<MediaFileNoPoster> findAllByParentPathNoPoster(@Param("path") String path, @Param("userId") String userId, Pageable pageable);
 
     @Query(value = "select m.image from Media m where m.id = (select m2.media.id from MediaFile m2 where m2.mediaFileId = :id)")
     byte[] getImageById(String id);

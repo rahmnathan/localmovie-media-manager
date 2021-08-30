@@ -40,8 +40,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         log.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.executorService = Executors.newFixedThreadPool(eventMonitorConfig.getConcurrentConversionLimit());
         this.eventService = eventService;
-        this.fFmpeg = new FFmpeg("/usr/bin/ffmpeg");
-        this.fFprobe = new FFprobe("/usr/bin/ffprobe");
+        this.fFmpeg = new FFmpeg("ffmpeg");
+        this.fFprobe = new FFprobe("ffprobe");
     }
 
     @Override

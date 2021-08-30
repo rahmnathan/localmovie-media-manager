@@ -79,7 +79,7 @@ public class MediaPersistenceService {
         return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
-    public List<MediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
+    public List<MediaFileNoPoster> getMediaFilesByParentPathNoPoster(MediaRequest request) {
         Sort sort;
         if (request.getPath().split(File.separator).length > 1) {
             sort = SEASONS_EPISODES.getSort();
