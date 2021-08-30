@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
+import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaClient;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
@@ -27,8 +28,10 @@ public class MediaPersistenceServiceTest {
     private final MediaPersistenceService mediaPersistenceService;
 
     @Autowired
-    public MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService) {
+    public MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, StartupMediaInitializer mediaInitializer) {
         this.mediaPersistenceService = mediaPersistenceService;
+
+        mediaInitializer.initializeFileListSynchronous();
     }
 
     @Test

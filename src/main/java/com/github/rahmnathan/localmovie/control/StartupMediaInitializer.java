@@ -4,7 +4,7 @@ import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import io.micrometer.core.annotation.Timed;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -15,21 +15,31 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class StartupMediaInitializer {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
     private final FFProbeService ffProbeService;
     private final ServiceConfig serviceConfig;
     private final MediaService dataService;
+    private CompletableFuture<Void> initializationFuture;
 
     @Timed(value = "file_list_initialization")
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
+        this.initializationFuture = CompletableFuture.runAsync(this::initializeFileListSynchronous);
+    }
+
+    public void initializeFileListSynchronous() {
+        if(initializationFuture != null && !initializationFuture.isDone()){
+            initializationFuture.cancel(true);
+        }
+
         serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
