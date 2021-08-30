@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.web;
+package com.github.rahmnathan.localmovie.web.common;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.annotation.Timed;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
-public class FileSenderService {
+public class MediaStreamingService {
     private final AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active", new AtomicInteger(0));
 
     @Timed(value = "media_stream", longTask = true)

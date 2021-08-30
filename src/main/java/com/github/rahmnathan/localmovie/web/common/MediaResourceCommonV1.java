@@ -1,30 +1,45 @@
-package com.github.rahmnathan.localmovie.web;
+package com.github.rahmnathan.localmovie.web.common;
 
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping(value = "/localmovie/v3/media")
-public class MediaResourceV3 {
+@RequestMapping(value = "/localmovie/v1/media")
+public class MediaResourceCommonV1 {
+    private static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
-    private final FileSenderService fileSenderService;
+    private final MediaStreamingService mediaStreamingService;
 
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFile> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received media request for id - {}", mediaFileId);
         return persistenceService.getMediaFileByIdWithViews(mediaFileId);
+    }
+
+    @GetMapping(value = "/count")
+    public void getMediaCount(@RequestParam(value = "path") String path, HttpServletResponse response){
+        log.info("Received count request for path - {}", path);
+
+        long count = persistenceService.countMediaFiles(path);
+
+        log.info("Returning count of - {}", count);
+        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
     }
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
@@ -40,7 +55,7 @@ public class MediaResourceV3 {
             return;
         }
 
-        fileSenderService.streamMediaFile(mediaFileOptional.get(), request, response);
+        mediaStreamingService.streamMediaFile(mediaFileOptional.get(), request, response);
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")
