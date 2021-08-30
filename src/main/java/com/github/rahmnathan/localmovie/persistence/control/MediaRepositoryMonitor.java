@@ -46,15 +46,16 @@ public class MediaRepositoryMonitor {
                 .forEach(mediaFile -> {
                     log.info("Updating media at path: {}", mediaFile.getPath());
                     Media newMedia = mediaService.loadNewMedia(mediaFile.getPath());
+                    if(newMedia.getImage() != null && newMedia.getImage().length > 0) {
+                        Media oldMedia = mediaFile.getMedia();
+                        oldMedia.setMediaFile(null);
+                        mediaRepository.delete(oldMedia);
 
-                    Media oldMedia = mediaFile.getMedia();
-                    oldMedia.setMediaFile(null);
-                    mediaRepository.delete(oldMedia);
+                        newMedia.setMediaFile(mediaFile);
+                        mediaFile.setMedia(newMedia);
 
-                    newMedia.setMediaFile(mediaFile);
-                    mediaFile.setMedia(newMedia);
-
-                    mediaFileRepository.save(mediaFile);
+                        mediaFileRepository.save(mediaFile);
+                    }
                 });
 
         log.info("Update of existing media completed successfully.");

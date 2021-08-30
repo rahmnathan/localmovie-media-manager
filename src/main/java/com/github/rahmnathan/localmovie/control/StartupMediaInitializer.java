@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -31,17 +30,14 @@ public class StartupMediaInitializer {
     @Timed(value = "file_list_initialization")
     @EventListener(ApplicationReadyEvent.class)
     public void initializeFileList() {
-        Set<MediaFile> mediaFiles = serviceConfig.getMediaPaths().stream()
+        serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
                 .parallel()
                 .flatMap(this::listFiles)
                 .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
                 .map(this::buildMediaFile)
-                .collect(Collectors.toUnmodifiableSet());
-
-        log.info("Saving {} new media files.", mediaFiles.size());
-        mediaFileRepository.saveAll(mediaFiles);
+                .forEach(mediaFileRepository::save);
     }
 
     private MediaFile buildMediaFile(File file) {
