@@ -71,7 +71,7 @@ const descriptionStyle = {
     overflowY: 'scroll'
 }
 
-const posterBasePath = '/localmovie/v3/media/';
+const posterBasePath = '/localmovie/v1/media/';
 
 export const buildPosterUri = function (id) {
     if(id === null){

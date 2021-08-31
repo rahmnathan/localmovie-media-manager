@@ -126,7 +126,7 @@ export class MainPage extends React.Component {
         }
 
         trackPromise(
-            fetch('/localmovie/v2/media', {
+            fetch('/localmovie/v1/media', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

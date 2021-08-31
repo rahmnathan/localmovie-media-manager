@@ -4,7 +4,7 @@ import ReactPlayer from 'react-player'
 import Cookies from 'universal-cookie';
 import {trackPromise} from "react-promise-tracker";
 
-const videoBaseUri = '/localmovie/v3/media/';
+const videoBaseUri = '/localmovie/v1/media/';
 
 const cookies = new Cookies();
 
@@ -56,7 +56,7 @@ export class VideoPlayer extends React.Component {
 
     componentDidMount() {
         trackPromise(
-                fetch('/localmovie/v3/media/' + this.props.mediaFileId, {
+                fetch('/localmovie/v1/media/' + this.props.mediaFileId, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
@@ -69,7 +69,7 @@ export class VideoPlayer extends React.Component {
     saveProgress(content) {
         cookies.set('progress-' + this.state.mediaFile.mediaFileId, content.playedSeconds, {sameSite: 'strict'});
 
-        fetch('/localmovie/v3/media/' + this.state.mediaFile.mediaFileId + '/position/' + content.playedSeconds, {
+        fetch('/localmovie/v1/media/' + this.state.mediaFile.mediaFileId + '/position/' + content.playedSeconds, {
             method: 'PATCH',
             headers: {
                 'Accept': 'application/json',

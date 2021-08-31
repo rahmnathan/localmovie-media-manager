@@ -1,10 +1,7 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
-import com.github.rahmnathan.localmovie.data.MediaOrder;
-import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
-import com.github.rahmnathan.localmovie.web.common.MediaResourceCommonV1;
+import com.github.rahmnathan.localmovie.web.webapp.MediaResource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,18 +11,16 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class MediaResourceTest {
-    private final MediaResourceCommonV1 mediaResource;
+    private final MediaResource mediaResource;
 
     @Autowired
-    public MediaResourceTest(MediaResourceCommonV1 mediaResource, StartupMediaInitializer initializer) {
+    public MediaResourceTest(MediaResource mediaResource, StartupMediaInitializer initializer) {
         this.mediaResource = mediaResource;
         try {
             initializer.getInitializationFuture().get();

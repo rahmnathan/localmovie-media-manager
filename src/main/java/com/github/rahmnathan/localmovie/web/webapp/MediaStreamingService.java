@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.web.common;
+package com.github.rahmnathan.localmovie.web.webapp;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.annotation.Timed;
