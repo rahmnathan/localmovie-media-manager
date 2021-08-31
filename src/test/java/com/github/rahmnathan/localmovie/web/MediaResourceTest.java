@@ -36,19 +36,4 @@ public class MediaResourceTest {
 
         assertTrue(response.getHeaderNames().contains("Count"));
     }
-
-    @Test
-    public void streamVideoTest() {
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        mediaResource.streamVideo("Movies/300.mkv", response, new MockHttpServletRequest());
-
-        assertTrue(response.getHeaderNames().contains("Content-Range"));
-        assertTrue(response.getHeaderNames().contains("Content-Length"));
-    }
-
-    @Test
-    public void getPosterTest() {
-        byte[] poster = mediaResource.getPoster("Movies/300.mkv");
-        assertNotNull(poster);
-    }
 }
