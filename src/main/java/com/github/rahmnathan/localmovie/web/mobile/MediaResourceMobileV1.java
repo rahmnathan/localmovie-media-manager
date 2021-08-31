@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/localmovie/mobile/v1/media")
 public class MediaResourceMobileV1 {
-    private static final String RESPONSE_HEADER_COUNT = "Count";
+    static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
 
     public MediaResourceMobileV1(MediaPersistenceService persistenceService){
