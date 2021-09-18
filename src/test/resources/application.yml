@@ -17,7 +17,7 @@ service:
     apiKey: "a825746e"
     enabled: false
   repository:
-    enabled: false
+    enabled: true
     updateFrequencyDays: 4
     updateLimit: 201
 spring:

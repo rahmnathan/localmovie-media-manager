@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: jnlp
-    image: rahmnathan/jnlp-slave:4.6-1.1
+    image: rahmnathan/inbound-agent:4.10-2
     imagePullPolicy: Always
     tty: true
     volumeMounts:
@@ -24,7 +24,7 @@ spec:
 
     tools {
         maven 'Maven'
-        jdk 'Java 11'
+        jdk 'Java 17'
     }
 
     stages {
