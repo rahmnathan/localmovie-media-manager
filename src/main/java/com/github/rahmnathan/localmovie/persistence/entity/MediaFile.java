@@ -1,19 +1,24 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.io.File;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Entity
 @Table(indexes = {
         @Index(name = "idx_media_file_path", columnList = "path", unique = true),
@@ -36,6 +41,7 @@ public class MediaFile implements Serializable {
     private Double length;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Set<MediaView> mediaViews;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -137,5 +143,18 @@ public class MediaFile implements Serializable {
                     .setAbsolutePath(path)
                     .setPath(relativePath);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        MediaFile mediaFile = (MediaFile) o;
+        return id != null && Objects.equals(id, mediaFile.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
     }
 }

@@ -1,20 +1,21 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @Entity
-@EqualsAndHashCode(exclude="mediaView")
 @Table(indexes = @Index(name = "idx_media_user_user_id", columnList = "userId"))
 public class MediaUser {
 
@@ -28,6 +29,7 @@ public class MediaUser {
     private LocalDateTime updated;
 
     @OneToMany(mappedBy = "mediaUser")
+    @ToString.Exclude
     private Set<MediaView> mediaView = new HashSet<>();
 
     public MediaUser(String userId){
@@ -52,5 +54,18 @@ public class MediaUser {
 
     public void addMediaView(MediaView mediaView) {
         this.mediaView.add(mediaView);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        MediaUser mediaUser = (MediaUser) o;
+        return id != null && Objects.equals(id, mediaUser.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
     }
 }

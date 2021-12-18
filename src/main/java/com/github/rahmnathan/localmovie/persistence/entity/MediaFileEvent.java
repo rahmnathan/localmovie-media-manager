@@ -1,12 +1,14 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 public class MediaFileEvent {
@@ -49,5 +51,18 @@ public class MediaFileEvent {
                 ", event='" + event + '\'' +
                 ", mediaFile=" + mediaFile +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        MediaFileEvent that = (MediaFileEvent) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
     }
 }

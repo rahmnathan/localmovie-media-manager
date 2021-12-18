@@ -1,18 +1,19 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @Entity
 @Table(indexes = @Index(name = "idx_media_view", columnList = "media_file_id,media_user_id", unique = true))
-@EqualsAndHashCode(exclude="mediaFile")
 public class MediaView {
 
     @Id
@@ -50,5 +51,18 @@ public class MediaView {
     @JsonIgnore
     public MediaFile getMediaFile(){
         return mediaFile;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        MediaView mediaView = (MediaView) o;
+        return id != null && Objects.equals(id, mediaView.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
     }
 }

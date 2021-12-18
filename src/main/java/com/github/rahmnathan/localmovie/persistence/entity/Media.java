@@ -2,8 +2,8 @@ package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rahmnathan.omdb.data.MediaType;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 public class Media {
@@ -109,5 +110,18 @@ public class Media {
                 .genre(this.genre)
                 .actors(this.actors)
                 .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Media media = (Media) o;
+        return id != null && Objects.equals(id, media.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
     }
 }

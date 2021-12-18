@@ -35,6 +35,9 @@ spring:
       ddl-auto: validate
     properties.hibernate.jdbc.lob.non_contextual_creation: true
     show-sql: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
 
 opentracing:
   jaeger:
