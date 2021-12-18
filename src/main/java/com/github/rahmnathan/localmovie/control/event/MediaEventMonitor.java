@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.control.event;
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.video.cast.handbrake.boundary.VideoConverterHandbrake;
+import com.github.rahmnathan.video.converter.data.HandbrakePreset;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
         SimpleConversionJob conversionJob = SimpleConversionJob.builder()
                 .outputFile(new File(resultFilePath))
+                .handbrakePreset(HandbrakePreset.CHROMECAST_1080p_60fps.getValue())
                 .inputFile(file)
                 .ffmpeg(fFmpeg)
                 .ffprobe(fFprobe)
