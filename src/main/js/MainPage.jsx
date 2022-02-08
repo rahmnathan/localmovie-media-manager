@@ -78,20 +78,20 @@ export class MainPage extends React.Component {
             if (currentSort !== null) {
                 resultMedia = resultMedia.sort(function (media1, media2) {
                     if (media1 === null || media2 === null || media1.media === null || media2.media === null) {
-                        return true;
+                        return 1;
                     }
 
                     switch (currentSort) {
                         case 'title':
-                            return media1.media.title > media2.media.title;
+                            return media1.media.title > media2.media.title ? 1 : -1;
                         case 'year':
-                            return media1.media.releaseYear < media2.media.releaseYear;
+                            return media1.media.releaseYear < media2.media.releaseYear ? 1 : -1;
                         case 'added':
-                            return media1.created < media2.created;
+                            return media1.created < media2.created ? 1 : -1;
                         case 'rating':
-                            return media1.media.imdbRating < media2.media.imdbRating;
+                            return media1.media.imdbRating < media2.media.imdbRating ? 1 : -1;
                         default:
-                            return true;
+                            return 0;
                     }
                 });
             }
