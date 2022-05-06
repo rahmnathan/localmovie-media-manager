@@ -1,6 +1,6 @@
 # Using this together with nginx-ingress installed as described here - https://kubernetes.github.io/ingress-nginx/deploy/#generic-deployment
 
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
     name: localmovies-ingress
@@ -18,13 +18,19 @@ spec:
       http:
         paths:
          - path: /
+           pathType: ImplementationSpecific
            backend:
-             serviceName: localmovies
-             servicePort: http
+             service:
+               name: localmovies
+               port:
+                 name: http
          - path: /actuator
+           pathType: ImplementationSpecific
            backend:
-             serviceName: nowhere
-             servicePort: http
+             service:
+               name: nowhere
+               port:
+                 name: http
   tls:
         - hosts:
               - movies.nathanrahm.com
