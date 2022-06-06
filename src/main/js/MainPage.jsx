@@ -59,7 +59,7 @@ export class MainPage extends React.Component {
                         return false;
                     }
 
-                    return media.media.genre.toLowerCase().includes(currentGenre);
+                    resultMedia = media.media.genre.toLowerCase().includes(currentGenre);
                 });
             }
 
@@ -70,7 +70,7 @@ export class MainPage extends React.Component {
                         return false;
                     }
 
-                    return media.media.title.toLowerCase().includes(currentSearchText);
+                    resultMedia = media.media.title.toLowerCase().includes(currentSearchText);
                 });
             }
 
