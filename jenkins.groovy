@@ -63,7 +63,9 @@ node {
             }
         }
         stage('Wait for Deployment') {
-            sh 'sleep 60s'
+            withCredentials([file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG')]) {
+                sh 'kubectl -n localmovies rollout status deployment localmovies --timeout=10m --kubeconfig $KUBE_CONFIG'
+            }
         }
         stage('Functional Test') {
             try {
