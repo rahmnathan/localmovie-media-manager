@@ -38,19 +38,26 @@ export class MainPage extends React.Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         let currentPath = queryString.parse(this.props.location.search).path;
         const previousPath = queryString.parse(prevProps.location.search).path;
-        if (currentPath !== previousPath) {
-            this.loadMedia(currentPath)
-            this.setState({searchText: '', genre: 'all'})
-        }
 
-        if (this.state.genre !== prevState.genre ||
+        console.log('MainPage updated.')
+
+        if(currentPath === undefined) {
+            console.log('Current path is undefined.')
+        } else if(!this.state.originalMedia.has(currentPath)){
+            console.log('Loading new media.')
+            this.loadMedia(currentPath);
+        } else if (this.state.genre !== prevState.genre ||
             this.state.searchText !== prevState.searchText ||
-            this.state.sort !== prevState.sort) {
+            this.state.sort !== prevState.sort ||
+            currentPath !== previousPath) {
+            console.log('Found update to state impacting media view.')
 
-            let resultMedia = [];
-            if (this.state.originalMedia.has(this.props.mediaPath)) {
-                resultMedia = this.state.originalMedia.get(this.props.mediaPath);
+            if (currentPath !== previousPath) {
+                // Reset search-text and genre
+                // this.setState({searchText: '', genre: 'all'})
             }
+
+            let resultMedia = this.state.originalMedia.get(currentPath);
 
             let currentGenre = this.state.genre;
             if (currentGenre !== null && currentGenre !== 'all') {
@@ -59,7 +66,7 @@ export class MainPage extends React.Component {
                         return false;
                     }
 
-                    resultMedia = media.media.genre.toLowerCase().includes(currentGenre);
+                    return media.media.genre.toLowerCase().includes(currentGenre);
                 });
             }
 
@@ -70,13 +77,13 @@ export class MainPage extends React.Component {
                         return false;
                     }
 
-                    resultMedia = media.media.title.toLowerCase().includes(currentSearchText);
+                    return media.media.title.toLowerCase().includes(currentSearchText);
                 });
             }
 
             let currentSort = this.state.sort;
             if (currentSort !== null) {
-                resultMedia = resultMedia.sort(function (media1, media2) {
+                resultMedia.sort(function (media1, media2) {
                     if (media1 === null || media2 === null || media1.media === null || media2.media === null) {
                         return 1;
                     }
@@ -121,10 +128,6 @@ export class MainPage extends React.Component {
     }
 
     loadMedia(path) {
-        if(this.state.originalMedia.has(path)){
-            this.setState({ media: this.state.originalMedia.get(path)});
-        }
-
         trackPromise(
             fetch('/localmovie/v1/media', {
                 method: 'POST',

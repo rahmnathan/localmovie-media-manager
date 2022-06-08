@@ -32,8 +32,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: validate
-    properties.hibernate.jdbc.lob.non_contextual_creation: true
+      ddl-auto: create
     show-sql: false
   mvc:
     pathmatch:
@@ -41,7 +40,7 @@ spring:
 
 opentracing:
   jaeger:
-    enabled: true
+    enabled: false
 
 keycloak:
   auth-server-url: https://localmovies.hopto.org/auth

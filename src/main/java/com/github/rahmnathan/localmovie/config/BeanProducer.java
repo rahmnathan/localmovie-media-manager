@@ -6,20 +6,14 @@ import com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.boundary.MediaProviderOmdb;
 import com.github.rahmnathan.omdb.boundary.MediaProviderStub;
-import io.micrometer.core.aop.TimedAspect;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AllArgsConstructor;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
-import org.springframework.boot.actuate.metrics.data.MetricsRepositoryMethodInvocationListener;
-import org.springframework.boot.actuate.metrics.data.RepositoryTagsProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.Set;
 
@@ -51,19 +45,5 @@ public class BeanProducer {
         }
 
         return new MediaProviderStub();
-    }
-
-    // Attempt to fix metrics bug https://github.com/spring-projects/spring-boot/issues/26630
-    @Bean
-    public static MetricsRepositoryMethodInvocationListener metricsRepositoryMethodInvocationListener(
-            MetricsProperties metricsProperties, @Lazy MeterRegistry registry, RepositoryTagsProvider tagsProvider) {
-        MetricsProperties.Data.Repository properties = metricsProperties.getData().getRepository();
-        return new MetricsRepositoryMethodInvocationListener(registry, tagsProvider, properties.getMetricName(),
-                properties.getAutotime());
-    }
-
-    @Bean
-    public TimedAspect timedAspect(MeterRegistry registry) {
-        return new TimedAspect(registry);
     }
 }
