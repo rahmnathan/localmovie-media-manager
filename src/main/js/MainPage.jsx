@@ -37,13 +37,16 @@ export class MainPage extends React.Component {
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         let currentPath = queryString.parse(this.props.location.search).path;
-        const previousPath = queryString.parse(prevProps.location.search).path;
+        let previousPath = queryString.parse(prevProps.location.search).path;
 
         console.log('MainPage updated.')
 
         if(currentPath === undefined) {
-            console.log('Current path is undefined.')
-        } else if(!this.state.originalMedia.has(currentPath)){
+            currentPath = 'Movies';
+            previousPath = 'Movies'
+        }
+
+        if(!this.state.originalMedia.has(currentPath)){
             console.log('Loading new media.')
             this.loadMedia(currentPath);
         } else if (this.state.genre !== prevState.genre ||
