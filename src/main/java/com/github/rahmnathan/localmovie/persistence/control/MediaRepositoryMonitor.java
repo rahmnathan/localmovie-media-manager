@@ -33,7 +33,7 @@ public class MediaRepositoryMonitor {
     private final ServiceConfig serviceConfig;
 
     @Timed(value = "empty_value_check")
-    @Scheduled(fixedDelay = 3600000, initialDelay = 120000)
+    @Scheduled(cron = "0 3 * * *")
     public void checkForEmptyValues() {
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
         ServiceConfig.MediaRepositoryMonitorConfig config = serviceConfig.getRepository();
