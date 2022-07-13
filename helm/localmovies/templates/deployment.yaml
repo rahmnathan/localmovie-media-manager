@@ -31,6 +31,7 @@ spec:
             - name: application-config
               mountPath: /opt/localmovie/config
               readOnly: true
+              # media(number) is a required convention for video conversion
             - name: media1
               mountPath: /opt/localmovie/1/LocalMedia
             - name: media2
