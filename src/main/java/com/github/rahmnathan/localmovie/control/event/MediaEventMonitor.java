@@ -5,7 +5,6 @@ import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.video.cast.handbrake.boundary.VideoConverterHandbrake;
 import com.github.rahmnathan.video.converter.data.HandbrakePreset;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
-import io.kubernetes.client.openapi.Configuration;
 import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
 import net.bramp.ffmpeg.FFmpeg;
