@@ -72,7 +72,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
-            <artifactId>video-converter-handbrake</artifactId>
+            <artifactId>video-converter-handbrake-kubernetes</artifactId>
             <version>${internal-utils.version}</version>
         </dependency>
 
