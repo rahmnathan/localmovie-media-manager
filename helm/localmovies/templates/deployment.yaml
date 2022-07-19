@@ -46,11 +46,11 @@ spec:
               readOnly: true
           resources:
             requests:
+              cpu: "2"
+              memory: "2Gi"
+            limits:
               cpu: "4"
               memory: "4Gi"
-            limits:
-              cpu: "8"
-              memory: "8Gi"
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
