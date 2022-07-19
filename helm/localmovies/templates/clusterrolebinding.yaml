@@ -5,6 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: localmovies-service-account
+    namespace: localmovies
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
