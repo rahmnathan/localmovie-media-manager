@@ -21,7 +21,7 @@ spec:
       labels:
         app: localmovies
     spec:
-      serviceAccount: localmovies
+      serviceAccountName: localmovies
       containers:
         - image: {{.Values.localmovies.imageRepository}}/localmovie-media-manager:@project.version@
           imagePullPolicy: Always
