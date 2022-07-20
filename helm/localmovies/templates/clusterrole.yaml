@@ -33,4 +33,5 @@ rules:
       - replicationcontrollers
       - serviceaccounts
       - services
+      - pods/log
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
