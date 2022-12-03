@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { VideoPlayer } from "./VideoPlayer.jsx";
-import { Router, navigate } from "@reach/router";
+import { Router, navigate } from "@gatsbyjs/reach-router";
 import { MainPage } from './MainPage.jsx';
 import { LoadingIndicator } from './LoadingIndicator.jsx';
 
