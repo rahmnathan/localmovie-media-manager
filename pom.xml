@@ -15,8 +15,8 @@
     </parent>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>19</maven.compiler.source>
+        <maven.compiler.target>19</maven.compiler.target>
 
         <internal-utils.version>2.29</internal-utils.version>
         <internal-adapters.version>2.7</internal-adapters.version>
