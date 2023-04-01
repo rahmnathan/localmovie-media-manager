@@ -30,7 +30,7 @@
     "react-lazy-load-image-component": "^1.5.6",
     "react-loader-spinner": "^5.3.4",
     "react-promise-tracker": "^2.1.1",
-    "webpack": "^5.75.0",
+    "webpack": "^5.77.0",
     "webpack-cli": "^5.0.0"
   }
 }
