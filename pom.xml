@@ -18,8 +18,8 @@
         <maven.compiler.source>19</maven.compiler.source>
         <maven.compiler.target>19</maven.compiler.target>
 
-        <internal-utils.version>2.29</internal-utils.version>
-        <internal-adapters.version>2.7</internal-adapters.version>
+        <internal-utils.version>3.9</internal-utils.version>
+        <internal-adapters.version>3.2</internal-adapters.version>
     </properties>
 
     <scm>
