@@ -1,6 +1,6 @@
 import React from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import TransitionGroup from 'react-transition-group';
 import {viewingVideos} from "./VideoPlayer.jsx";
 
 const movieStyle = {
@@ -124,12 +124,6 @@ export class Media extends React.Component {
         }
 
         return (
-            <ReactCSSTransitionGroup
-                transitionName="fadein"
-                transitionAppear={true}
-                transitionAppearTimeout={500}
-                transitionEnter={true}
-                transitionLeave={true}>
                 <div style={movieStyle} onClick={() => this.selectMedia(mediaFile)}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
@@ -145,7 +139,6 @@ export class Media extends React.Component {
                             <p style={plotStyle}>{plot}</p>
                         </div>
                 </div>
-            </ReactCSSTransitionGroup>
         )
     }
 

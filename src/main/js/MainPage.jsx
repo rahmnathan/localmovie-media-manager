@@ -36,8 +36,8 @@ export class MainPage extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        let currentPath = queryString.parse(this.props.location.search).path;
-        let previousPath = queryString.parse(prevProps.location.search).path;
+        let currentPath = 'Movies'
+        let previousPath = 'Movies'
 
         console.log('MainPage updated.')
 
@@ -120,14 +120,18 @@ export class MainPage extends React.Component {
         this.setState({genre: genre})
     }
 
-    componentDidMount() {
-        let path = queryString.parse(this.props.location.search).path;
-        if (path === undefined) {
-            path = 'Movies'
-            this.props.setPath(path)
-        }
+    setPath(path) {
+        this.setState({path: path})
+    }
 
-        this.loadMedia(path);
+    playMedia(media) {
+
+    }
+
+    componentDidMount() {
+        this.setState({path: 'Movies'})
+
+        this.loadMedia('Movies');
     }
 
     loadMedia(path) {
@@ -156,7 +160,7 @@ export class MainPage extends React.Component {
         return (
             <div style={layoutProps}>
                 <ControlBar selectSort={this.selectSort} selectGenre={this.selectGenre} filterMedia={this.filterMedia} setPath={this.props.setPath}/>
-                <MediaList media={this.state.media} setPath={this.props.setPath} playMedia={this.props.playMedia}/>
+                <MediaList media={this.state.media} setPath={this.setPath} playMedia={this.playMedia}/>
             </div>
         )
     }
