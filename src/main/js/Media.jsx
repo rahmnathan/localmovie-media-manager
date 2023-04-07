@@ -81,24 +81,19 @@ export const buildPosterUri = function (id) {
     }
 };
 
-export class Media extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = ({});
-        this.selectMedia = this.selectMedia.bind(this);
-    }
+export function Media(props) {
 
-    selectMedia(mediaFile) {
+    function selectMedia(mediaFile) {
         let path = mediaFile.path;
         if((path.includes("Movies") && path.split("/").length === 2) || path.split("/").length === 4){
-            this.props.playMedia(mediaFile, true)
+            props.playMedia(mediaFile, true)
         } else {
-            this.props.setPath(mediaFile.path)
+            props.setPath(mediaFile.path)
         }
     }
 
-    buildMedia() {
-        let mediaFile = this.props.media;
+    function buildMedia() {
+        let mediaFile = props.media;
         let media = mediaFile.media;
         let plot = media.plot;
         let genre = media.genre;
@@ -124,11 +119,11 @@ export class Media extends React.Component {
         }
 
         return (
-                <div style={movieStyle} onClick={() => this.selectMedia(mediaFile)}>
+                <div style={movieStyle} onClick={() => selectMedia(mediaFile)}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
-                                       scrollPosition={this.props.scrollPosition} onClick={() => this.selectMedia(mediaFile)}/>
-                        <div style={descriptionStyle} class='container'>
+                                       scrollPosition={props.scrollPosition} onClick={() => selectMedia(mediaFile)}/>
+                        <div style={descriptionStyle} className='container'>
                             <p style={titleStyle}>{title}</p>
                             <p style={titleStyle}>{year}</p>
                             <div style={{ display: 'flex'}}>
@@ -142,7 +137,5 @@ export class Media extends React.Component {
         )
     }
 
-    render() {
-        return this.buildMedia();
-    }
+    return buildMedia();
 }
