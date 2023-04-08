@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
-import * as queryString from "query-string";
+import {useLocation, useNavigation, useSearchParams} from 'react-router-dom';
 
 const layoutProps = {
     textAlign: 'center'
@@ -18,40 +18,54 @@ const buildMovieRequest = function (path) {
     }
 };
 
-export class MainPage extends React.Component {
+export function MainPage(props) {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            media: [],
-            originalMedia: new Map(),
-            genre: 'all',
-            searchText: '',
-            sort: 'title'
-        };
+    const [media, setMedia] = React.useState([]);
+    const [originalMedia, setOriginalMedia] = React.useState(new Map());
+    const [genre, setGenre] = React.useState('all');
+    const [searchText, setSearchText] = React.useState('');
+    const [sort, setSort] = React.useState('title');
+    const [path, setPath] = React.useState('Movies');
 
-        this.filterMedia = this.filterMedia.bind(this);
-        this.selectGenre = this.selectGenre.bind(this);
-        this.selectSort = this.selectSort.bind(this);
+    const {} = props
+    const currentLocation = useLocation();
+
+    function usePrevious(value) {
+        const ref = useRef();
+        useEffect(() => {
+            ref.current = value;
+        });
+        return ref.current;
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        let currentPath = 'Movies'
-        let previousPath = 'Movies'
+    const prevProps = usePrevious({currentLocation, genre, searchText, sort});
+    const [searchParams] = useSearchParams();
+
+    function useFirstRender() {
+        const ref = useRef(true);
+        const firstRender = ref.current;
+        ref.current = false;
+        return firstRender;
+    }
+
+    const firstRender = useFirstRender();
+
+    useEffect(() => {
+        if(firstRender) {
+            searchParams.set('path', 'Movies');
+        }
+
+        let currentPath = searchParams.get('path');
+        let previousPath = prevProps === undefined ? currentPath : prevProps.currentLocation.search;
 
         console.log('MainPage updated.')
 
-        if(currentPath === undefined) {
-            currentPath = 'Movies';
-            previousPath = 'Movies'
-        }
-
-        if(!this.state.originalMedia.has(currentPath)){
+        if (!originalMedia.has(currentPath)) {
             console.log('Loading new media.')
-            this.loadMedia(currentPath);
-        } else if (this.state.genre !== prevState.genre ||
-            this.state.searchText !== prevState.searchText ||
-            this.state.sort !== prevState.sort ||
+            loadMedia(currentPath);
+        } else if (genre !== prevProps.genre ||
+            searchText !== prevState.searchText ||
+            sort !== prevState.sort ||
             currentPath !== previousPath) {
             console.log('Found update to state impacting media view.')
 
@@ -60,9 +74,9 @@ export class MainPage extends React.Component {
                 // this.setState({searchText: '', genre: 'all'})
             }
 
-            let resultMedia = this.state.originalMedia.get(currentPath);
+            let resultMedia = originalMedia.get(currentPath);
 
-            let currentGenre = this.state.genre;
+            let currentGenre = genre;
             if (currentGenre !== null && currentGenre !== 'all') {
                 resultMedia = resultMedia.filter(function (media) {
                     if (media.media === null || media.media.genre === null) {
@@ -73,7 +87,7 @@ export class MainPage extends React.Component {
                 });
             }
 
-            let currentSearchText = this.state.searchText;
+            let currentSearchText = searchText;
             if (currentSearchText !== null && currentSearchText !== '') {
                 resultMedia = resultMedia.filter(function (media) {
                     if (media.media === null || media.media.title === null) {
@@ -84,7 +98,7 @@ export class MainPage extends React.Component {
                 });
             }
 
-            let currentSort = this.state.sort;
+            let currentSort = sort;
             if (currentSort !== null) {
                 resultMedia.sort(function (media1, media2) {
                     if (media1 === null || media2 === null || media1.media === null || media2.media === null) {
@@ -106,35 +120,11 @@ export class MainPage extends React.Component {
                 });
             }
 
-            this.setState({media: resultMedia})
+            setMedia(resultMedia);
         }
-    }
+    }, [currentLocation, genre, searchText, sort]);
 
-    selectSort(sort){
-        if(sort !== null){
-            this.setState({sort: sort})
-        }
-    }
-
-    selectGenre(genre){
-        this.setState({genre: genre})
-    }
-
-    setPath(path) {
-        this.setState({path: path})
-    }
-
-    playMedia(media) {
-
-    }
-
-    componentDidMount() {
-        this.setState({path: 'Movies'})
-
-        this.loadMedia('Movies');
-    }
-
-    loadMedia(path) {
+    function loadMedia(path) {
         trackPromise(
             fetch('/localmovie/v1/media', {
                 method: 'POST',
@@ -145,23 +135,41 @@ export class MainPage extends React.Component {
                 body: JSON.stringify(buildMovieRequest(path))
             }).then(response => response.json())
                 .then(data => {
-                    let originalMedia = this.state.originalMedia;
                     originalMedia.set(path, data);
-                    this.setState({media: data, originalMedia: originalMedia})
+                    setMedia(data);
+                    setOriginalMedia(originalMedia);
                 })
         );
     }
 
-    filterMedia(searchText){
-        this.setState({searchText: searchText})
+    const navigate = useNavigation();
+
+    function playMedia(media) {
+        navigate("/play/" + media.id);
+        props.playMedia(media);
     }
 
-    render() {
-        return (
-            <div style={layoutProps}>
-                <ControlBar selectSort={this.selectSort} selectGenre={this.selectGenre} filterMedia={this.filterMedia} setPath={this.props.setPath}/>
-                <MediaList media={this.state.media} setPath={this.setPath} playMedia={this.playMedia}/>
-            </div>
-        )
+    function selectSort(sort) {
+        setSort(sort);
     }
+
+    function selectGenre(genre) {
+        setGenre(genre);
+    }
+
+    function filterMedia(searchText) {
+        setSearchText(searchText);
+    }
+
+    function setPathWrapper(path) {
+        searchParams.set('path', path);
+        setPath(path);
+    }
+
+    return (
+        <div style={layoutProps}>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath}/>
+            <MediaList media={media} setPath={setPathWrapper} playMedia={playMedia}/>
+        </div>
+    )
 }
