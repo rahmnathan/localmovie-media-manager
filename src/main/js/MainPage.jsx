@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
-import {useLocation, useNavigation, useSearchParams} from 'react-router-dom';
+import {useLocation, useNavigate, useNavigation, useSearchParams} from 'react-router-dom';
 
 const layoutProps = {
     textAlign: 'center'
@@ -142,11 +142,10 @@ export function MainPage(props) {
         );
     }
 
-    const navigate = useNavigation();
+    const navigate = useNavigate();
 
     function playMedia(media) {
-        navigate("/play/" + media.id);
-        props.playMedia(media);
+        navigate("/play/" + media.mediaFileId);
     }
 
     function selectSort(sort) {

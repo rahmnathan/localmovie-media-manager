@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { buildPosterUri } from "./Media.jsx";
 import ReactPlayer from 'react-player'
 import Cookies from 'universal-cookie';
 import {trackPromise} from "react-promise-tracker";
+import {useLocation, useNavigate, useNavigation, useParams, useSearchParams} from 'react-router-dom';
 
 const videoBaseUri = '/localmovie/v1/media/';
 
@@ -43,33 +44,27 @@ const buttonStyle = {
     borderColor: 'black'
 };
 
-export class VideoPlayer extends React.Component {
+export function VideoPlayer() {
 
-    constructor(props) {
-        super(props);
-        this.saveProgress = this.saveProgress.bind(this);
-        this.buildVideoPath = this.buildVideoPath.bind(this);
-        this.state = {
-            mediaFile: null
-        }
-    }
+    const [mediaFile, setMediaFile] = React.useState(null);
+    let { mediaId } = useParams();
 
-    componentDidMount() {
+    useEffect(() => {
         trackPromise(
-                fetch('/localmovie/v1/media/' + this.props.mediaFileId, {
+            fetch('/localmovie/v1/media/' + mediaId, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
                 }
-            }).then(response=> response.json())
-                    .then(media=> this.setState({mediaFile: media}))
+            }).then(response => response.json())
+                .then(media => setMediaFile(media))
         )
-    }
+    });
 
-    saveProgress(content) {
-        cookies.set('progress-' + this.state.mediaFile.mediaFileId, content.playedSeconds, {sameSite: 'strict'});
+    function saveProgress(content) {
+        cookies.set('progress-' + mediaFile.mediaFileId, content.playedSeconds, {sameSite: 'strict'});
 
-        fetch('/localmovie/v1/media/' + this.state.mediaFile.mediaFileId + '/position/' + content.playedSeconds, {
+        fetch('/localmovie/v1/media/' + mediaFile.mediaFileId + '/position/' + content.playedSeconds, {
             method: 'PATCH',
             headers: {
                 'Accept': 'application/json',
@@ -78,31 +73,29 @@ export class VideoPlayer extends React.Component {
         })
     };
 
-    buildVideoPath(mediaFileId) {
+    function buildVideoPath(mediaFileId) {
         let startPosition = 0;
 
-        if(this.props.startAtBeginning === false){
-            startPosition = cookies.get('progress-' + this.props.mediaFileId) || 0;
-            if(this.state.mediaFile !== null && this.state.mediaFile.mediaViews !== undefined && this.state.mediaFile.mediaViews.length !== 0){
-                startPosition = this.state.mediaFile.mediaViews[0].position;
-            }
-        }
+        // if (props.startAtBeginning === false) {
+        //     startPosition = cookies.get('progress-' + mediaFile.mediaFileId) || 0;
+        //     if (mediaFile.mediaViews !== undefined && mediaFile.mediaViews.length !== 0) {
+        //         startPosition = mediaFile.mediaViews[0].position;
+        //     }
+        // }
 
         return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + startPosition;
     };
 
-    render() {
-        return (
-            <div style={videoPlayerStyle}>
-                <ReactPlayer
-                    url={this.buildVideoPath(this.props.mediaFileId)}
-                    config={ { file: { attributes: { poster: buildPosterUri(this.props.mediaFileId) } } } }
-                    controls={true}
-                    width={'100%'}
-                    height={'100%'}
-                    onProgress={this.saveProgress}/>
-                <div style={backgroundTintStyle}/>
-            </div>
-        );
-    };
+    return (
+        <div style={videoPlayerStyle}>
+            <ReactPlayer
+                url={buildVideoPath(mediaId)}
+                config={{file: {attributes: {poster: buildPosterUri(mediaId)}}}}
+                controls={true}
+                width={'100%'}
+                height={'100%'}
+                onProgress={saveProgress}/>
+            <div style={backgroundTintStyle}/>
+        </div>
+    );
 }
