@@ -51,11 +51,12 @@ export function MainPage(props) {
     const firstRender = useFirstRender();
 
     useEffect(() => {
-        if(firstRender) {
-            searchParams.set('path', 'Movies');
+        if (firstRender) {
+            setPathWrapper('Movies')
         }
 
         let currentPath = searchParams.get('path');
+        console.log('Current path: ' + currentPath);
         let previousPath = prevProps === undefined ? currentPath : prevProps.currentLocation.search;
 
         console.log('MainPage updated.')
@@ -63,11 +64,8 @@ export function MainPage(props) {
         if (!originalMedia.has(currentPath)) {
             console.log('Loading new media.')
             loadMedia(currentPath);
-        } else if (genre !== prevProps.genre ||
-            searchText !== prevState.searchText ||
-            sort !== prevState.sort ||
-            currentPath !== previousPath) {
-            console.log('Found update to state impacting media view.')
+        } else {
+            console.log('Using cached media.')
 
             if (currentPath !== previousPath) {
                 // Reset search-text and genre
@@ -122,7 +120,7 @@ export function MainPage(props) {
 
             setMedia(resultMedia);
         }
-    }, [currentLocation, genre, searchText, sort]);
+    }, [genre, searchText, sort, path, originalMedia]);
 
     function loadMedia(path) {
         trackPromise(
@@ -161,13 +159,19 @@ export function MainPage(props) {
     }
 
     function setPathWrapper(path) {
-        searchParams.set('path', path);
-        setPath(path);
+        console.log('setting path to ' + path);
+        navigate({
+            pathname: '/',
+            search: '?path=' + path,
+        })
+        loadMedia(path);
+        // searchParams.set('path', path);
+        // setPath(path);
     }
 
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath}/>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPathWrapper}/>
             <MediaList media={media} setPath={setPathWrapper} playMedia={playMedia}/>
         </div>
     )
