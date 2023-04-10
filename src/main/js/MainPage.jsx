@@ -53,6 +53,7 @@ export function MainPage(props) {
     useEffect(() => {
         if (firstRender) {
             setPathWrapper('Movies')
+            return;
         }
 
         let currentPath = searchParams.get('path');
