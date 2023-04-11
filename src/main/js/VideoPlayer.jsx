@@ -3,7 +3,7 @@ import { buildPosterUri } from "./Media.jsx";
 import ReactPlayer from 'react-player'
 import Cookies from 'universal-cookie';
 import {trackPromise} from "react-promise-tracker";
-import {useLocation, useNavigate, useNavigation, useParams, useSearchParams} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 
 const videoBaseUri = '/localmovie/v1/media/';
 
@@ -38,12 +38,6 @@ const videoPlayerStyle = {
     textAlign: 'center'
 };
 
-const buttonStyle = {
-    color: 'gray',
-    backgroundColor: 'black',
-    borderColor: 'black'
-};
-
 export function VideoPlayer() {
 
     const [mediaFile, setMediaFile] = React.useState(null);
@@ -71,20 +65,13 @@ export function VideoPlayer() {
                 'Content-Type': 'application/json',
             }
         })
-    };
+    }
 
     function buildVideoPath(mediaFileId) {
         let startPosition = 0;
 
-        // if (props.startAtBeginning === false) {
-        //     startPosition = cookies.get('progress-' + mediaFile.mediaFileId) || 0;
-        //     if (mediaFile.mediaViews !== undefined && mediaFile.mediaViews.length !== 0) {
-        //         startPosition = mediaFile.mediaViews[0].position;
-        //     }
-        // }
-
         return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + startPosition;
-    };
+    }
 
     return (
         <div style={videoPlayerStyle}>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-import TransitionGroup from 'react-transition-group';
 import {viewingVideos} from "./VideoPlayer.jsx";
 
 const movieStyle = {
