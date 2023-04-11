@@ -25,7 +25,6 @@ export function MainPage(props) {
     const [genre, setGenre] = React.useState('all');
     const [searchText, setSearchText] = React.useState('');
     const [sort, setSort] = React.useState('title');
-    const [path, setPath] = React.useState('Movies');
 
     const {} = props
     const currentLocation = useLocation();
@@ -121,7 +120,7 @@ export function MainPage(props) {
 
             setMedia(resultMedia);
         }
-    }, [genre, searchText, sort, path, originalMedia, searchParams]);
+    }, [genre, searchText, sort, originalMedia, searchParams]);
 
     function loadMedia(path) {
         trackPromise(
