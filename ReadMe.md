@@ -46,7 +46,7 @@ When new media is added to a monitored directory, the following process is trigg
  
  <h4>Monitoring</h4>
  
- - [Grafana](https://grafana.nathanrahm.com/d/Uvb0ohGnz/localmovies)
+ - [Grafana](https://grafana.nathanrahm.com/d/LCBPqQLVk/localmovies-service)
  - Prometheus
 
 <h4>CI/CD</h4>
