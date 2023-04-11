@@ -18,7 +18,7 @@ const buildMovieRequest = function (path) {
     }
 };
 
-export function MainPage(props) {
+export function MainPage() {
 
     const [media, setMedia] = React.useState([]);
     const [originalMedia, setOriginalMedia] = React.useState(new Map());
@@ -26,7 +26,6 @@ export function MainPage(props) {
     const [searchText, setSearchText] = React.useState('');
     const [sort, setSort] = React.useState('title');
 
-    const {} = props
     const currentLocation = useLocation();
 
     function usePrevious(value) {
@@ -40,22 +39,12 @@ export function MainPage(props) {
     const prevProps = usePrevious({currentLocation, genre, searchText, sort});
     const [searchParams] = useSearchParams();
 
-    function useFirstRender() {
-        const ref = useRef(true);
-        const firstRender = ref.current;
-        ref.current = false;
-        return firstRender;
-    }
-
-    const firstRender = useFirstRender();
-
     useEffect(() => {
-        if (firstRender) {
-            setPathWrapper('Movies')
-            return;
-        }
 
         let currentPath = searchParams.get('path');
+        if(currentPath === null | currentPath === undefined | currentPath === ''){
+            currentPath = 'Movies';
+        }
         console.log('Current path: ' + currentPath);
         let previousPath = prevProps === undefined ? currentPath : prevProps.currentLocation.search;
 
@@ -123,6 +112,7 @@ export function MainPage(props) {
     }, [genre, searchText, sort, originalMedia, searchParams]);
 
     function loadMedia(path) {
+        console.log('Loading media for path: ' + path);
         trackPromise(
             fetch('/localmovie/v1/media', {
                 method: 'POST',
@@ -158,7 +148,7 @@ export function MainPage(props) {
         setSearchText(searchText);
     }
 
-    function setPathWrapper(path) {
+    function setPath(path) {
         console.log('setting path to ' + path);
         navigate({
             search: '?path=' + path,
@@ -167,8 +157,8 @@ export function MainPage(props) {
 
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPathWrapper}/>
-            <MediaList media={media} setPath={setPathWrapper} playMedia={playMedia}/>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath}/>
+            <MediaList media={media} setPath={setPath} playMedia={playMedia}/>
         </div>
     )
 }
