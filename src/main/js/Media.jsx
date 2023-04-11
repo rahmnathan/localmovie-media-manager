@@ -122,7 +122,7 @@ export function Media(props) {
                 <div style={movieStyle} onClick={() => selectMedia(mediaFile)}>
                         <LazyLoadImage onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                                        src={buildPosterUri(mediaFile.mediaFileId)} alt={title} style={posterStyle}
-                                       scrollPosition={props.scrollPosition} onClick={() => selectMedia(mediaFile)}/>
+                                       scrollPosition={props.scrollPosition}/>
                         <div style={descriptionStyle} className='container'>
                             <p style={titleStyle}>{title}</p>
                             <p style={titleStyle}>{year}</p>

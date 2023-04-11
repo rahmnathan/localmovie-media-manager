@@ -30,7 +30,7 @@ export function MainPage() {
     useEffect(() => {
 
         let currentPath = searchParams.get('path');
-        if(currentPath === null | currentPath === undefined | currentPath === ''){
+        if(currentPath === null | currentPath === undefined || currentPath === ''){
             currentPath = 'Movies';
         }
         console.log('Current path: ' + currentPath);
@@ -132,7 +132,7 @@ export function MainPage() {
     function setPath(path) {
         console.log('setting path to ' + path);
         navigate({
-            search: '?path=' + path,
+            search: '?path=' + path
         })
     }
 
