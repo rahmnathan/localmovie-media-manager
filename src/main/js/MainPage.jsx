@@ -164,7 +164,6 @@ export function MainPage(props) {
         navigate({
             search: '?path=' + path,
         })
-        loadMedia(path);
     }
 
     return (
