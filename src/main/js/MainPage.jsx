@@ -1,8 +1,8 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
-import {useLocation, useNavigate, useSearchParams} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 
 const layoutProps = {
     textAlign: 'center'
@@ -25,18 +25,6 @@ export function MainPage() {
     const [genre, setGenre] = React.useState('all');
     const [searchText, setSearchText] = React.useState('');
     const [sort, setSort] = React.useState('title');
-
-    const currentLocation = useLocation();
-
-    function usePrevious(value) {
-        const ref = useRef();
-        useEffect(() => {
-            ref.current = value;
-        });
-        return ref.current;
-    }
-
-    const prevProps = usePrevious({currentLocation, genre, searchText, sort});
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
@@ -46,20 +34,13 @@ export function MainPage() {
             currentPath = 'Movies';
         }
         console.log('Current path: ' + currentPath);
-        let previousPath = prevProps === undefined ? currentPath : prevProps.currentLocation.search;
 
         console.log('MainPage updated.')
 
         if (!originalMedia.has(currentPath)) {
-            console.log('Loading new media.')
             loadMedia(currentPath);
         } else {
             console.log('Using cached media.')
-
-            if (currentPath !== previousPath) {
-                // Reset search-text and genre
-                // this.setState({searchText: '', genre: 'all'})
-            }
 
             let resultMedia = originalMedia.get(currentPath);
 
