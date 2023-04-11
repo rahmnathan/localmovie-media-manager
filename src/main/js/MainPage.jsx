@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
-import {useLocation, useNavigate, useNavigation, useSearchParams} from 'react-router-dom';
+import {useLocation, useNavigate, useSearchParams} from 'react-router-dom';
 
 const layoutProps = {
     textAlign: 'center'
@@ -121,7 +121,7 @@ export function MainPage(props) {
 
             setMedia(resultMedia);
         }
-    }, [genre, searchText, sort, path, originalMedia]);
+    }, [genre, searchText, sort, path, originalMedia, searchParams]);
 
     function loadMedia(path) {
         trackPromise(
@@ -162,12 +162,9 @@ export function MainPage(props) {
     function setPathWrapper(path) {
         console.log('setting path to ' + path);
         navigate({
-            pathname: '/',
             search: '?path=' + path,
         })
         loadMedia(path);
-        // searchParams.set('path', path);
-        // setPath(path);
     }
 
     return (
