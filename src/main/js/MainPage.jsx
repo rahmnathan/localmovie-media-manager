@@ -3,6 +3,7 @@ import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {useNavigate, useSearchParams} from 'react-router-dom';
+import {LoadingIndicator} from "./LoadingIndicator.jsx";
 
 const layoutProps = {
     textAlign: 'center'
@@ -140,6 +141,7 @@ export function MainPage() {
         <div style={layoutProps}>
             <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath}/>
             <MediaList media={media} setPath={setPath} playMedia={playMedia}/>
+            <LoadingIndicator/>
         </div>
     )
 }

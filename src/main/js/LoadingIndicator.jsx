@@ -1,11 +1,11 @@
 import { usePromiseTracker } from "react-promise-tracker";
-import Loader from 'react-loader-spinner';
+import Loader, {ColorRing} from 'react-loader-spinner';
 import React from "react";
 
 export const LoadingIndicator = props => {
     const { promiseInProgress } = usePromiseTracker();
 
-    return promiseInProgress &&
+    return promiseInProgress === true ? (
         <div
           style={{
             width: "100%",
@@ -14,6 +14,14 @@ export const LoadingIndicator = props => {
                 justifyContent: "center",
                 alignItems: "center"
               }}>
-            <Loader type="ThreeDots" color="#FF0000" height="100" width="100" />
-        </div>
+            <ColorRing
+                visible={true}
+                height="80"
+                width="80"
+                ariaLabel="blocks-loading"
+                wrapperStyle={{}}
+                wrapperClass="blocks-wrapper"
+                colors={['#b81d2a', '#981b39', '#620616', '#480408', '#860419']}
+            />
+        </div>) : null;
 };
