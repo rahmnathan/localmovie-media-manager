@@ -122,6 +122,10 @@ public class MediaConversionService {
     }
 
     private String formatPath(String path) {
+        if(path.startsWith(File.separator)){
+            path = path.substring(1);
+        }
+
         return path.replaceAll(File.separator, "-");
     }
 
