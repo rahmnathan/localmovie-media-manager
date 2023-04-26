@@ -41,7 +41,7 @@ public class MediaConversionService {
         this.mediaJobRepository = mediaJobRepository;
     }
 
-    @Scheduled(cron = "* * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void scanConversions() throws Exception {
         log.info("Scanning for video conversions.");
 

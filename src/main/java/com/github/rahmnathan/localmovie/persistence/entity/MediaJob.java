@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @Builder
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class MediaJob {
 
