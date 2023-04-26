@@ -84,6 +84,8 @@ public class MediaConversionService {
         int queuedCount = mediaJobRepository.countAllByStatus(MediaJobStatus.QUEUED.name());
         queuedConversionGauge.set(queuedCount);
 
+        log.info("Found {} active conversions and {} queued conversions.", runningCount, queuedCount);
+
         // Launch new conversions, if applicable
         if (runningCount < eventMonitorConfig.getConcurrentConversionLimit() && queuedCount > 0) {
             int jobsToLaunch = queuedCount - runningCount;
@@ -92,6 +94,8 @@ public class MediaConversionService {
             List<MediaJob> mediaJobList = mediaJobRepository.findAllByStatusOrderByCreatedAsc(MediaJobStatus.QUEUED.name()).stream()
                     .limit(jobsToLaunch)
                     .toList();
+
+            log.info("Launching {} new conversions.", mediaJobList.size());
 
             mediaJobList.forEach(mediaJob -> {
                 mediaJob.setStatus(MediaJobStatus.RUNNING.name());
