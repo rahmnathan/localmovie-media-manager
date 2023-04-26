@@ -53,9 +53,9 @@ public class MediaConversionService {
             List<Job> jobList = client.batch().v1().jobs().inNamespace(namespace).withLabel("app", "handbrake").list().getItems();
 
             for (Job job : jobList) {
-                MediaJob mediaJob = mediaJobRepository.findByInputFile(job.getMetadata().getLabels().get("inputPath"));
+                MediaJob mediaJob = mediaJobRepository.findByJobId(job.getMetadata().getLabels().get("jobId"));
                 if (mediaJob == null) {
-                    log.warn("Job found for input file that does not exist in database: {}", job.getMetadata().getLabels().get("inputPath"));
+                    log.warn("Job found for input file that does not exist in database: {}", job.getMetadata().getLabels().get("jobId"));
                     continue;
                 }
 
@@ -122,7 +122,11 @@ public class MediaConversionService {
     }
 
     private String formatPath(String path) {
-        return path.split(File.separator + "Movies" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
+        return path.split(File.separator + "LocalMedia" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
+    }
+
+    public boolean isActiveConversion(File file) {
+        return mediaJobRepository.existsByInputFile(file.getAbsolutePath()) || mediaJobRepository.existsByOutputFile(file.getAbsolutePath());
     }
 
     public void createConversionJob(File file) {

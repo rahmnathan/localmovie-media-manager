@@ -10,5 +10,7 @@ import java.util.List;
 public interface MediaJobRepository extends CrudRepository<MediaJob, String> {
     int countAllByStatus(String status);
     List<MediaJob> findAllByStatusOrderByCreatedAsc(String status);
-    MediaJob findByInputFile(String inputFile);
+    boolean existsByOutputFile(String outputFile);
+    boolean existsByInputFile(String inputFile);
+    MediaJob findByJobId(String jobId);
 }

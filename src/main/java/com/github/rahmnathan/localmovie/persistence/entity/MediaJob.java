@@ -23,6 +23,7 @@ public class MediaJob {
     private String outputFile;
     private String inputFile;
     private String status;
+    private String jobId;
 
     private LocalDateTime created;
     private LocalDateTime updated;

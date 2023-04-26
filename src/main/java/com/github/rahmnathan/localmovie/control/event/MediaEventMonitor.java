@@ -12,16 +12,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.*;
 
 import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
 
 @Slf4j
 @Service
 public class MediaEventMonitor implements DirectoryMonitorObserver {
-    private final Set<String> activeConversions = ConcurrentHashMap.newKeySet();
     private final MediaEventService eventService;
     private final MediaConversionService mediaConversionService;
 
@@ -38,14 +35,10 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
         String absolutePath = file.getAbsolutePath();
         log.info("Detected media event {} at path: {}", event.name(), absolutePath);
-        if (activeConversions.contains(absolutePath) || absolutePath.endsWith(".partial~")) {
-            log.info("Ignoring event.");
-            return;
-        }
 
         if (event == StandardWatchEventKinds.ENTRY_CREATE) {
             waitForWriteComplete(file);
-            if (Files.isRegularFile(file.toPath())) {
+            if (Files.isRegularFile(file.toPath()) && !mediaConversionService.isActiveConversion(file)) {
                 mediaConversionService.createConversionJob(file);
             }
 
