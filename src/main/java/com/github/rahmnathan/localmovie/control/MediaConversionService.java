@@ -134,6 +134,7 @@ public class MediaConversionService {
 
     public void completeJob(MediaJob mediaJob) {
         log.info("Video conversion complete.");
+        new File(mediaJob.getInputFile()).delete();
         new File(mediaJob.getOutputFile()).renameTo(new File(mediaJob.getInputFile()));
         mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
         mediaJobRepository.save(mediaJob);
