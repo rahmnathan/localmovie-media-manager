@@ -45,9 +45,9 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
             waitForWriteComplete(file);
             if (Files.isRegularFile(file.toPath())) {
                 mediaConversionService.createConversionJob(file);
+            } else {
+                eventService.handleCreateEvent(file);
             }
-
-            eventService.handleCreateEvent(file);
         } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
             eventService.handleDeleteEvent(file);
         }

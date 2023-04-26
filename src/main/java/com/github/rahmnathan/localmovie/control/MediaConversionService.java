@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.control;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
+import com.github.rahmnathan.localmovie.control.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
@@ -34,11 +35,13 @@ public class MediaConversionService {
 
     private final MediaJobRepository mediaJobRepository;
     private final ServiceConfig.MediaEventMonitorConfig eventMonitorConfig;
+    private final MediaEventService mediaEventService;
 
-    public MediaConversionService(ServiceConfig serviceConfig, MediaJobRepository mediaJobRepository) {
+    public MediaConversionService(ServiceConfig serviceConfig, MediaJobRepository mediaJobRepository, MediaEventService mediaEventService) {
         eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         log.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.mediaJobRepository = mediaJobRepository;
+        this.mediaEventService = mediaEventService;
     }
 
     @Scheduled(cron = "0 * * * * *")
@@ -110,7 +113,9 @@ public class MediaConversionService {
                     mediaJobRepository.delete(mediaJob);
                     continue;
                 } else if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
-                    mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
+                    if(!MediaJobStatus.SUCCEEDED.name().equalsIgnoreCase(mediaJob.getStatus())){
+                        completeJob(mediaJob);
+                    }
                 } else if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
                     mediaJob.setStatus(MediaJobStatus.FAILED.name());
                 } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
@@ -122,6 +127,14 @@ public class MediaConversionService {
                 mediaJobRepository.save(mediaJob);
             }
         }
+    }
+
+    public void completeJob(MediaJob mediaJob) {
+        log.info("Video conversion complete.");
+        new File(mediaJob.getOutputFile()).renameTo(new File(mediaJob.getInputFile()));
+        mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
+        mediaJobRepository.save(mediaJob);
+        mediaEventService.handleCreateEvent(new File(mediaJob.getInputFile()));
     }
 
     private String formatPath(String path) {
@@ -160,12 +173,6 @@ public class MediaConversionService {
 
         log.info("Launching video converter.");
 
-        CompletableFuture.supplyAsync(new VideoConverterHandbrake(conversionJob))
-                .thenCompose(v -> CompletableFuture.runAsync(() -> {
-                    log.info("Video conversion complete.");
-                    new File(mediaJob.getOutputFile()).renameTo(new File(mediaJob.getInputFile()));
-                    mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
-                    mediaJobRepository.save(mediaJob);
-                }));
+        CompletableFuture.supplyAsync(new VideoConverterHandbrake(conversionJob));
     }
 }
