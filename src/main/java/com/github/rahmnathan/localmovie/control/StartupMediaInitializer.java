@@ -34,7 +34,7 @@ public class StartupMediaInitializer {
     }
 
     @Timed(value = "file_list_initialization") // Need to proxy this call for metric (probably)
-    private void initializeFileListSynchronous() {
+    public void initializeFileListSynchronous() {
         serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
                 .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
