@@ -48,35 +48,7 @@ public class MediaConversionService {
         String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
         // Update status of jobs
-        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
-
-            List<Job> jobList = client.batch().v1().jobs().inNamespace(namespace).withLabel("app", "handbrake").list().getItems();
-
-            for (Job job : jobList) {
-                MediaJob mediaJob = mediaJobRepository.findByJobId(job.getMetadata().getLabels().get("jobId"));
-                if (mediaJob == null) {
-                    log.warn("Job found for input file that does not exist in database: {}", job.getMetadata().getLabels().get("jobId"));
-                    continue;
-                }
-
-                if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0 &&
-                        mediaJob.getCreated().isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS))) {
-                    log.info("Deleting completed job for input file: {}", mediaJob.getInputFile());
-                    mediaJobRepository.delete(mediaJob);
-                    continue;
-                } else if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
-                    mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
-                } else if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
-                    mediaJob.setStatus(MediaJobStatus.FAILED.name());
-                } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
-                    mediaJob.setStatus(MediaJobStatus.RUNNING.name());
-                } else {
-                    mediaJob.setStatus(MediaJobStatus.UNKNOWN.name());
-                }
-
-                mediaJobRepository.save(mediaJob);
-            }
-        }
+        updateJobStatus(namespace);
 
         // Update metrics
         int runningCount = mediaJobRepository.countAllByStatus(MediaJobStatus.RUNNING.name());
@@ -114,9 +86,40 @@ public class MediaConversionService {
 
                     launchVideoConverter(mediaJob);
                 }
+            }
 
-                activeConversionGauge.set(runningCount + jobsToLaunch);
-                queuedConversionGauge.set(queuedCount - jobsToLaunch);
+            updateJobStatus(namespace);
+        }
+    }
+
+    private void updateJobStatus(String namespace) {
+        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+
+            List<Job> jobList = client.batch().v1().jobs().inNamespace(namespace).withLabel("app", "handbrake").list().getItems();
+
+            for (Job job : jobList) {
+                MediaJob mediaJob = mediaJobRepository.findByJobId(job.getMetadata().getLabels().get("jobId"));
+                if (mediaJob == null) {
+                    log.warn("Job found for input file that does not exist in database: {}", job.getMetadata().getLabels().get("jobId"));
+                    continue;
+                }
+
+                if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0 &&
+                        mediaJob.getCreated().isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS))) {
+                    log.info("Deleting completed job for input file: {}", mediaJob.getInputFile());
+                    mediaJobRepository.delete(mediaJob);
+                    continue;
+                } else if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
+                    mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
+                } else if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
+                    mediaJob.setStatus(MediaJobStatus.FAILED.name());
+                } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
+                    mediaJob.setStatus(MediaJobStatus.RUNNING.name());
+                } else {
+                    mediaJob.setStatus(MediaJobStatus.UNKNOWN.name());
+                }
+
+                mediaJobRepository.save(mediaJob);
             }
         }
     }
