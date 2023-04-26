@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 public class StartupMediaInitializer {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
-    private final FFProbeService ffProbeService;
     private final ServiceConfig serviceConfig;
     private final MediaService dataService;
     private CompletableFuture<Void> initializationFuture;
@@ -34,7 +33,7 @@ public class StartupMediaInitializer {
         this.initializationFuture = CompletableFuture.runAsync(this::initializeFileListSynchronous);
     }
 
-    @Timed(value = "file_list_initialization")
+    @Timed(value = "file_list_initialization") // Need to proxy this call for metric (probably)
     private void initializeFileListSynchronous() {
         serviceConfig.getMediaPaths().stream()
                 .flatMap(this::streamDirectoryTree)
@@ -50,7 +49,6 @@ public class StartupMediaInitializer {
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         return MediaFile.Builder.forPath(file.getAbsolutePath())
                 .setMedia(dataService.loadNewMedia(relativePath))
-                .setLength(ffProbeService.loadDuration(file))
                 .setMediaFileId(UUID.randomUUID().toString())
                 .setAbsolutePath(file.getAbsolutePath())
                 .build();

@@ -38,7 +38,6 @@ public class MediaFile implements Serializable {
     private LocalDateTime updated;
     private String mediaFileId;
     private String absolutePath;
-    private Double length;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
@@ -108,11 +107,6 @@ public class MediaFile implements Serializable {
 
         public Builder setParentPath(String path) {
             this.mediaFile.parentPath = path;
-            return this;
-        }
-
-        public Builder setLength(Double length) {
-            this.mediaFile.length = length;
             return this;
         }
 

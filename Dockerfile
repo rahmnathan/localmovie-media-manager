@@ -1,9 +1,5 @@
 FROM openjdk:17-slim
 
-RUN apt-get update && \
-    apt-get -y install apt-utils ffmpeg handbrake-cli software-properties-common wget tar && \
-    apt-get clean
-
 RUN groupadd localmovie && useradd localmovie -g localmovie && mkdir -p /opt/localmovie/config
 
 ARG JAR_FILE

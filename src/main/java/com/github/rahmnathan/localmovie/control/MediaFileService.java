@@ -19,7 +19,6 @@ import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.R
 public class MediaFileService {
     private final MediaFileRepository mediaFileRepository;
     private final MediaService mediaService;
-    private final FFProbeService ffProbeService;
 
     @Transactional
     public MediaFile loadMediaFile(File file){
@@ -36,7 +35,6 @@ public class MediaFileService {
     private MediaFile loadNewMediaFile(File file, String relativePath){
         MediaFile mediaFile = MediaFile.Builder.forPath(file.getAbsolutePath())
                 .setMedia(mediaService.loadNewMedia(relativePath))
-                .setLength(ffProbeService.loadDuration(file))
                 .setMediaFileId(UUID.randomUUID().toString())
                 .setAbsolutePath(file.getAbsolutePath())
                 .build();
