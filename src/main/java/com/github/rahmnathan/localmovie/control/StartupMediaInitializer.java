@@ -48,6 +48,8 @@ public class StartupMediaInitializer {
                     .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
                     .map(this::buildMediaFile)
                     .forEach(mediaFileRepository::save)).get();
+
+            log.info("File list initialized.");
         } catch (ExecutionException | InterruptedException e) {
             log.error("Failed to initialize files.", e);
         } finally {
