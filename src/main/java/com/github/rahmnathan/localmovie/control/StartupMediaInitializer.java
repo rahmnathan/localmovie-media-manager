@@ -16,6 +16,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -35,14 +37,22 @@ public class StartupMediaInitializer {
 
     @Timed(value = "file_list_initialization") // Need to proxy this call for metric (probably)
     public void initializeFileListSynchronous() {
-        serviceConfig.getMediaPaths().stream()
-                .flatMap(this::streamDirectoryTree)
-                .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
-                .parallel()
-                .flatMap(this::listFiles)
-                .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
-                .map(this::buildMediaFile)
-                .forEach(mediaFileRepository::save);
+        ForkJoinPool customThreadPool = new ForkJoinPool(60);
+
+        try {
+            customThreadPool.submit(() -> serviceConfig.getMediaPaths().stream()
+                    .flatMap(this::streamDirectoryTree)
+                    .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
+                    .parallel()
+                    .flatMap(this::listFiles)
+                    .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
+                    .map(this::buildMediaFile)
+                    .forEach(mediaFileRepository::save)).get();
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Failed to initialize files.", e);
+        } finally {
+            customThreadPool.shutdown();
+        }
     }
 
     private MediaFile buildMediaFile(File file) {
