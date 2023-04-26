@@ -36,9 +36,14 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         String absolutePath = file.getAbsolutePath();
         log.info("Detected media event {} at path: {}", event.name(), absolutePath);
 
+        if(mediaConversionService.isActiveConversion(file)) {
+            log.info("File {} is currently being converted. Skipping event.", absolutePath);
+            return;
+        }
+
         if (event == StandardWatchEventKinds.ENTRY_CREATE) {
             waitForWriteComplete(file);
-            if (Files.isRegularFile(file.toPath()) && !mediaConversionService.isActiveConversion(file)) {
+            if (Files.isRegularFile(file.toPath())) {
                 mediaConversionService.createConversionJob(file);
             }
 
