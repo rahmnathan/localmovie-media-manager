@@ -55,9 +55,7 @@ public class MediaConversionService {
 
         // Update metrics
         int runningCount = mediaJobRepository.countAllByStatus(MediaJobStatus.RUNNING.name());
-        activeConversionGauge.set(runningCount);
         int queuedCount = mediaJobRepository.countAllByStatus(MediaJobStatus.QUEUED.name());
-        queuedConversionGauge.set(queuedCount);
 
         log.info("Found {} active conversions and {} queued conversions.", runningCount, queuedCount);
 
@@ -127,6 +125,11 @@ public class MediaConversionService {
                 mediaJobRepository.save(mediaJob);
             }
         }
+
+        int runningCount = mediaJobRepository.countAllByStatus(MediaJobStatus.RUNNING.name());
+        activeConversionGauge.set(runningCount);
+        int queuedCount = mediaJobRepository.countAllByStatus(MediaJobStatus.QUEUED.name());
+        queuedConversionGauge.set(queuedCount);
     }
 
     public void completeJob(MediaJob mediaJob) {
