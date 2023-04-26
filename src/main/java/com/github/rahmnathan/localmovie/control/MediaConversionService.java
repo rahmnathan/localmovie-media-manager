@@ -126,7 +126,7 @@ public class MediaConversionService {
     }
 
     public boolean isActiveConversion(File file) {
-        return mediaJobRepository.existsByInputFile(file.getAbsolutePath()) || mediaJobRepository.existsByOutputFile(file.getAbsolutePath());
+        return mediaJobRepository.existsByInputFile(file.toString()) || mediaJobRepository.existsByOutputFile(file.toString());
     }
 
     public void createConversionJob(File file) {
@@ -138,6 +138,7 @@ public class MediaConversionService {
         MediaJob mediaJob = MediaJob.builder()
                 .inputFile(inputPath)
                 .outputFile(resultFilePath)
+                .jobId(formatPath(inputPath))
                 .handbrakePreset(HandbrakePreset.CHROMECAST_1080p_60fps.getValue())
                 .status(MediaJobStatus.QUEUED.name())
                 .build();
