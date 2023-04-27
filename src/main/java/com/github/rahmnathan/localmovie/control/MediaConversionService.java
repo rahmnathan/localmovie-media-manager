@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,8 +34,10 @@ public class MediaConversionService {
     private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovie.conversions.active", new AtomicInteger(0));
 
-    private final MediaJobRepository mediaJobRepository;
+    private final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
+
     private final ServiceConfig.MediaEventMonitorConfig eventMonitorConfig;
+    private final MediaJobRepository mediaJobRepository;
     private final MediaEventService mediaEventService;
 
     public MediaConversionService(ServiceConfig serviceConfig, MediaJobRepository mediaJobRepository, MediaEventService mediaEventService) {
@@ -146,7 +149,8 @@ public class MediaConversionService {
     }
 
     public boolean isActiveConversion(File file) {
-        return mediaJobRepository.existsByInputFile(file.toString()) || mediaJobRepository.existsByOutputFile(file.toString());
+        return mediaJobRepository.existsByOutputFileAndStatusIn(file.toString(), ACTIVE_STATUSES) ||
+                mediaJobRepository.existsByInputFileAndStatusIn(file.toString(), ACTIVE_STATUSES);
     }
 
     public void createConversionJob(File file) {
