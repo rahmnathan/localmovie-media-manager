@@ -106,13 +106,8 @@ public class MediaConversionService {
                 }
 
                 if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
-                    log.info("Deleting completed job for input file: {}", mediaJob.getInputFile());
-                    deleteJob(mediaJob, client, namespace, job);
-                    continue;
-                } else if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
-                    if(!MediaJobStatus.SUCCEEDED.name().equalsIgnoreCase(mediaJob.getStatus())){
-                        completeJob(mediaJob);
-                    }
+                    log.info("Found completed job for input file: {}", mediaJob.getInputFile());
+                    completeJob(mediaJob, client, namespace, job);
                 } else if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
                     mediaJob.setStatus(MediaJobStatus.FAILED.name());
                 } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
@@ -131,19 +126,11 @@ public class MediaConversionService {
         queuedConversionGauge.set(queuedCount);
     }
 
-    public void deleteJob(MediaJob mediaJob, KubernetesClient client, String namespace, Job job) {
-        log.info("Deleting job for input file: {}", mediaJob.getInputFile());
+    public void completeJob(MediaJob mediaJob, KubernetesClient client, String namespace, Job job) {
         mediaJobRepository.delete(mediaJob);
-
-        client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
-    }
-
-    public void completeJob(MediaJob mediaJob) {
-        log.info("Video conversion complete.");
         new File(mediaJob.getInputFile()).delete();
         new File(mediaJob.getOutputFile()).renameTo(new File(mediaJob.getInputFile()));
-        mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
-        mediaJobRepository.save(mediaJob);
+        client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
         mediaEventService.handleCreateEvent(new File(mediaJob.getInputFile()));
     }
 
