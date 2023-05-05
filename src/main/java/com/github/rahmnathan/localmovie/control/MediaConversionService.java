@@ -21,8 +21,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -47,16 +45,13 @@ public class MediaConversionService {
         this.mediaEventService = mediaEventService;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "*/5 * * * * *")
     public void scanConversions() throws Exception {
         log.info("Scanning for video conversions.");
 
         String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
-        // Update status of jobs
-        updateJobStatus(namespace);
-
-        // Update metrics
+        // Get DB state
         int runningCount = mediaJobRepository.countAllByStatus(MediaJobStatus.RUNNING.name());
         int queuedCount = mediaJobRepository.countAllByStatus(MediaJobStatus.QUEUED.name());
 
@@ -64,8 +59,7 @@ public class MediaConversionService {
 
         // Launch new conversions, if applicable
         if (runningCount < eventMonitorConfig.getConcurrentConversionLimit() && queuedCount > 0) {
-            int jobsToLaunch = queuedCount - runningCount;
-            jobsToLaunch = Math.min(jobsToLaunch, eventMonitorConfig.getConcurrentConversionLimit());
+            int jobsToLaunch = Math.min(queuedCount - runningCount, eventMonitorConfig.getConcurrentConversionLimit());
 
             List<MediaJob> mediaJobList = mediaJobRepository.findAllByStatusOrderByCreatedAsc(MediaJobStatus.QUEUED.name()).stream()
                     .limit(jobsToLaunch)
@@ -91,12 +85,15 @@ public class MediaConversionService {
                     launchVideoConverter(mediaJob);
                 }
             }
-
-            updateJobStatus(namespace);
         }
     }
 
-    private void updateJobStatus(String namespace) {
+    @Scheduled(cron = "0 * * * * *")
+    public void updateJobStatus() throws Exception {
+        log.info("Updating job status.");
+
+        String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
 
             List<Job> jobList = client.batch().v1().jobs().inNamespace(namespace).withLabel("app", "handbrake").list().getItems();
