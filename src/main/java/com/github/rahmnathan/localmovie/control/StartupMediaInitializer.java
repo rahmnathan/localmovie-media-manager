@@ -37,7 +37,9 @@ public class StartupMediaInitializer {
 
     @Timed(value = "file_list_initialization") // Need to proxy this call for metric (probably)
     public void initializeFileListSynchronous() {
-        try (ForkJoinPool customThreadPool = new ForkJoinPool(16)){
+        ForkJoinPool customThreadPool = new ForkJoinPool(16);
+
+        try {
             customThreadPool.submit(() -> serviceConfig.getMediaPaths().stream()
                     .parallel()
                     .flatMap(this::streamDirectoryTree)
@@ -50,6 +52,8 @@ public class StartupMediaInitializer {
             log.info("File list initialized.");
         } catch (ExecutionException | InterruptedException e) {
             log.error("Failed to initialize files.", e);
+        } finally {
+            customThreadPool.shutdown();
         }
     }
 
