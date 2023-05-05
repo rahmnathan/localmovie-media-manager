@@ -110,7 +110,7 @@ public class MediaConversionService {
 
                 if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
                     log.info("Deleting completed job for input file: {}", mediaJob.getInputFile());
-                    mediaJobRepository.delete(mediaJob);
+                    deleteJob(mediaJob, client, namespace, job);
                     continue;
                 } else if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
                     if(!MediaJobStatus.SUCCEEDED.name().equalsIgnoreCase(mediaJob.getStatus())){
@@ -132,6 +132,13 @@ public class MediaConversionService {
         activeConversionGauge.set(runningCount);
         int queuedCount = mediaJobRepository.countAllByStatus(MediaJobStatus.QUEUED.name());
         queuedConversionGauge.set(queuedCount);
+    }
+
+    public void deleteJob(MediaJob mediaJob, KubernetesClient client, String namespace, Job job) {
+        log.info("Deleting job for input file: {}", mediaJob.getInputFile());
+        mediaJobRepository.delete(mediaJob);
+
+        client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
     }
 
     public void completeJob(MediaJob mediaJob) {
