@@ -108,7 +108,10 @@ public class MediaConversionService {
                 if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
                     log.info("Found completed job for input file: {}", mediaJob.getInputFile());
                     completeJob(mediaJob, client, namespace, job);
-                } else if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
+                    continue;
+                }
+
+                if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
                     mediaJob.setStatus(MediaJobStatus.FAILED.name());
                 } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
                     mediaJob.setStatus(MediaJobStatus.RUNNING.name());
