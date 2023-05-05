@@ -108,8 +108,7 @@ public class MediaConversionService {
                     continue;
                 }
 
-                if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0 &&
-                        mediaJob.getCreated().isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS))) {
+                if (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) {
                     log.info("Deleting completed job for input file: {}", mediaJob.getInputFile());
                     mediaJobRepository.delete(mediaJob);
                     continue;

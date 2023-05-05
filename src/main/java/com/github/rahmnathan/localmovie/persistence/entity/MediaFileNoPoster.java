@@ -11,7 +11,6 @@ public interface MediaFileNoPoster {
     String getFileName();
     LocalDateTime getCreated();
     LocalDateTime getUpdated();
-    Double getLength();
     Set<MediaView> getMediaViews();
     Media getMedia();
     String getMediaFileId();
