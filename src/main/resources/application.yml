@@ -42,7 +42,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://login.nathanrahm.com/realms/LocalMovies
+          issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
       client:
         registration:
           keycloak:
@@ -52,7 +52,7 @@ spring:
               - openid
         provider:
             keycloak:
-                issuer-uri: https://login.nathanrahm.com/realms/LocalMovies
+                issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
                 user-name-attribute: preferred_username
 opentracing:
   jaeger:
