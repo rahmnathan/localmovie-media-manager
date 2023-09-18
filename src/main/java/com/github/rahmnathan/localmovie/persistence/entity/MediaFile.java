@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.Hibernate;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.File;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -17,7 +17,6 @@ import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.R
 
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 @Entity
 @Table(indexes = {

@@ -3,12 +3,12 @@ package com.github.rahmnathan.localmovie.web.webapp;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;

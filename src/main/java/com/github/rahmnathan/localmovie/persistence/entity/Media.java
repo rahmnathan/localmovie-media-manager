@@ -2,11 +2,11 @@ package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rahmnathan.omdb.data.MediaType;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Objects;

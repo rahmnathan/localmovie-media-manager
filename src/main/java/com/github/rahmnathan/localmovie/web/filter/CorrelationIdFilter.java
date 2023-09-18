@@ -1,11 +1,11 @@
 package com.github.rahmnathan.localmovie.web.filter;
 
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +15,11 @@ import java.util.UUID;
 public class CorrelationIdFilter implements Filter {
     public static final String X_CORRELATION_ID = "x-correlation-id";
     private static final String CLIENT_ADDRESS = "client-address";
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -32,4 +37,11 @@ public class CorrelationIdFilter implements Filter {
             MDC.clear();
         }
     }
+
+    @Override
+    public void destroy() {
+
+    }
+
+
 }
