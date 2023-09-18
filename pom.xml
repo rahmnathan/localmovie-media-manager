@@ -19,7 +19,7 @@
         <maven.compiler.target>19</maven.compiler.target>
 
         <internal-utils.version>3.17</internal-utils.version>
-        <internal-adapters.version>3.3</internal-adapters.version>
+        <internal-adapters.version>3.4</internal-adapters.version>
     </properties>
 
     <scm>
