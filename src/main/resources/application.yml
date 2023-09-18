@@ -38,6 +38,22 @@ spring:
     pathmatch:
       matching-strategy: ant-path-matcher
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.nathanrahm.com/realms/LocalMovies
+      client:
+        registration:
+          keycloak:
+            client-id: localmovie-login
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+        provider:
+            keycloak:
+                issuer-uri: https://login.nathanrahm.com/realms/LocalMovies
+                user-name-attribute: preferred_username
 opentracing:
   jaeger:
     enabled: false
@@ -56,6 +72,8 @@ keycloak:
             - "/*"
   ssl-required: external
   enabled: false
+
+
 
 management:
   endpoint:
