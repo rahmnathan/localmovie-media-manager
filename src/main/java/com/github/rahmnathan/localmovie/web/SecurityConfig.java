@@ -28,8 +28,6 @@ class SecurityConfig {
     @Bean
     public SecurityFilterChain clientFilterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .requestMatchers("/")
-                .permitAll()
                 .anyRequest()
                 .authenticated();
         http.oauth2Login()
@@ -37,18 +35,6 @@ class SecurityConfig {
                 .logout()
                 .addLogoutHandler(keycloakLogoutHandler)
                 .logoutSuccessUrl("/");
-        return http.build();
-    }
-
-    @Order(2)
-    @Bean
-    public SecurityFilterChain resourceServerFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .requestMatchers("/")
-                .permitAll()
-                .anyRequest()
-                .authenticated();
-        http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
         return http.build();
     }
 
