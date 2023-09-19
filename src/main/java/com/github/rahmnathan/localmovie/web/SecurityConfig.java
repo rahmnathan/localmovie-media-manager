@@ -33,7 +33,19 @@ class SecurityConfig {
     public SecurityFilterChain anonymousAccessFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizeRequests -> {
             authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
-                    .permitAll();
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated();
+
+            try {
+                http.oauth2Login(Customizer.withDefaults())
+                        .logout(httpSecurityLogoutConfigurer -> {
+                            httpSecurityLogoutConfigurer.addLogoutHandler(keycloakLogoutHandler)
+                                    .logoutSuccessUrl("/");
+                        });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
 
         return http.build();
@@ -43,7 +55,7 @@ class SecurityConfig {
     @Bean
     public SecurityFilterChain clientFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizeRequests -> {
-                    authorizeRequests.requestMatchers("/**")
+                    authorizeRequests.anyRequest()
                             .authenticated();
                 })
                 .oauth2Login(Customizer.withDefaults());
