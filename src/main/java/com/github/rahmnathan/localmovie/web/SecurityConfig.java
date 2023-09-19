@@ -29,8 +29,15 @@ class SecurityConfig {
     @Order(1)
     @Bean
     public SecurityFilterChain clientFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/**").hasRole("movieuser"))
+        http.authorizeHttpRequests(authorizeRequests -> {
+                    authorizeRequests.requestMatchers("/**")
+                            .hasRole("movieuser");
+
+                    authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
+                            .permitAll();
+                })
                 .oauth2Login(Customizer.withDefaults());
+
         http.cors(AbstractHttpConfigurer::disable);
         return http.build();
     }
