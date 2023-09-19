@@ -34,11 +34,13 @@ class SecurityConfig {
         http.authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests.requestMatchers("/**")
                             .authenticated();
-
-                    authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
-                            .permitAll();
                 })
                 .oauth2Login(Customizer.withDefaults());
+
+        http.authorizeHttpRequests(authorizeRequests -> {
+            authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
+                    .permitAll();
+        });
 
         http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
 
