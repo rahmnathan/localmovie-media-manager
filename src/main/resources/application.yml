@@ -46,11 +46,8 @@ spring:
       client:
         registration:
           keycloak:
-            redirect-uri: "https://movies.nathanrahm.com/"
             client-id: localmovie-login
             authorization-grant-type: authorization_code
-            scope:
-              - openid
         provider:
             keycloak:
                 issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
