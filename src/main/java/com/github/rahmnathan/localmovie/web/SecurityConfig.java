@@ -33,7 +33,7 @@ class SecurityConfig {
     public SecurityFilterChain clientFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests.requestMatchers("/**")
-                            .hasRole("movieuser");
+                            .authenticated();
 
                     authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
                             .permitAll();
