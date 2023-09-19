@@ -30,17 +30,23 @@ class SecurityConfig {
 
     @Order(1)
     @Bean
+    public SecurityFilterChain anonymousAccessFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(authorizeRequests -> {
+            authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
+                    .permitAll();
+        });
+
+        return http.build();
+    }
+
+    @Order(2)
+    @Bean
     public SecurityFilterChain clientFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests.requestMatchers("/**")
                             .authenticated();
                 })
                 .oauth2Login(Customizer.withDefaults());
-
-        http.authorizeHttpRequests(authorizeRequests -> {
-            authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
-                    .permitAll();
-        });
 
         http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
 
