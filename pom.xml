@@ -38,11 +38,6 @@
             <artifactId>camel-spring-boot-starter</artifactId>
             <version>4.0.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>io.opentracing.contrib</groupId>-->
-<!--            <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>-->
-<!--            <version>3.3.1</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
@@ -159,7 +154,7 @@
             <dependency>
                 <groupId>org.keycloak.bom</groupId>
                 <artifactId>keycloak-adapter-bom</artifactId>
-                <version>18.0.0</version>
+                <version>19.0.2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
