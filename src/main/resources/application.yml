@@ -48,10 +48,16 @@ spring:
           keycloak:
             client-id: localmovie-login
             authorization-grant-type: authorization_code
+          keycloak-token:
+            client-id: localmovies
+            authorization-grant-type: jwt_bearer
         provider:
-            keycloak:
-                issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
-                user-name-attribute: preferred_username
+          keycloak:
+              issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+              user-name-attribute: preferred_username
+          keycloak-token:
+            issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+            user-name-attribute: preferred_username
 opentracing:
   jaeger:
     enabled: false
