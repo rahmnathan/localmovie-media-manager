@@ -24,6 +24,7 @@ class SecurityConfig {
                     .authenticated();
         });
 
+        http.oauth2ResourceServer(Customizer.withDefaults());
         http.oauth2Login(Customizer.withDefaults());
         http.csrf().disable();
 
