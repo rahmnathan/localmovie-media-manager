@@ -41,6 +41,8 @@ spec:
               mountPath: /opt/localmovie/3/LocalMedia
             - name: media4
               mountPath: /opt/localmovie/4/LocalMedia
+            - name: media5
+              mountPath: /opt/localmovie/5/LocalMedia
             - name: secrets
               mountPath: /opt/localmovie/secrets
               readOnly: true
@@ -66,20 +68,24 @@ spec:
       volumes:
         - name: media1
           nfs:
-            server: 10.0.0.189
+            server: 10.0.0.195
             path: /LocalMedia1
         - name: media2
           nfs:
-            server: 10.0.0.189
+            server: 10.0.0.195
             path: /LocalMedia2
         - name: media3
           nfs:
-            server: 10.0.0.189
+            server: 10.0.0.195
             path: /LocalMedia3
         - name: media4
           nfs:
-            server: 10.0.0.189
+            server: 10.0.0.195
             path: /LocalMedia4
+        - name: media5
+          nfs:
+            server: 10.0.0.195
+            path: /LocalMedia5
         - name: application-config
           configMap:
             name: localmovies
