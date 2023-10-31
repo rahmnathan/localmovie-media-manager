@@ -9,8 +9,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -20,7 +20,7 @@ class SecurityConfig {
     @Order(1)
     @Bean
     public SecurityFilterChain anonymousAccessFilterChain(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new AccessTokenFilter(), WebAsyncManagerIntegrationFilter.class)
+        http.addFilterBefore(new AccessTokenFilter(), BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css")
                                 .permitAll()
