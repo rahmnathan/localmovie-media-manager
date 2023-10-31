@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -26,8 +27,8 @@ public class CorrelationIdFilter implements Filter {
         try {
             final HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
-            Optional<String> correlationId = Optional.ofNullable(httpServletRequest.getHeader(X_CORRELATION_ID));
-            MDC.put(X_CORRELATION_ID, correlationId.orElse(UUID.randomUUID().toString()));
+            String correlationId = httpServletRequest.getHeader(X_CORRELATION_ID);
+            MDC.put(X_CORRELATION_ID, StringUtils.isEmpty(correlationId) ? UUID.randomUUID().toString() : correlationId);
 
             String clientAddress = ((HttpServletRequest) servletRequest).getHeader("X-FORWARDED-FOR");
             MDC.put(CLIENT_ADDRESS, clientAddress);

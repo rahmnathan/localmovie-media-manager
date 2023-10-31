@@ -1,6 +1,6 @@
 endpoints.prometheus.enabled: true
 logging:
-  pattern.level: "correlation-id=%X{x-correlation-id}"
+  pattern.level: "correlation-id=%X{x-correlation-id} client-address=%X{client-address}"
   level:
     com.github.rahmnathan: info
 
