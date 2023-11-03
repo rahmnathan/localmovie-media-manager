@@ -8,12 +8,15 @@ import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepositor
 import com.github.rahmnathan.video.cast.handbrake.boundary.VideoConverterHandbrake;
 import com.github.rahmnathan.video.converter.data.HandbrakePreset;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,10 +24,13 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -37,12 +43,14 @@ public class MediaConversionService {
     private final ServiceConfig.MediaEventMonitorConfig eventMonitorConfig;
     private final MediaJobRepository mediaJobRepository;
     private final MediaEventService mediaEventService;
+    private final MeterRegistry meterRegistry;
 
-    public MediaConversionService(ServiceConfig serviceConfig, MediaJobRepository mediaJobRepository, MediaEventService mediaEventService) {
+    public MediaConversionService(ServiceConfig serviceConfig, MediaJobRepository mediaJobRepository, MediaEventService mediaEventService, MeterRegistry meterRegistry) {
         eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         log.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
         this.mediaJobRepository = mediaJobRepository;
         this.mediaEventService = mediaEventService;
+        this.meterRegistry = meterRegistry;
     }
 
     @Scheduled(cron = "*/5 * * * * *")
@@ -127,6 +135,43 @@ public class MediaConversionService {
         activeConversionGauge.set(runningCount);
         int queuedCount = mediaJobRepository.countAllByStatus(MediaJobStatus.QUEUED.name());
         queuedConversionGauge.set(queuedCount);
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    public void parseJobLogs() throws Exception {
+        log.info("Parsing job logs.");
+
+        String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+
+        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+
+            List<Pod> pods = client.pods().inNamespace(namespace).list().getItems().stream()
+                    .filter(pod -> pod.getMetadata().getName().startsWith("handbrake"))
+                    .filter(pod -> pod.getStatus().getPhase().equalsIgnoreCase("running"))
+                    .toList();
+
+            log.info("Found {} handbrake pods.", pods.size());
+
+            for(Pod pod : pods) {
+                String podName = pod.getMetadata().getName();
+                String podLog = client.pods().inNamespace(namespace).withName(podName).tailingLines(1).getLog();
+                Pattern pattern = Pattern.compile("\\d\\dh\\d\\d");
+                Matcher matcher = pattern.matcher(podLog);
+                if(matcher.find()) {
+                    String group = matcher.group();
+                    log.info("Found ETA in logs ({}). Recording metrics.", group);
+
+                    String[] time = group.split("h");
+                    int timeRemaining = (Integer.parseInt(time[0]) * 60) + Integer.parseInt(time[1]);
+
+                    String jobId = client.batch().v1().jobs().inNamespace(namespace).withName(pod.getMetadata().getLabels().get("job-name")).get()
+                            .getMetadata().getLabels().get("jobId");
+
+                    meterRegistry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId))).record(Duration.ofMinutes(timeRemaining));
+                }
+            }
+
+        }
     }
 
     public void completeJob(MediaJob mediaJob, KubernetesClient client, String namespace, Job job) {
