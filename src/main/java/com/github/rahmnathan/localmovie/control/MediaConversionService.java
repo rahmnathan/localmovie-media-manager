@@ -99,6 +99,7 @@ public class MediaConversionService {
     @Scheduled(cron = "0 * * * * *")
     public void updateJobStatus() throws Exception {
         log.info("Updating job status.");
+        extractAndRecordETAs();
 
         String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
@@ -137,10 +138,7 @@ public class MediaConversionService {
         queuedConversionGauge.set(queuedCount);
     }
 
-    @Scheduled(cron = "0 * * * * *")
-    public void parseJobLogs() throws Exception {
-        log.info("Parsing job logs.");
-
+    public void extractAndRecordETAs() throws Exception {
         String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
@@ -150,24 +148,25 @@ public class MediaConversionService {
                     .filter(pod -> pod.getStatus().getPhase().equalsIgnoreCase("running"))
                     .toList();
 
-            log.info("Found {} handbrake pods.", pods.size());
-
             for(Pod pod : pods) {
                 String podName = pod.getMetadata().getName();
                 String podLog = client.pods().inNamespace(namespace).withName(podName).tailingLines(1).getLog();
-                Pattern pattern = Pattern.compile("\\d\\dh\\d\\d");
-                Matcher matcher = pattern.matcher(podLog);
-                if(matcher.find()) {
-                    String group = matcher.group();
-                    log.info("Found ETA in logs ({}). Recording metrics.", group);
 
-                    String[] time = group.split("h");
-                    int timeRemaining = (Integer.parseInt(time[0]) * 60) + Integer.parseInt(time[1]);
+                // Extracting hours and minutes from log statement.
+                // Example pod log: "ETA 01h25m15s)"
+                Pattern etaPattern = Pattern.compile("\\d\\dh\\d\\d");
+                Matcher etaMatcher = etaPattern.matcher(podLog);
+                if(etaMatcher.find()) {
+                    String eta = etaMatcher.group();
+                    log.info("Found Handbrake ETA in logs ({}). Recording metric.", eta);
+
+                    String[] time = eta.split("h");
+                    int minutesRemaining = (Integer.parseInt(time[0]) * 60) + Integer.parseInt(time[1]);
 
                     String jobId = client.batch().v1().jobs().inNamespace(namespace).withName(pod.getMetadata().getLabels().get("job-name")).get()
                             .getMetadata().getLabels().get("jobId");
 
-                    meterRegistry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId))).record(Duration.ofMinutes(timeRemaining));
+                    meterRegistry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId))).record(Duration.ofMinutes(minutesRemaining));
                 }
             }
 
