@@ -82,7 +82,7 @@ public class MediaConversionService {
 
             try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
                 for (MediaJob mediaJob : mediaJobList) {
-                    JobList jobList = client.batch().v1().jobs().inNamespace(namespace).withLabel("inputPath", formatPath(mediaJob.getInputFile())).list();
+                    JobList jobList = client.batch().v1().jobs().inNamespace(namespace).withLabel("jobId", formatPath(mediaJob.getInputFile())).list();
 
                     if (jobList.getItems().stream().anyMatch(job -> (job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() > 0) ||
                                                                      job.getStatus().getActive() != null && job.getStatus().getActive() > 0)) {
