@@ -176,9 +176,8 @@ public class MediaConversionService {
     public void completeJob(MediaJob mediaJob, KubernetesClient client, String namespace, Job job) {
         mediaJobRepository.delete(mediaJob);
         new File(mediaJob.getInputFile()).delete();
-        new File(mediaJob.getOutputFile()).renameTo(new File(mediaJob.getInputFile()));
         client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
-        mediaEventService.handleCreateEvent(new File(mediaJob.getInputFile()));
+        mediaEventService.handleCreateEvent(new File(mediaJob.getOutputFile()));
     }
 
     private String formatPath(String path) {
