@@ -24,7 +24,7 @@ spec:
 
     tools {
         maven 'Maven'
-        jdk 'Java 17'
+        jdk 'Java 21'
     }
 
     stages {
