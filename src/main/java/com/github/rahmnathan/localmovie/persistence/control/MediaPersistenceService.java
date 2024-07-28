@@ -74,7 +74,14 @@ public class MediaPersistenceService {
     }
 
     public List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFilesByParentPath(MediaRequest request) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        Sort.Order order;
+        if (request.getPath().split(File.separator).length > 1) {
+            order = Sort.Order.asc("media.number");
+        } else {
+            order = Sort.Order.asc("fileName");
+        }
+
+        Sort sort = Sort.by(order);
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getPageSize(), sort);
         return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
