@@ -16,7 +16,7 @@ const navigationState = {
     client: 'WEBAPP',
     q: '',
     page: 0,
-    pageSize: 20
+    pageSize: 50
 }
 
 export function MainPage() {
@@ -41,8 +41,6 @@ export function MainPage() {
         navigationState.genre = genre;
         navigationState.order = order;
         navigationState.q = q;
-        navigationState.page = 0;
-        navigationState.pageSize = 20;
 
         loadMedia();
 
@@ -67,6 +65,22 @@ export function MainPage() {
         );
     }
 
+    function loadMoreMedia() {
+        trackPromise(
+            fetch('/localmovie/v1/media', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(navigationState)
+            }).then(response => response.json())
+                .then(data => {
+                    setMedia(media.concat(data));
+                })
+        );
+    }
+
     const navigate = useNavigate();
 
     function hasMore() {
@@ -78,11 +92,8 @@ export function MainPage() {
     }
 
     function nextPage(){
-        navigationState.pageSize = navigationState.pageSize * 2;
-
-        console.log('next page!')
-
-        loadMedia()
+        navigationState.page = navigationState.page + 1;
+        loadMoreMedia()
     }
 
     function selectSort(sort) {
@@ -96,6 +107,7 @@ export function MainPage() {
     }
 
     function filterMedia(searchText) {
+        navigationState.page = 0;
         navigationState.q = searchText;
         loadMedia()
     }
