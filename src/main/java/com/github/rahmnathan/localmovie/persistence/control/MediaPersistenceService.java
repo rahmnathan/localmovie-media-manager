@@ -1,8 +1,14 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
+import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
+import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.impl.JPAQuery;
+import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -12,11 +18,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 
@@ -30,6 +36,7 @@ public class MediaPersistenceService {
     private final MediaFileRepository fileRepository;
     private final MediaUserRepository userRepository;
     private final MediaRepository mediaRepository;
+    private final EntityManager entityManager;
 
     public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileByPath(String path) {
         return fileRepository.findByPath(path);
@@ -67,27 +74,42 @@ public class MediaPersistenceService {
     }
 
     public List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFilesByParentPath(MediaRequest request) {
-        Sort sort;
-        if (request.getPath().split(File.separator).length > 1) {
-            sort = SEASONS_EPISODES.getSort();
-        } else {
-            sort = request.getOrder().getSort();
-        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
+        Pageable pageable = PageRequest.of(request.getPage(), request.getPageSize(), sort);
         return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
     public List<MediaFileNoPoster> getMediaFilesByParentPathNoPoster(MediaRequest request) {
-        Sort sort;
-        if (request.getPath().split(File.separator).length > 1) {
-            sort = SEASONS_EPISODES.getSort();
-        } else {
-            sort = request.getOrder().getSort();
+        JPAQuery<MediaFileNoPoster> jpaQuery = new JPAQuery<>(entityManager);
+        QMediaFile qMediaFile = QMediaFile.mediaFile;
+
+        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        predicates.add(qMediaFile.parentPath.eq(request.getPath()));
+
+        if(StringUtils.hasText(request.getGenre())){
+            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getGenre()));
         }
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getResultsPerPage(), sort);
-        return fileRepository.findAllByParentPathNoPoster(request.getPath(), getUsername(), pageable);
+        if(StringUtils.hasText(request.getQ())) {
+            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getQ())
+                    .or(qMediaFile.media.title.containsIgnoreCase(request.getQ()))
+                    .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
+        }
+
+        OrderSpecifier orderSpecifier = qMediaFile.fileName.asc();
+        if (request.getPath().split(File.separator).length > 1) {
+            orderSpecifier = SEASONS_EPISODES.getOrderSpecifier();
+        } else if (StringUtils.hasText(request.getOrder())) {
+            orderSpecifier = MediaOrder.lookup(request.getOrder()).getOrderSpecifier();
+        }
+
+        return jpaQuery.from(qMediaFile)
+                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .offset((long) request.getPage() * request.getPageSize())
+                .limit(request.getPageSize())
+                .orderBy(orderSpecifier)
+                .fetch();
     }
 
     @Transactional

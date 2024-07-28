@@ -100,6 +100,6 @@ public class MediaResourceTest {
     }
 
     private MediaRequest buildRequest() {
-        return new MediaRequest("Movies", 0, 1, MediaOrder.TITLE);
+        return new MediaRequest("Movies", 0, 100, null, null, null);
     }
 }

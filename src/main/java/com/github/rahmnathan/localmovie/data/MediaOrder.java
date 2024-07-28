@@ -1,22 +1,37 @@
 package com.github.rahmnathan.localmovie.data;
 
-import org.springframework.data.domain.Sort;
+import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
+import com.querydsl.core.types.OrderSpecifier;
+import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
+@Getter
 public enum MediaOrder {
-    DATE_ADDED("created", false),
-    RATING("media.imdbRating", false),
-    RELEASE_YEAR("media.releaseYear", false),
-    SEASONS_EPISODES("media.number", true),
-    TITLE("fileName", true);
+    DATE_ADDED("added", QMediaFile.mediaFile.created.desc()),
+    RATING("rating", QMediaFile.mediaFile.media.imdbRating.desc()),
+    RELEASE_YEAR("year", QMediaFile.mediaFile.media.releaseYear.desc()),
+    SEASONS_EPISODES("season-episode", QMediaFile.mediaFile.media.number.asc()),
+    TITLE("title", QMediaFile.mediaFile.fileName.asc());
 
-    private final Sort sort;
+    private final String key;
+    private final OrderSpecifier orderSpecifier;
 
-    MediaOrder(String fieldName, boolean ascending) {
-        Sort.Order order = ascending ? Sort.Order.asc(fieldName) : Sort.Order.desc(fieldName);
-        this.sort = Sort.by(order);
+    private static final Map<String, MediaOrder> lookup = new HashMap<>();
+
+    MediaOrder(String key, OrderSpecifier orderSpecifier) {
+        this.orderSpecifier = orderSpecifier;
+        this.key = key;
     }
 
-    public Sort getSort() {
-        return sort;
+    static {
+        for (MediaOrder mediaOrder : MediaOrder.values()) {
+            lookup.put(mediaOrder.getKey(), mediaOrder);
+        }
+    }
+
+    public static MediaOrder lookup(String key) {
+        return lookup.getOrDefault(key, MediaOrder.TITLE);
     }
 }

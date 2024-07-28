@@ -1,13 +1,17 @@
 package com.github.rahmnathan.localmovie.data;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NonNull;
-import lombok.Value;
 
-@Value
+@Data
+@AllArgsConstructor
 public class MediaRequest {
     @NonNull
     private final String path;
-    private final Integer page;
-    private final Integer resultsPerPage;
-    private final MediaOrder order;
+    private int page = 0;
+    private int pageSize = 50;
+    private final String order;
+    private final String q;
+    private final String genre;
 }

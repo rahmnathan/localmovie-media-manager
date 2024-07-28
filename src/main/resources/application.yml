@@ -89,7 +89,7 @@ management:
     web:
       exposure:
         include: "*"
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true

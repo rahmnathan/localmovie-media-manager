@@ -2,99 +2,53 @@ import React, {useEffect} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
-import {useNavigate, useSearchParams} from 'react-router-dom';
+import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
 import {LoadingIndicator} from "./LoadingIndicator.jsx";
 
 const layoutProps = {
     textAlign: 'center'
 };
 
-const buildMovieRequest = function (path) {
-    return {
-        path: path,
-        client: "WEBAPP",
-        page: 0,
-        resultsPerPage: 1000,
-        order: "TITLE"
-    }
-};
+const navigationState = {
+    path: 'Movies',
+    genre: '',
+    order: 'TITLE',
+    client: 'WEBAPP',
+    q: '',
+    page: 0,
+    pageSize: 20
+}
 
 export function MainPage() {
 
     const [media, setMedia] = React.useState([]);
-    const [originalMedia, setOriginalMedia] = React.useState(new Map());
-    const [genre, setGenre] = React.useState('all');
-    const [searchText, setSearchText] = React.useState('');
-    const [sort, setSort] = React.useState('title');
+    const [totalCount, setTotalCount] = React.useState(0)
+
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
 
         let currentPath = searchParams.get('path');
-        if(currentPath === null | currentPath === undefined || currentPath === ''){
+        let genre = searchParams.get('genre');
+        let order = searchParams.get('order');
+        let q = searchParams.get('q');
+
+        if(currentPath === null || currentPath === undefined || currentPath === ''){
             currentPath = 'Movies';
         }
-        console.log('Current path: ' + currentPath);
 
-        console.log('MainPage updated.')
+        navigationState.path = currentPath;
+        navigationState.genre = genre;
+        navigationState.order = order;
+        navigationState.q = q;
+        navigationState.page = 0;
+        navigationState.pageSize = 20;
 
-        if (!originalMedia.has(currentPath)) {
-            loadMedia(currentPath);
-        } else {
-            console.log('Using cached media.')
+        loadMedia();
 
-            let resultMedia = originalMedia.get(currentPath);
+    }, [searchParams]);
 
-            let currentGenre = genre;
-            if (currentGenre !== null && currentGenre !== 'all') {
-                resultMedia = resultMedia.filter(function (media) {
-                    if (media.media === null || media.media.genre === null) {
-                        return false;
-                    }
-
-                    return media.media.genre.toLowerCase().includes(currentGenre);
-                });
-            }
-
-            let currentSearchText = searchText;
-            if (currentSearchText !== null && currentSearchText !== '') {
-                resultMedia = resultMedia.filter(function (media) {
-                    if (media.media === null || media.media.title === null) {
-                        return false;
-                    }
-
-                    return media.media.title.toLowerCase().includes(currentSearchText);
-                });
-            }
-
-            let currentSort = sort;
-            if (currentSort !== null) {
-                resultMedia.sort(function (media1, media2) {
-                    if (media1 === null || media2 === null || media1.media === null || media2.media === null) {
-                        return 1;
-                    }
-
-                    switch (currentSort) {
-                        case 'title':
-                            return media1.media.title > media2.media.title ? 1 : -1;
-                        case 'year':
-                            return media1.media.releaseYear < media2.media.releaseYear ? 1 : -1;
-                        case 'added':
-                            return media1.created < media2.created ? 1 : -1;
-                        case 'rating':
-                            return media1.media.imdbRating < media2.media.imdbRating ? 1 : -1;
-                        default:
-                            return 0;
-                    }
-                });
-            }
-
-            setMedia(resultMedia);
-        }
-    }, [genre, searchText, sort, originalMedia, searchParams]);
-
-    function loadMedia(path) {
-        console.log('Loading media for path: ' + path);
+    function loadMedia() {
         trackPromise(
             fetch('/localmovie/v1/media', {
                 method: 'POST',
@@ -102,45 +56,85 @@ export function MainPage() {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(buildMovieRequest(path))
-            }).then(response => response.json())
+                body: JSON.stringify(navigationState)
+            }).then(response => {
+                setTotalCount(parseInt(response.headers.get("Count")))
+                return response.json()
+            })
                 .then(data => {
-                    originalMedia.set(path, data);
                     setMedia(data);
-                    setOriginalMedia(originalMedia);
                 })
         );
     }
 
     const navigate = useNavigate();
 
+    function hasMore() {
+        return totalCount !== media.length;
+    }
+
     function playMedia(media) {
         navigate("/play/" + media.mediaFileId);
     }
 
+    function nextPage(){
+        navigationState.pageSize = navigationState.pageSize * 2;
+
+        console.log('next page!')
+
+        loadMedia()
+    }
+
     function selectSort(sort) {
-        setSort(sort);
+        navigationState.order = sort;
+        search()
     }
 
     function selectGenre(genre) {
-        setGenre(genre);
+        navigationState.genre = genre;
+        search()
     }
 
     function filterMedia(searchText) {
-        setSearchText(searchText);
+        navigationState.q = searchText;
+        loadMedia()
+    }
+
+    function filterMediaNavigate(searchText) {
+        navigationState.q = searchText;
+        search()
     }
 
     function setPath(path) {
-        console.log('setting path to ' + path);
+        navigationState.path = path;
+        search()
+    }
+
+    function search() {
+        let urlSearchParams = createSearchParams();
+
+        if(navigationState.q !== null && navigationState.q !== undefined && navigationState.q !== '') {
+            urlSearchParams.set('q', navigationState.q);
+        }
+        if(navigationState.path !== null && navigationState.path !== undefined && navigationState.path !== ''){
+            urlSearchParams.set('path', navigationState.path);
+        }
+        if(navigationState.genre !== null && navigationState.genre !== undefined && navigationState.genre !== '' && navigationState.genre !== 'all'){
+            urlSearchParams.set('genre', navigationState.genre);
+        }
+        if(navigationState.order !== null && navigationState.order !== undefined && navigationState.order !== ''){
+            urlSearchParams.set('order', navigationState.order);
+        }
+
         navigate({
-            search: '?path=' + path
+            search: urlSearchParams.toString()
         })
     }
 
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath}/>
-            <MediaList media={media} setPath={setPath} playMedia={playMedia}/>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate}/>
+            <MediaList media={media} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             <LoadingIndicator/>
         </div>
     )

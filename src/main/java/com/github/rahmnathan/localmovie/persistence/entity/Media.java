@@ -25,6 +25,7 @@ public class Media {
     @Enumerated(value = EnumType.STRING)
     private MediaType mediaType;
     @Lob
+    @Basic(fetch = FetchType.EAGER)
     private byte[] image;
     private String title;
     private String imdbRating;

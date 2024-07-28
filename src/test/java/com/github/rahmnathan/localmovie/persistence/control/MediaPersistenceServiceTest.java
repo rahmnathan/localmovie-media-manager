@@ -39,14 +39,14 @@ public class MediaPersistenceServiceTest {
 
     @Test
     public void getMediaFilesByParentPathTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 5, MediaOrder.TITLE);
+        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
         List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPath(mediaRequest);
         assertTrue(mediaFiles.size() > 0);
     }
 
     @Test
     public void getMediaImageTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 5, MediaOrder.TITLE);
+        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
         List<MediaFileNoPoster> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }
