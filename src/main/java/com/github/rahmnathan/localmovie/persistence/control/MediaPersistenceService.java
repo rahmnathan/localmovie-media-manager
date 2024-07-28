@@ -94,6 +94,7 @@ public class MediaPersistenceService {
         if(StringUtils.hasText(request.getQ())) {
             predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getQ())
                     .or(qMediaFile.media.title.containsIgnoreCase(request.getQ()))
+                    .or(qMediaFile.media.plot.containsIgnoreCase(request.getQ()))
                     .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
         }
 
