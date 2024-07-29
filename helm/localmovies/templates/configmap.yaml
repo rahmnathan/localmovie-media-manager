@@ -6,11 +6,13 @@ data:
  bootstrap.yml: |
   spring.application.name: localmovie-media-manager
   spring.cloud.vault:
+    enabled: true
     authentication: TOKEN
     host: vault.nathanrahm.com
     port: 443
     scheme: https
     kv:
+      enabled: true
       backend: localmovies
       default-context: localmovie-media-manager
       application-name: localmovie-media-manager
