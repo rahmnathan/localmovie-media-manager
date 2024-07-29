@@ -8,3 +8,5 @@ spring:
     authentication: TOKEN
     generic.backend: localmovies
     token: <token>
+    kv:
+      default-context: localmovie-media-manager
