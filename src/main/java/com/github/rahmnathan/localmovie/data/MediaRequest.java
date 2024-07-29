@@ -12,6 +12,6 @@ public class MediaRequest {
     private int page = 0;
     private int pageSize = 50;
     private final String order;
-    private final String q;
+    private String q;
     private final String genre;
 }

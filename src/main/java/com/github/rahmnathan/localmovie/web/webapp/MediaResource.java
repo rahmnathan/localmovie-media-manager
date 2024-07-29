@@ -3,7 +3,6 @@ package com.github.rahmnathan.localmovie.web.webapp;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -28,6 +29,7 @@ public class MediaResource {
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
+        handleDemoUser(mediaRequest);
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
@@ -82,5 +84,20 @@ public class MediaResource {
         log.info("Updating position for MediaFile id: {} position: {}", id, position);
 
         persistenceService.addView(id, position);
+    }
+
+    private void handleDemoUser(MediaRequest mediaRequest) {
+        if("demouser".equalsIgnoreCase(getUsername())) {
+            mediaRequest.setQ("Big Buck Bunny");
+        }
+    }
+
+    private String getUsername(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null){
+            return authentication.getPrincipal().toString();
+        }
+
+        return "movieuser";
     }
 }
