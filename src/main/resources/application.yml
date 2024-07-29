@@ -81,7 +81,7 @@ opentracing:
     enabled: false
 
 keycloak:
-  auth-server-url: https://localmovies.hopto.org/auth
+  auth-server-url: https://login.nathanrahm.com/auth
   public-client: true
   realm: LocalMovies
   resource: localmovie-login

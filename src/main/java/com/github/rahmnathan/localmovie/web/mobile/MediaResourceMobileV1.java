@@ -42,7 +42,7 @@ public class MediaResourceMobileV1 {
             getMediaCount(mediaRequest, response);
 
         log.info("Loading media files for mobile.");
-        List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPath(mediaRequest);
+        List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }
