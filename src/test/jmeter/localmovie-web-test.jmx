@@ -182,10 +182,10 @@
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
 	&quot;page&quot;: 0,&#xd;
-	&quot;resultsPerPage&quot;: 5,&#xd;
+	&quot;pageSize&quot;: 5,&#xd;
 	&quot;path&quot;: &quot;${path}&quot;,&#xd;
 	&quot;client&quot;: &quot;WEBAPP&quot;,&#xd;
-	&quot;order&quot;: &quot;TITLE&quot;&#xd;
+	&quot;order&quot;: &quot;title&quot;&#xd;
 }&#xd;
 </stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
