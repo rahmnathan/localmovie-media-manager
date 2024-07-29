@@ -58,12 +58,14 @@ spec:
               path: /actuator/health/liveness
               port: 8080
             initialDelaySeconds: 10
+            failureThreshold: 100
             periodSeconds: 5
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
               port: 8080
             initialDelaySeconds: 10
+            failureThreshold: 100
             periodSeconds: 5
       volumes:
         - name: media1
