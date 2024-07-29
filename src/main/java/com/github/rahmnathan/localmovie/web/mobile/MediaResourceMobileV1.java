@@ -99,7 +99,7 @@ public class MediaResourceMobileV1 {
         String username = "movieuser";
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication != null){
-            return authentication.getPrincipal().toString();
+            username = authentication.getName();
         }
 
         log.info("Username: {}", username);
