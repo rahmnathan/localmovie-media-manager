@@ -56,7 +56,9 @@ export function MainPage() {
                 },
                 body: JSON.stringify(navigationState)
             }).then(response => {
-                setTotalCount(parseInt(response.headers.get("Count")))
+                if(navigationState.page === 0) {
+                    setTotalCount(parseInt(response.headers.get("Count")))
+                }
                 return response.json()
             })
                 .then(data => {
@@ -74,7 +76,12 @@ export function MainPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(navigationState)
-            }).then(response => response.json())
+            }).then(response => {
+                if(navigationState.page === 0) {
+                    setTotalCount(parseInt(response.headers.get("Count")))
+                }
+                return response.json();
+            })
                 .then(data => {
                     setMedia(media.concat(data));
                 })
@@ -124,6 +131,7 @@ export function MainPage() {
 
     function search() {
         let urlSearchParams = createSearchParams();
+        navigationState.page = 0;
 
         if(navigationState.q !== null && navigationState.q !== undefined && navigationState.q !== '') {
             urlSearchParams.set('q', navigationState.q);

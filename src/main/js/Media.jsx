@@ -97,7 +97,7 @@ export function Media(props) {
         let plot = media.plot;
         let genre = media.genre;
 
-        let title = mediaFile.fileName.substr(0, mediaFile.fileName.length - 4);
+        let title = mediaFile.fileName.substring(0, mediaFile.fileName.length - 4);
         if(viewingVideos(mediaFile.path) && media.number != null) {
             if(media.title !== null && media.mediaType === "EPISODE"){
                 title = "#" + media.number + " - " + media.title;
