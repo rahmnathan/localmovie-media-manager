@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +36,7 @@ public class MediaResourceMobileV1 {
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
+        handleDemoUser(mediaRequest);
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
@@ -84,5 +87,23 @@ public class MediaResourceMobileV1 {
 
         log.info("Event count response. Time: {} Event Count: {}", localDateTime, eventCount);
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(eventCount));
+    }
+
+    private void handleDemoUser(MediaRequest mediaRequest) {
+        if("demouser".equalsIgnoreCase(getUsername())) {
+            mediaRequest.setQ("Big Buck Bunny");
+        }
+    }
+
+    private String getUsername(){
+        String username = "movieuser";
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null){
+            return authentication.getPrincipal().toString();
+        }
+
+        log.info("Username: {}", username);
+
+        return username;
     }
 }
