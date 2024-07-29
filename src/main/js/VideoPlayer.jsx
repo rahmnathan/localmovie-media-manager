@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import { buildPosterUri } from "./Media.jsx";
-import ReactPlayer from 'react-player'
+import ReactPlayer from 'react-player';
 import Cookies from 'universal-cookie';
 import {trackPromise} from "react-promise-tracker";
 import {useParams} from 'react-router-dom';

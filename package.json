@@ -9,16 +9,16 @@
     "react"
   ],
   "dependencies": {
-    "query-string": "9.1.0",
-    "react": "18.3.1",
+    "query-string": "8.1.0",
+    "react": "18.2.0",
     "react-transition-group": "4.4.5",
-    "react-dom": "18.3.1",
-    "react-player": "2.16.0",
-    "react-router": "6.25.1",
-    "react-router-dom": "6.25.1",
+    "react-dom": "18.2.0",
+    "react-player": "2.12.0",
+    "react-router": "6.10.0",
+    "react-router-dom": "6.10.0",
     "rest": "2.0.0",
-    "universal-cookie": "7.2.0",
-    "react-native": "1000.0.0",
+    "universal-cookie": "4.0.4",
+    "react-native": "0.71.6",
     "react-infinite-scroll-component": "^6.1.0"
   },
   "scripts": {
