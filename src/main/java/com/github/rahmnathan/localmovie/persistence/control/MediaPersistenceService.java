@@ -136,10 +136,23 @@ public class MediaPersistenceService {
             orderSpecifier = MediaOrder.lookup(request.getOrder()).getOrderSpecifier();
         }
 
-        return jpaQuery.from(qMediaFile)
+        List<String> ids = jpaQuery.from(qMediaFile)
+                .select(qMediaFile.mediaFileId)
+                .orderBy(orderSpecifier)
                 .where(predicates.toArray(new Predicate[predicates.size()]))
                 .offset((long) request.getPage() * request.getPageSize())
                 .limit(request.getPageSize())
+                .fetch();
+
+        log.info("Found {} ids", ids.size());
+
+        jpaQuery = new JPAQuery<>(entityManager);
+        qMediaFile = QMediaFile.mediaFile;
+
+        return jpaQuery.from(qMediaFile)
+                .where(qMediaFile.mediaFileId.in(ids))
+                .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
+                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
                 .orderBy(orderSpecifier)
                 .fetch();
     }

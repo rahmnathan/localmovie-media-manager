@@ -33,6 +33,7 @@ public class Media {
     private String releaseYear;
     private String actors;
     @Lob
+    @Basic(fetch = FetchType.EAGER)
     private String plot;
     private String genre;
     private Integer number;

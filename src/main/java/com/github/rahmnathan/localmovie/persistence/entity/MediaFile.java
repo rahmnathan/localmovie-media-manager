@@ -42,7 +42,7 @@ public class MediaFile implements Serializable {
     @ToString.Exclude
     private Set<MediaView> mediaViews;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn
     private com.github.rahmnathan.localmovie.persistence.entity.Media media;
 
