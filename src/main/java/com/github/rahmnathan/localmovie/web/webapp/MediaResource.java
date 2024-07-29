@@ -26,14 +26,14 @@ public class MediaResource {
     private final MediaStreamingService mediaStreamingService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFileNoPoster> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+    public List<MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
 
         if(mediaRequest.getPage() == 0)
             getMediaCount(mediaRequest.getPath(), response);
 
         log.info("Loading media files for webapp.");
-        List<MediaFileNoPoster> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }

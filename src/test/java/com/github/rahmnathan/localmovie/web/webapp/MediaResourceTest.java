@@ -39,7 +39,7 @@ public class MediaResourceTest {
 
     @Test
     public void getMediaTest() {
-        List<MediaFileNoPoster> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertTrue(mediaFileList.size() > 0);
     }
 
@@ -54,7 +54,7 @@ public class MediaResourceTest {
     @Test
     public void streamVideoTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        List<MediaFileNoPoster> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         mediaResource.streamVideo(mediaFileList.get(0).getMediaFileId(), response, new MockHttpServletRequest());
 
         assertTrue(response.getHeaderNames().contains("Content-Range"));
@@ -63,7 +63,7 @@ public class MediaResourceTest {
 
     @Test
     public void getPosterTest() {
-        List<MediaFileNoPoster> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         byte[] poster = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());
         assertNotNull(poster);
@@ -72,7 +72,7 @@ public class MediaResourceTest {
     @Test
     @Transactional
     public void addViewTest() {
-        List<MediaFileNoPoster> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         double position = 10.0;
         mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
@@ -86,7 +86,7 @@ public class MediaResourceTest {
     @Test
     @Transactional
     public void addMultipleViewsTest() {
-        List<MediaFileNoPoster> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         double position = 10.0;
         mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);

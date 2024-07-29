@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
@@ -47,7 +48,7 @@ public class MediaPersistenceServiceTest {
     @Test
     public void getMediaImageTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
-        List<MediaFileNoPoster> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }
 

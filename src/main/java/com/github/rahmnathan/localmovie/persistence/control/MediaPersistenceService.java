@@ -87,8 +87,8 @@ public class MediaPersistenceService {
         return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
-    public List<MediaFileNoPoster> getMediaFilesByParentPathNoPoster(MediaRequest request) {
-        JPAQuery<MediaFileNoPoster> jpaQuery = new JPAQuery<>(entityManager);
+    public List<MediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
+        JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
         List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
