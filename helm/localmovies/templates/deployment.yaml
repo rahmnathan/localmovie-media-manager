@@ -90,8 +90,8 @@ spec:
           configMap:
             name: localmovies
             items:
-              - key: application.yml
-                path: application.yml
+              - key: bootstrap.yml
+                path: bootstrap.yml
         - name: secrets
           secret:
             # Create this secret via: kubectl create secret generic localmovie-firebase-key --from-file=localmovie-firebase-key.json
