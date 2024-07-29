@@ -1,4 +1,3 @@
-endpoints.prometheus.enabled: true
 logging:
   pattern.level: "correlation-id=%X{x-correlation-id} client-address=%X{client-address}"
   level:
@@ -25,6 +24,23 @@ service:
       value: 30
     updateLimit: 201
 spring:
+  application:
+    name: localmovie-media-manager
+  cloud:
+    vault:
+      kv:
+        enabled: true
+        backend: localmovies
+        default-context: localmovie-media-manager
+        application-name: localmovie-media-manager
+      authentication: KUBERNETES
+      kubernetes:
+        role: localmovies
+        kubernetes-path: kubernetes
+        service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      uri: https://vault.nathanrahm.com
+      connection-timeout: 5000
+      read-timeout: 15000
   datasource:
     password: pw123
     url: "jdbc:postgresql://localhost:5432/localmovies"
