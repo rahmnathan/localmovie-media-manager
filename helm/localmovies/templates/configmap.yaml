@@ -8,9 +8,9 @@ data:
   spring.cloud.vault:
     enabled: true
     authentication: TOKEN
-    host: vault.nathanrahm.com
-    port: 443
-    scheme: https
+    host: vault.vault.svc.cluster.local
+    port: 8200
+    scheme: http
     kv:
       enabled: true
       backend: localmovies
