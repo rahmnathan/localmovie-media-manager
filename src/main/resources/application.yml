@@ -2,6 +2,7 @@ logging:
   pattern.level: "correlation-id=%X{x-correlation-id} client-address=%X{client-address}"
   level:
     com.github.rahmnathan: info
+    org.springframework.cloud: debug
 
 server:
   port: 8080
