@@ -95,7 +95,7 @@ public class MediaResource {
     private String getUsername(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication != null){
-            return authentication.getPrincipal().toString();
+            return authentication.getName();
         }
 
         return "movieuser";
