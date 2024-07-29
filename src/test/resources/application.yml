@@ -21,6 +21,11 @@ service:
     updateFrequencyDays: 4
     updateLimit: 201
 spring:
+  cloud:
+    vault:
+      enabled: false
+      kv:
+        enabled: false
   datasource:
     password:
     url: "jdbc:h2:mem:AZ;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"

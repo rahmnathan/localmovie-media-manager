@@ -7,5 +7,6 @@ data:
   spring:
     cloud:
       vault:
+        enabled: true
         kv:
           enabled: true
