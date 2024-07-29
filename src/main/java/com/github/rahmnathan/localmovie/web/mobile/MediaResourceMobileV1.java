@@ -69,6 +69,10 @@ public class MediaResourceMobileV1 {
         if(pageable.isPaged() && pageable.getPageNumber() == 0)
             countEvents(epoch, response);
 
+        if(isDemoUser()) {
+            return List.of();
+        }
+
         List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
 
         log.info("Events response. Time: {} EventList: {}", localDateTime, events);
@@ -83,16 +87,23 @@ public class MediaResourceMobileV1 {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
         log.info("Request for event count since: {}", localDateTime);
 
-        long eventCount = persistenceService.getMediaFileEventCount(localDateTime);
+        long eventCount = 0;
+        if(!isDemoUser()) {
+            eventCount = persistenceService.getMediaFileEventCount(localDateTime);
+        }
 
         log.info("Event count response. Time: {} Event Count: {}", localDateTime, eventCount);
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(eventCount));
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {
-        if("demouser".equalsIgnoreCase(getUsername()) || "67b9e1d6-e817-45b6-b532-bc626e642faa".equalsIgnoreCase(getUsername())) {
+        if(isDemoUser()) {
             mediaRequest.setQ("Big Buck Bunny");
         }
+    }
+
+    private boolean isDemoUser() {
+        return "demouser".equalsIgnoreCase(getUsername()) || "67b9e1d6-e817-45b6-b532-bc626e642faa".equalsIgnoreCase(getUsername());
     }
 
     private String getUsername(){
