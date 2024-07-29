@@ -29,14 +29,14 @@ spring:
   cloud:
     vault:
       kv:
-        enabled: true
+        enabled: false
         backend: localmovies
         default-context: localmovie-media-manager
         application-name: localmovie-media-manager
       authentication: KUBERNETES
       kubernetes:
         role: localmovies
-        kubernetes-path: kubernetes
+#        kubernetes-path: kubernetes
         service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
       uri: https://vault.nathanrahm.com
       connection-timeout: 5000

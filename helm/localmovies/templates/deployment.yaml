@@ -86,12 +86,12 @@ spec:
           nfs:
             server: 10.0.0.195
             path: /LocalMedia5
-#        - name: application-config
-#          configMap:
-#            name: localmovies
-#            items:
-#              - key: bootstrap.properties
-#                path: bootstrap.properties
+        - name: application-config
+          configMap:
+            name: localmovies
+            items:
+              - key: application.yml
+                path: application.yml
         - name: secrets
           secret:
             # Create this secret via: kubectl create secret generic localmovie-firebase-key --from-file=localmovie-firebase-key.json

@@ -1,10 +1,11 @@
-#apiVersion: v1
-#kind: ConfigMap
-#metadata:
-# name: localmovies
-#data:
-# application.yml: |
-#  spring:
-#    cloud:
-#      vault:
-#        token: {{ .Values.localmovies.vaultToken }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: localmovies
+data:
+ application.yml: |
+  spring:
+    cloud:
+      vault:
+        kv:
+          enabled: true
