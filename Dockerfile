@@ -1,4 +1,4 @@
-FROM openjdk:17-slim
+FROM eclipse-temurin:21-jre
 
 RUN groupadd localmovie && useradd localmovie -g localmovie && mkdir -p /opt/localmovie/config
 
