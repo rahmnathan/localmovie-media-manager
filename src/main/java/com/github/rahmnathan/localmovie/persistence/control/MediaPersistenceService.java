@@ -9,6 +9,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +37,8 @@ public class MediaPersistenceService {
     private final MediaFileRepository fileRepository;
     private final MediaUserRepository userRepository;
     private final MediaRepository mediaRepository;
+
+    @PersistenceContext
     private final EntityManager entityManager;
 
     public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileByPath(String path) {
