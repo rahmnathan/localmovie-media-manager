@@ -90,6 +90,28 @@ public class MediaPersistenceService {
         return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
+    public long count(MediaRequest request) {
+        JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
+        QMediaFile qMediaFile = QMediaFile.mediaFile;
+
+        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        predicates.add(qMediaFile.parentPath.eq(request.getPath()));
+
+        if(StringUtils.hasText(request.getGenre())){
+            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getGenre()));
+        }
+
+        if(StringUtils.hasText(request.getQ())) {
+            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getQ())
+                    .or(qMediaFile.media.title.containsIgnoreCase(request.getQ()))
+                    .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
+        }
+
+        return jpaQuery.from(qMediaFile)
+                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .fetchCount();
+    }
+
     public List<MediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;

@@ -58,7 +58,7 @@ public class MediaResourceMobileV1Test {
     @Test
     public void getMediaCountTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        mediaResource.getMediaCount("Movies", response);
+        mediaResource.getMediaCount(buildRequest(), response);
 
         assertTrue(response.getHeaderNames().contains("Count"));
     }

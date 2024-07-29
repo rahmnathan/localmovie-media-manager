@@ -32,7 +32,7 @@ public class MediaResource {
         handleDemoUser(mediaRequest);
 
         if(mediaRequest.getPage() == 0)
-            getMediaCount(mediaRequest.getPath(), response);
+            getMediaCount(mediaRequest, response);
 
         log.info("Loading media files for webapp.");
         List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
@@ -46,11 +46,11 @@ public class MediaResource {
         return persistenceService.getMediaFileByIdWithViews(mediaFileId);
     }
 
-    @GetMapping(value = "/count")
-    public void getMediaCount(@RequestParam(value = "path") String path, HttpServletResponse response){
-        log.info("Received count request for path - {}", path);
+    @PostMapping(value = "/count")
+    public void getMediaCount(@RequestBody MediaRequest mediaRequest, HttpServletResponse response){
+        log.info("Received count request: {}", mediaRequest);
 
-        long count = persistenceService.countMediaFiles(path);
+        long count = persistenceService.count(mediaRequest);
 
         log.info("Returning count of - {}", count);
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
