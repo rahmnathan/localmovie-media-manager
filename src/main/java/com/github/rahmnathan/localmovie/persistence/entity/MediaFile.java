@@ -38,11 +38,11 @@ public class MediaFile implements Serializable {
     private String mediaFileId;
     private String absolutePath;
 
-    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
     private Set<MediaView> mediaViews;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn
     private com.github.rahmnathan.localmovie.persistence.entity.Media media;
 

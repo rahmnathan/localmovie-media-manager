@@ -12,7 +12,7 @@ const layoutProps = {
 const navigationState = {
     path: 'Movies',
     genre: '',
-    order: 'TITLE',
+    order: 'title',
     client: 'WEBAPP',
     q: '',
     page: 0,

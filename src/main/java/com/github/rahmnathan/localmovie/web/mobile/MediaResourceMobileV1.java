@@ -1,8 +1,8 @@
 package com.github.rahmnathan.localmovie.web.mobile;
 
+import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ public class MediaResourceMobileV1 {
     }
 
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+    public List<MediaFileDto> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
         handleDemoUser(mediaRequest);
 
@@ -42,7 +42,7 @@ public class MediaResourceMobileV1 {
             getMediaCount(mediaRequest, response);
 
         log.info("Loading media files for mobile.");
-        List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFileDto> mediaFiles = persistenceService.getMediaFiles(mediaRequest, true);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }

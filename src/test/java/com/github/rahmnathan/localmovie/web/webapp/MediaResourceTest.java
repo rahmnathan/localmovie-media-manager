@@ -1,11 +1,9 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
-import com.github.rahmnathan.localmovie.data.MediaOrder;
+import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
-import com.github.rahmnathan.localmovie.web.webapp.MediaResource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +37,7 @@ public class MediaResourceTest {
 
     @Test
     public void getMediaTest() {
-        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertTrue(mediaFileList.size() > 0);
     }
 
@@ -54,7 +52,7 @@ public class MediaResourceTest {
     @Test
     public void streamVideoTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         mediaResource.streamVideo(mediaFileList.get(0).getMediaFileId(), response, new MockHttpServletRequest());
 
         assertTrue(response.getHeaderNames().contains("Content-Range"));
@@ -63,7 +61,7 @@ public class MediaResourceTest {
 
     @Test
     public void getPosterTest() {
-        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         byte[] poster = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());
         assertNotNull(poster);
@@ -72,7 +70,7 @@ public class MediaResourceTest {
     @Test
     @Transactional
     public void addViewTest() {
-        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         double position = 10.0;
         mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
@@ -86,7 +84,7 @@ public class MediaResourceTest {
     @Test
     @Transactional
     public void addMultipleViewsTest() {
-        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         double position = 10.0;
         mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);

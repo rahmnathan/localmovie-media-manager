@@ -5,6 +5,7 @@ import com.github.rahmnathan.localmovie.control.MediaService;
 import com.github.rahmnathan.localmovie.data.Duration;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaImageRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import io.micrometer.core.annotation.Timed;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_
 public class MediaRepositoryMonitor {
     private final MediaFileRepository mediaFileRepository;
     private final MediaRepository mediaRepository;
+    private final MediaImageRepository mediaImageRepository;
     private final MediaService mediaService;
     private final ServiceConfig serviceConfig;
 
@@ -46,7 +48,7 @@ public class MediaRepositoryMonitor {
                 .forEach(mediaFile -> {
                     log.info("Updating media at path: {}", mediaFile.getPath());
                     Media newMedia = mediaService.loadNewMedia(mediaFile.getPath());
-                    if(newMedia.getImage() != null && newMedia.getImage().length > 0) {
+                    if(newMedia.getImage() != null && newMedia.getImage().getImage() != null && newMedia.getImage().getImage().length > 0) {
                         Media oldMedia = mediaFile.getMedia();
                         oldMedia.setMediaFile(null);
                         mediaRepository.delete(oldMedia);

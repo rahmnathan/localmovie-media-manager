@@ -1,9 +1,8 @@
 package com.github.rahmnathan.localmovie.web.mobile;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
-import com.github.rahmnathan.localmovie.data.MediaOrder;
+import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +50,7 @@ public class MediaResourceMobileV1Test {
 
     @Test
     public void getMediaTest() {
-        List<MediaFile> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertTrue(mediaFileList.size() > 0);
     }
 

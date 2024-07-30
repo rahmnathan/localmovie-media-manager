@@ -23,9 +23,9 @@ public class MediaView {
 
     private Double position;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private MediaFile mediaFile;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private MediaUser mediaUser;
 
     private LocalDateTime created;

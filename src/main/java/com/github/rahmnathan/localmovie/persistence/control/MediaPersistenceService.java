@@ -1,5 +1,7 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
+import com.github.rahmnathan.localmovie.data.MediaFileDto;
+import com.github.rahmnathan.localmovie.data.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
@@ -12,9 +14,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class MediaPersistenceService {
     private final MediaViewRepository mediaViewRepository;
     private final MediaFileRepository fileRepository;
     private final MediaUserRepository userRepository;
-    private final MediaRepository mediaRepository;
+    private final MediaImageRepository mediaImageRepository;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -65,29 +65,15 @@ public class MediaPersistenceService {
     }
 
     public byte[] getMediaImage(String path){
-        return mediaRepository.getImageByPath(path);
+        return mediaImageRepository.getImageByPath(path);
     }
 
     public byte[] getMediaImageById(String id){
-        return fileRepository.getImageById(id);
+        return mediaImageRepository.getImageById(id);
     }
 
     public boolean existsByPath(String path){
         return fileRepository.existsByPath(path);
-    }
-
-    public List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFilesByParentPath(MediaRequest request) {
-        Sort.Order order;
-        if (request.getPath().split(File.separator).length > 1) {
-            order = Sort.Order.asc("media.number");
-        } else {
-            order = Sort.Order.asc("fileName");
-        }
-
-        Sort sort = Sort.by(order);
-
-        Pageable pageable = PageRequest.of(request.getPage(), request.getPageSize(), sort);
-        return fileRepository.findAllByParentPath(request.getPath(), getUsername(), pageable);
     }
 
     public long count(MediaRequest request) {
@@ -112,7 +98,13 @@ public class MediaPersistenceService {
                 .fetchCount();
     }
 
-    public List<MediaFile> getMediaFilesByParentPathNoPoster(MediaRequest request) {
+    public List<MediaFileDto> getMediaFiles(MediaRequest request, boolean includePoster) {
+        return getMediaFiles(request).stream()
+                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, includePoster))
+                .toList();
+    }
+
+    public List<MediaFile> getMediaFiles(MediaRequest request) {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
@@ -187,10 +179,6 @@ public class MediaPersistenceService {
 
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {
         return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime, pageable);
-    }
-
-    public long countMediaFiles(String path){
-        return fileRepository.countAllByParentPath(path);
     }
 
     private String getUsername(){

@@ -1,11 +1,9 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
-import com.github.rahmnathan.localmovie.data.MediaOrder;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileNoPoster;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +37,9 @@ public class MediaPersistenceServiceTest {
     }
 
     @Test
-    public void getMediaFilesByParentPathTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
-        List<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPath(mediaRequest);
-        assertTrue(mediaFiles.size() > 0);
-    }
-
-    @Test
     public void getMediaImageTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
-        List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFiles(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }
 
@@ -59,7 +50,7 @@ public class MediaPersistenceServiceTest {
     }
 
     @Test
-    public void getMediaFilesByParentPathNoPosterTest() {
+    public void getMediaFilesTest() {
         byte[] outputImage = mediaPersistenceService.getMediaImage("Movies/300.mkv");
         assertNotNull(outputImage);
     }

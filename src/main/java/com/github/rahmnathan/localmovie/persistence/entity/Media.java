@@ -24,9 +24,8 @@ public class Media {
 
     @Enumerated(value = EnumType.STRING)
     private MediaType mediaType;
-    @Lob
-    @Basic(fetch = FetchType.EAGER)
-    private byte[] image;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private MediaImage image;
     private String title;
     private String imdbRating;
     private String metaRating;
@@ -69,7 +68,7 @@ public class Media {
         return "Media{" +
                 "id=" + id +
                 ", mediaType=" + mediaType +
-                ", image='" + (image.length != 0) + '\'' +
+                ", image='" + (image != null && image.getImage() != null && image.getImage().length != 0) + '\'' +
                 ", title='" + title + '\'' +
                 ", imdbRating='" + imdbRating + '\'' +
                 ", metaRating='" + metaRating + '\'' +
@@ -88,7 +87,7 @@ public class Media {
         resultMedia.actors = inputMedia.getActors();
         resultMedia.genre = inputMedia.getGenre();
         String inputImage = inputMedia.getImage();
-        resultMedia.image = StringUtils.isEmpty(inputImage) ? new byte[0] : Base64.getDecoder().decode(inputImage);
+        resultMedia.image = new MediaImage(StringUtils.isEmpty(inputImage) ? new byte[0] : Base64.getDecoder().decode(inputImage), resultMedia);
         resultMedia.imdbRating = inputMedia.getImdbRating();
         resultMedia.metaRating = inputMedia.getMetaRating();
         resultMedia.mediaType = inputMedia.getMediaType();
@@ -108,7 +107,7 @@ public class Media {
                 .mediaType(this.mediaType)
                 .metaRating(this.metaRating)
                 .imdbRating(this.imdbRating)
-                .image(Objects.isNull(this.image) ? null : Base64.getEncoder().encodeToString(this.image))
+                .image(Objects.isNull(this.image) || Objects.isNull(this.image.getImage()) ? null : Base64.getEncoder().encodeToString(this.image.getImage()))
                 .genre(this.genre)
                 .actors(this.actors)
                 .build();

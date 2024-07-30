@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
+import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
@@ -27,7 +28,7 @@ public class MediaResource {
     private final MediaStreamingService mediaStreamingService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFile> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+    public List<MediaFileDto> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
         handleDemoUser(mediaRequest);
 
@@ -35,7 +36,7 @@ public class MediaResource {
             getMediaCount(mediaRequest, response);
 
         log.info("Loading media files for webapp.");
-        List<MediaFile> mediaFiles = persistenceService.getMediaFilesByParentPathNoPoster(mediaRequest);
+        List<MediaFileDto> mediaFiles = persistenceService.getMediaFiles(mediaRequest, false);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }

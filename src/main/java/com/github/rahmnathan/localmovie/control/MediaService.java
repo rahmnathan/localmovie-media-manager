@@ -35,6 +35,7 @@ public class MediaService {
         return loadNewMedia(path);
     }
 
+    @Transactional
     public Media loadNewMedia(String path) {
         try {
             if (isTopLevel(path) || isEpisode(path)) {
