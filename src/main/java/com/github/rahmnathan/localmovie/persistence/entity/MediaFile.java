@@ -19,10 +19,14 @@ import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.R
 @Setter
 @RequiredArgsConstructor
 @Entity
-@Table(indexes = {
-        @Index(name = "idx_media_file_path", columnList = "path", unique = true),
-        @Index(name = "idx_media_file_parent_path", columnList = "parentPath")
-})
+@Table(
+        indexes = {
+                @Index(name = "idx_media_file_path", columnList = "path", unique = true),
+                @Index(name = "idx_media_file_parent_path", columnList = "parentPath")},
+        uniqueConstraints = {
+                @UniqueConstraint(name = "media_file_id_constraint", columnNames = {"media_file_id"})
+        }
+)
 public class MediaFile implements Serializable {
 
     @Id

@@ -75,7 +75,7 @@ public class MediaResourceTest {
         double position = 10.0;
         mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
 
-        Optional<MediaFile> mediaOptional = mediaResource.getMedia(mediaFileList.get(0).getMediaFileId());
+        Optional<MediaFileDto> mediaOptional = mediaResource.getMedia(mediaFileList.get(0).getMediaFileId());
 
         assertTrue(mediaOptional.isPresent());
         assertEquals(position, mediaOptional.get().getMediaViews().iterator().next().getPosition());
@@ -91,7 +91,7 @@ public class MediaResourceTest {
         position += 10;
         mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
 
-        Optional<MediaFile> mediaOptional = mediaResource.getMedia(mediaFileList.get(0).getMediaFileId());
+        Optional<MediaFileDto> mediaOptional = mediaResource.getMedia(mediaFileList.get(0).getMediaFileId());
 
         assertTrue(mediaOptional.isPresent());
         assertEquals(position, mediaOptional.get().getMediaViews().iterator().next().getPosition());

@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -20,7 +22,7 @@ public class MediaImage {
     @SequenceGenerator(name="media_image_sequence_generator", sequenceName="MEDIA_IMAGE_SEQUENCE")
     private Long id;
 
-    @Lob
+    @JdbcTypeCode(Types.BINARY)
     private byte[] image;
 
     private LocalDateTime created;

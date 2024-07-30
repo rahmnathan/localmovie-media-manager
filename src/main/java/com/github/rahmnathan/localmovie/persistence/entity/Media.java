@@ -5,8 +5,10 @@ import com.github.rahmnathan.omdb.data.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.springframework.util.StringUtils;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Objects;
@@ -32,8 +34,7 @@ public class Media {
     private String metaRating;
     private String releaseYear;
     private String actors;
-    @Lob
-    @Basic(fetch = FetchType.EAGER)
+    @JdbcTypeCode(Types.LONGNVARCHAR)
     private String plot;
     private String genre;
     private Integer number;

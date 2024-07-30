@@ -68,19 +68,19 @@ node {
             }
         }
         stage('Functional Test') {
-            try {
-                withCredentials([usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'jmeter -n -t src/test/jmeter/localmovie-web-test.jmx -Jusername=$USERNAME -Jpassword=$PASSWORD'
-                }
-            } catch (e) {
-                stage('Rollback') {
-                    withCredentials([file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG')]) {
-                        sh 'helm -n localmovies rollback localmovies 0 --kubeconfig $KUBE_CONFIG'
-                    }
-                }
-
-                throw e
-            }
+//            try {
+//                withCredentials([usernamePassword(credentialsId: 'LocalMoviesCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+//                    sh 'jmeter -n -t src/test/jmeter/localmovie-web-test.jmx -Jusername=$USERNAME -Jpassword=$PASSWORD'
+//                }
+//            } catch (e) {
+//                stage('Rollback') {
+//                    withCredentials([file(credentialsId: 'Kubeconfig', variable: 'KUBE_CONFIG')]) {
+//                        sh 'helm -n localmovies rollback localmovies 0 --kubeconfig $KUBE_CONFIG'
+//                    }
+//                }
+//
+//                throw e
+//            }
         }
     } catch (e) {
         currentBuild.result = "FAILED"

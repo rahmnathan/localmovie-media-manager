@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
+import com.github.rahmnathan.localmovie.data.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
@@ -42,9 +43,10 @@ public class MediaResource {
     }
 
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
-    public Optional<MediaFile> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
+    public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received media request for id - {}", mediaFileId);
-        return persistenceService.getMediaFileByIdWithViews(mediaFileId);
+        return persistenceService.getMediaFileByIdWithViews(mediaFileId)
+                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, false));
     }
 
     @PostMapping(value = "/count")

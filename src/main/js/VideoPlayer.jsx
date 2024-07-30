@@ -53,12 +53,12 @@ export function VideoPlayer() {
             }).then(response => response.json())
                 .then(media => setMediaFile(media))
         )
-    });
+    }, []);
 
     function saveProgress(content) {
-        cookies.set('progress-' + mediaFile.mediaFileId, content.playedSeconds, {sameSite: 'strict'});
+        cookies.set('progress-' + mediaId, content.playedSeconds, {sameSite: 'strict'});
 
-        fetch('/localmovie/v1/media/' + mediaFile.mediaFileId + '/position/' + content.playedSeconds, {
+        fetch('/localmovie/v1/media/' + mediaId + '/position/' + content.playedSeconds, {
             method: 'PATCH',
             headers: {
                 'Accept': 'application/json',
@@ -69,6 +69,8 @@ export function VideoPlayer() {
 
     function buildVideoPath(mediaFileId) {
         let startPosition = 0;
+
+        // pull start position from mediaView? (if it exists)
 
         return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + startPosition;
     }
