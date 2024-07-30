@@ -24,7 +24,8 @@ public class Media {
 
     @Enumerated(value = EnumType.STRING)
     private MediaType mediaType;
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private MediaImage image;
     private String title;
     private String imdbRating;

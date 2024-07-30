@@ -26,7 +26,7 @@ public class MediaImage {
     private LocalDateTime created;
     private LocalDateTime updated;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private Media media;
 
     public MediaImage(byte[] image, Media media) {
