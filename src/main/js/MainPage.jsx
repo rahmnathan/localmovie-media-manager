@@ -22,9 +22,9 @@ const navigationState = {
 export function MainPage() {
 
     const [media, setMedia] = React.useState([]);
-    const [totalCount, setTotalCount] = React.useState(0)
-
     const [searchParams] = useSearchParams();
+
+    let totalCount = 0;
 
     useEffect(() => {
 
@@ -43,8 +43,7 @@ export function MainPage() {
         navigationState.q = q;
 
         loadMedia();
-
-    }, [searchParams]);
+    }, []);
 
     function loadMedia() {
         trackPromise(
@@ -57,7 +56,7 @@ export function MainPage() {
                 body: JSON.stringify(navigationState)
             }).then(response => {
                 if(navigationState.page === 0) {
-                    setTotalCount(parseInt(response.headers.get("Count")))
+                    totalCount = parseInt(response.headers.get("Count"))
                 }
                 return response.json()
             })
@@ -78,7 +77,7 @@ export function MainPage() {
                 body: JSON.stringify(navigationState)
             }).then(response => {
                 if(navigationState.page === 0) {
-                    setTotalCount(parseInt(response.headers.get("Count")))
+                    totalCount = parseInt(response.headers.get("Count"))
                 }
                 return response.json();
             })
