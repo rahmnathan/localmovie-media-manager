@@ -43,7 +43,7 @@ export function MainPage() {
         navigationState.q = q;
 
         loadMedia();
-    }, []);
+    }, [searchParams]);
 
     function loadMedia() {
         trackPromise(
