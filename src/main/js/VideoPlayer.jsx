@@ -4,6 +4,7 @@ import ReactPlayer from 'react-player';
 import Cookies from 'universal-cookie';
 import {trackPromise} from "react-promise-tracker";
 import {useParams} from 'react-router-dom';
+import {Description, Dialog, DialogPanel, DialogTitle} from "@headlessui/react";
 
 const videoBaseUri = '/localmovie/v1/media/';
 
@@ -38,9 +39,25 @@ const videoPlayerStyle = {
     textAlign: 'center'
 };
 
+const dialogStyle = {
+    position: 'absolute',
+    width: '80%',
+    height: '80%',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    textAlign: 'center',
+    background: 'rgba(0, 0, 0, 0.7)',
+    color: 'rgb(220,220,220)'
+};
+
 export function VideoPlayer() {
 
     const [mediaFile, setMediaFile] = React.useState(null);
+    const [prompted, setPrompted] = React.useState(false);
+    const [resumePlayback, setResumePlayback] = React.useState(false);
+    const [canResumePlayback, setCanResumePlayback] = React.useState(false);
+    const [url, setUrl] = React.useState('');
     let { mediaId } = useParams();
 
     useEffect(() => {
@@ -55,36 +72,78 @@ export function VideoPlayer() {
         )
     }, []);
 
+    useEffect(() => {
+        if (mediaFile === null || mediaFile === undefined) return;
+
+        let startPosition = 0;
+
+        if (canResumePlayback && resumePlayback) {
+            let mediaView = mediaFile.mediaViews[0];
+            let position = mediaView.position;
+            startPosition = position;
+
+            console.log("position: " + position);
+        }
+
+        setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4#t=" + startPosition);
+    }, [resumePlayback, mediaFile]);
+
+    useEffect(() => {
+        if (mediaFile === null || mediaFile === undefined) return;
+
+        let mediaViews = mediaFile.mediaViews;
+        if(mediaViews !== null && mediaViews !== undefined && mediaViews.length !== 0) {
+            let mediaView = mediaViews[0];
+            let position = mediaView.position;
+            setCanResumePlayback(parseFloat(position) > 0)
+        }
+    }, [mediaFile]);
+
     function saveProgress(content) {
         cookies.set('progress-' + mediaId, content.playedSeconds, {sameSite: 'strict'});
 
-        fetch('/localmovie/v1/media/' + mediaId + '/position/' + content.playedSeconds, {
-            method: 'PATCH',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
-        })
+        if(content.playedSeconds > 0) {
+            fetch('/localmovie/v1/media/' + mediaId + '/position/' + content.playedSeconds, {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
+        }
     }
 
-    function buildVideoPath(mediaFileId) {
-        let startPosition = 0;
-
-        // pull start position from mediaView? (if it exists)
-
-        return videoBaseUri + encodeURIComponent(mediaFileId) + "/stream.mp4#t=" + startPosition;
+    if(mediaFile !== null && mediaFile !== undefined) {
+        return (
+            <div style={videoPlayerStyle}>
+                <Dialog open={!prompted && canResumePlayback}
+                        onClose={() => setPrompted(true)}
+                        style={dialogStyle}>
+                    <div>
+                        <DialogPanel>
+                            <DialogTitle>Resume?</DialogTitle>
+                            <Description>Pick up from where you left off, or start from the beginning!</Description>
+                            <div>
+                                <button onClick={() => {
+                                            setResumePlayback(false)
+                                            setPrompted(true)}}
+                                        style={{marginRight: 5}}>Play</button>
+                                <button onClick={() => {
+                                            setResumePlayback(true)
+                                            setPrompted(true)}}>Resume</button>
+                            </div>
+                        </DialogPanel>
+                    </div>
+                </Dialog>
+                <ReactPlayer
+                    url={url}
+                    config={{file: {attributes: {poster: buildPosterUri(mediaId)}}}}
+                    controls={true}
+                    width={'100%'}
+                    height={'100%'}
+                    onProgress={saveProgress}/>
+                <div style={backgroundTintStyle}/>
+            </div>
+        )
     }
-
-    return (
-        <div style={videoPlayerStyle}>
-            <ReactPlayer
-                url={buildVideoPath(mediaId)}
-                config={{file: {attributes: {poster: buildPosterUri(mediaId)}}}}
-                controls={true}
-                width={'100%'}
-                height={'100%'}
-                onProgress={saveProgress}/>
-            <div style={backgroundTintStyle}/>
-        </div>
-    );
 }

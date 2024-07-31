@@ -51,7 +51,6 @@ public class MediaFile implements Serializable {
     private com.github.rahmnathan.localmovie.persistence.entity.Media media;
 
     @Version
-    @JsonIgnore
     private long version;
 
     @PrePersist

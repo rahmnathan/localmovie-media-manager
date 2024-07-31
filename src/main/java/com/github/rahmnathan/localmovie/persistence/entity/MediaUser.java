@@ -47,7 +47,6 @@ public class MediaUser {
         updated = LocalDateTime.now();
     }
 
-    @JsonIgnore
     public Collection<MediaView> getMediaView() {
         return mediaView;
     }

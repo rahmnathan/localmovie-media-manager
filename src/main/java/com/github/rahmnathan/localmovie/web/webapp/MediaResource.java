@@ -4,7 +4,6 @@ import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +41,29 @@ public class MediaResource {
         return mediaFiles;
     }
 
+    @PostMapping(value = "/history", produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public List<MediaFileDto> getMediaHistory(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+        log.info("Received history request: {}", mediaRequest.toString());
+        handleDemoUser(mediaRequest);
+
+        if(mediaRequest.getPage() == 0)
+            getMediaHistoryCount(response);
+
+        log.info("Loading history media files for webapp.");
+        List<MediaFileDto> mediaFiles = persistenceService.getMediaHistory(mediaRequest, false);
+        log.info("Returning history media list. Size: {}", mediaFiles.size());
+        return mediaFiles;
+    }
+
+    @PostMapping(value = "/history/count")
+    public void getMediaHistoryCount(HttpServletResponse response){
+
+        long count = persistenceService.countHistory();
+
+        log.info("Returning history count of - {}", count);
+        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
+    }
+
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received media request for id - {}", mediaFileId);
@@ -65,14 +87,14 @@ public class MediaResource {
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
         log.info("Received streaming request - {}", mediaFileId);
 
-        Optional<MediaFile> mediaFileOptional = persistenceService.getMediaFileById(mediaFileId);
-        if(mediaFileOptional.isEmpty()){
+        Optional<String> mediaFilePath = persistenceService.getMediaFilePathById(mediaFileId);
+        if(mediaFilePath.isEmpty()){
             log.warn("Media file not found for id.");
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return;
         }
 
-        mediaStreamingService.streamMediaFile(mediaFileOptional.get(), request, response);
+        mediaStreamingService.streamMediaFile(mediaFilePath.get(), request, response);
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")

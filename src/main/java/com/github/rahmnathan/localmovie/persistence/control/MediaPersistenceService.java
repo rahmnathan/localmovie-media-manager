@@ -41,7 +41,7 @@ public class MediaPersistenceService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileByPath(String path) {
+    public Optional<MediaFile> getMediaFileByPath(String path) {
         return fileRepository.findByPath(path);
     }
 
@@ -56,11 +56,11 @@ public class MediaPersistenceService {
         fileRepository.deleteByPath(path);
     }
 
-    public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileById(String id) {
-        return fileRepository.findByMediaFileId(id);
+    public Optional<String> getMediaFilePathById(String id) {
+        return fileRepository.getAbsolutePathById(id);
     }
 
-    public Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> getMediaFileByIdWithViews(String id) {
+    public Optional<MediaFile> getMediaFileByIdWithViews(String id) {
         return fileRepository.findByIdWithViews(id, getUsername());
     }
 
@@ -74,6 +74,54 @@ public class MediaPersistenceService {
 
     public boolean existsByPath(String path){
         return fileRepository.existsByPath(path);
+    }
+
+    public List<MediaFileDto> getMediaHistory(MediaRequest request, boolean includePoster) {
+        return getHistory(request).stream()
+                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, includePoster))
+                .toList();
+    }
+
+    public long countHistory() {
+        JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
+        QMediaFile qMediaFile = QMediaFile.mediaFile;
+
+        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
+
+        return jpaQuery.from(qMediaFile)
+                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .fetchCount();
+    }
+
+    public List<MediaFile> getHistory(MediaRequest request) {
+        JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
+        QMediaFile qMediaFile = QMediaFile.mediaFile;
+
+        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
+
+        OrderSpecifier orderSpecifier = qMediaFile.mediaViews.any().updated.asc();
+
+        List<String> ids = jpaQuery.from(qMediaFile)
+                .select(qMediaFile.mediaFileId)
+                .orderBy(orderSpecifier)
+                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .offset((long) request.getPage() * request.getPageSize())
+                .limit(request.getPageSize())
+                .fetch();
+
+        log.info("Found {} ids", ids.size());
+
+        jpaQuery = new JPAQuery<>(entityManager);
+        qMediaFile = QMediaFile.mediaFile;
+
+        return jpaQuery.from(qMediaFile)
+                .where(qMediaFile.mediaFileId.in(ids))
+                .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
+                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
+                .orderBy(orderSpecifier)
+                .fetch();
     }
 
     public long count(MediaRequest request) {
@@ -152,10 +200,10 @@ public class MediaPersistenceService {
     @Transactional
     public void addView(String id, Double position) {
 
-        Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
+        Optional<MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
         if(mediaFileOptional.isEmpty()) return;
 
-        com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = mediaFileOptional.get();
+        MediaFile mediaFile = mediaFileOptional.get();
         String userName = getUsername();
         log.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
         if(mediaFile.getMediaViews().isEmpty()){

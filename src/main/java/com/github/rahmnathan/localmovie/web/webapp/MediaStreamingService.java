@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,11 +23,11 @@ public class MediaStreamingService {
     private final AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active", new AtomicInteger(0));
 
     @Timed(value = "media_stream", longTask = true)
-    public void streamMediaFile(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
+    public void streamMediaFile(String path, HttpServletRequest request, HttpServletResponse response) {
         if (response == null || request == null)
             return;
 
-        Path file = Paths.get(mediaFile.getAbsolutePath());
+        Path file = Paths.get(path);
 
         long totalBytes = 0L;
         try {

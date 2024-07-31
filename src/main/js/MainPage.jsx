@@ -23,6 +23,11 @@ export function MainPage() {
 
     const [media, setMedia] = React.useState([]);
     const [searchParams] = useSearchParams();
+    let url = 'media';
+
+    let urls = new Map()
+    urls.set('history', '/localmovie/v1/media/history')
+    urls.set('media', '/localmovie/v1/media')
 
     let totalCount = 0;
 
@@ -47,7 +52,7 @@ export function MainPage() {
 
     function loadMedia() {
         trackPromise(
-            fetch('/localmovie/v1/media', {
+            fetch(urls.get(url), {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -68,7 +73,7 @@ export function MainPage() {
 
     function loadMoreMedia() {
         trackPromise(
-            fetch('/localmovie/v1/media', {
+            fetch(urls.get(url), {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -123,8 +128,14 @@ export function MainPage() {
         search()
     }
 
+    function switchUrl(newUrl) {
+        url = newUrl;
+        loadMedia()
+    }
+
     function setPath(path) {
         navigationState.path = path;
+        url = 'media';
         search()
     }
 
@@ -152,7 +163,7 @@ export function MainPage() {
 
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate}/>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate} switchUrl={switchUrl}/>
             <MediaList media={media} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             <LoadingIndicator/>
         </div>

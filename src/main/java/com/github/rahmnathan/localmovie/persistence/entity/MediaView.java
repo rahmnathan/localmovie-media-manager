@@ -48,7 +48,6 @@ public class MediaView {
         updated = LocalDateTime.now();
     }
 
-    @JsonIgnore
     public MediaFile getMediaFile(){
         return mediaFile;
     }

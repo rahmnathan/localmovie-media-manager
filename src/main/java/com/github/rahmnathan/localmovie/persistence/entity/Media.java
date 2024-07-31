@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.rahmnathan.omdb.data.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,14 +44,8 @@ public class Media {
         this.title = title;
     }
 
-    @JsonIgnore
     @OneToOne(mappedBy = "media")
-    private com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile;
-
-    @JsonIgnore
-    public com.github.rahmnathan.localmovie.persistence.entity.MediaFile getMediaFile(){
-        return mediaFile;
-    }
+    private MediaFile mediaFile;
 
     @PrePersist
     public void setCreated(){
