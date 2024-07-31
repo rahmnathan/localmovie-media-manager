@@ -101,7 +101,7 @@ public class MediaPersistenceService {
         List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
         predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
 
-        OrderSpecifier orderSpecifier = qMediaFile.mediaViews.any().updated.asc();
+        OrderSpecifier orderSpecifier = qMediaFile.mediaViews.any().updated.desc();
 
         List<String> ids = jpaQuery.from(qMediaFile)
                 .select(qMediaFile.mediaFileId)
