@@ -121,7 +121,8 @@ export function VideoPlayer() {
                         style={dialogStyle}>
                     <div>
                         <DialogPanel>
-                            <DialogTitle>Resume?</DialogTitle>
+                            <DialogTitle>{mediaFile.media.title}</DialogTitle>
+                            <img src={buildPosterUri(mediaId)} alt=''/>
                             <Description>Pick up from where you left off, or start from the beginning!</Description>
                             <div>
                                 <button onClick={() => {
@@ -137,7 +138,6 @@ export function VideoPlayer() {
                 </Dialog>
                 <ReactPlayer
                     url={url}
-                    config={{file: {attributes: {poster: buildPosterUri(mediaId)}}}}
                     controls={true}
                     width={'100%'}
                     height={'100%'}
