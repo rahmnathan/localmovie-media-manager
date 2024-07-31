@@ -88,6 +88,7 @@ public class MediaPersistenceService {
 
         List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
         predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
+        predicates.add(QMediaFile.mediaFile.mediaViews.any().updated.after(LocalDateTime.now().minusMonths(6)));
 
         return jpaQuery.from(qMediaFile)
                 .where(predicates.toArray(new Predicate[predicates.size()]))
@@ -100,6 +101,7 @@ public class MediaPersistenceService {
 
         List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
         predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
+        predicates.add(QMediaFile.mediaFile.mediaViews.any().updated.after(LocalDateTime.now().minusMonths(6)));
 
         OrderSpecifier orderSpecifier = qMediaFile.mediaViews.any().updated.desc();
 
