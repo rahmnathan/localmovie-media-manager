@@ -33,6 +33,30 @@ public class MediaResourceMobileV1 {
         this.persistenceService = persistenceService;
     }
 
+    @PostMapping(value = "/history", produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public List<MediaFileDto> getMediaHistory(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
+        log.info("Received request: {}", mediaRequest.toString());
+        handleDemoUser(mediaRequest);
+
+        if(mediaRequest.getPage() == 0)
+            getMediaHistoryCount(mediaRequest, response);
+
+        log.info("Loading media files for mobile.");
+        List<MediaFileDto> mediaFiles = persistenceService.getMediaHistory(mediaRequest, true);
+        log.info("Returning media list. Size: {}", mediaFiles.size());
+        return mediaFiles;
+    }
+
+    @PostMapping(value = "/history/count")
+    public void getMediaHistoryCount(@RequestBody MediaRequest mediaRequest, HttpServletResponse response){
+        log.info("Received count request: {}", mediaRequest);
+
+        long count = persistenceService.countHistory();
+
+        log.info("Returning count of - {}", count);
+        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
+    }
+
     @PostMapping(produces=MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFileDto> getMedia(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
         log.info("Received request: {}", mediaRequest.toString());
