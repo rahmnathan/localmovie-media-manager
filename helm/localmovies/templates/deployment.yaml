@@ -30,7 +30,7 @@ spec:
           terminationMessagePolicy: File
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: production
+              value: prod
           volumeMounts:
             - name: application-config
               mountPath: /opt/localmovie/config
