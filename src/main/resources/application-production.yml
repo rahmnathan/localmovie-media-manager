@@ -1,0 +1,85 @@
+keycloak:
+  auth-server-url: https://login.nathanrahm.com/auth
+  enabled: true
+  public-client: true
+  realm: LocalMovies
+  resource: localmovie-login
+  security-constraints:
+    - authRoles:
+        - movieuser
+      security-collections:
+        - name: secure stuff
+          patterns:
+            - "/*"
+    - authRoles: []
+      security-collections:
+        - name: insecure stuff
+          patterns:
+            - "/actuator/*"
+            - "/forbidden.css"
+  ssl-required: external
+
+logging:
+  level:
+    com.github.rahmnathan: info
+    org.apache.http: info
+    org.keycloak: info
+  pattern.level: correlation-id=%X{x-correlation-id}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+server:
+  port: 8080
+  ssl:
+    enabled: false
+
+service:
+  directoryMonitor:
+    concurrentConversionLimit: 2
+    enabled: true
+    ffprobeLocation: "/usr/bin/ffprobe"
+  mediaPaths:
+    - "/opt/localmovie/1/LocalMedia"
+    - "/opt/localmovie/2/LocalMedia"
+    - "/opt/localmovie/3/LocalMedia"
+    - "/opt/localmovie/4/LocalMedia"
+    - "/opt/localmovie/5/LocalMedia"
+  notificationsEnabled: false
+  omdb:
+    apiKey: a825746e
+    enabled: true
+  repository:
+    enabled: true
+    updateFrequency:
+      unit: HOURS
+      value: 30
+    updateLimit: 100
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgresql.postgres.svc.cluster.local:5432/localmovies
+    username: localmovies
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher

@@ -28,6 +28,9 @@ spec:
           name: localmovies
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          env:
+            - name: "spring_profiles_active"
+              value: "production"
           volumeMounts:
             - name: application-config
               mountPath: /opt/localmovie/config
