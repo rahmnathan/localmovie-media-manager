@@ -29,7 +29,7 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           env:
-            - name: "spring_profiles_active"
+            - name: SPRING_PROFILES_ACTIVE
               value: "production"
           volumeMounts:
             - name: application-config
