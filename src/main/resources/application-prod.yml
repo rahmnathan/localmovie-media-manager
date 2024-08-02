@@ -1,24 +1,3 @@
-keycloak:
-  auth-server-url: https://login.nathanrahm.com/auth
-  enabled: true
-  public-client: true
-  realm: LocalMovies
-  resource: localmovie-login
-  security-constraints:
-    - authRoles:
-        - movieuser
-      security-collections:
-        - name: secure stuff
-          patterns:
-            - "/*"
-    - authRoles: []
-      security-collections:
-        - name: insecure stuff
-          patterns:
-            - "/actuator/*"
-            - "/forbidden.css"
-  ssl-required: external
-
 logging:
   level:
     com.github.rahmnathan: info
@@ -83,3 +62,23 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+      client:
+        registration:
+          keycloak:
+            client-id: localmovie-login
+            authorization-grant-type: authorization_code
+          keycloak-token:
+            client-id: localmovies
+            authorization-grant-type: jwt_bearer
+        provider:
+          keycloak:
+            issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+            user-name-attribute: preferred_username
+          keycloak-token:
+            issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+            user-name-attribute: preferred_username

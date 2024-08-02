@@ -1,5 +1,4 @@
 logging:
-  pattern.level: "correlation-id=%X{x-correlation-id} client-address=%X{client-address}"
   level:
     com.github.rahmnathan: info
     org.springframework.cloud: debug
@@ -8,6 +7,7 @@ server:
   port: 8080
   ssl:
     enabled: false
+
 service:
   directoryMonitor:
     enabled: true
@@ -24,25 +24,10 @@ service:
       unit: SECONDS
       value: 30
     updateLimit: 201
+
 spring:
   application:
     name: localmovie-media-manager
-  cloud:
-    vault:
-      kv:
-        enabled: false
-        backend: localmovies
-        default-context: localmovie-media-manager
-        application-name: localmovie-media-manager
-      authentication: KUBERNETES
-      kubernetes:
-        role: localmovies
-#        kubernetes-path: kubernetes
-        service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
-      uri: https://vault.nathanrahm.com
-      connection-timeout: 5000
-      read-timeout: 15000
-      enabled: false
   datasource:
     password: pw123
     url: "jdbc:postgresql://localhost:5432/localmovies"
@@ -50,52 +35,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     show-sql: false
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
-      client:
-        registration:
-          keycloak:
-            client-id: localmovie-login
-            authorization-grant-type: authorization_code
-          keycloak-token:
-            client-id: localmovies
-            authorization-grant-type: jwt_bearer
-        provider:
-          keycloak:
-              issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
-              user-name-attribute: preferred_username
-          keycloak-token:
-            issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
-            user-name-attribute: preferred_username
-opentracing:
-  jaeger:
-    enabled: false
-
-keycloak:
-  auth-server-url: https://login.nathanrahm.com/auth
-  public-client: true
-  realm: LocalMovies
-  resource: localmovie-login
-  security-constraints:
-    - authRoles:
-        - movieuser
-      security-collections:
-        - name: "secure stuff"
-          patterns:
-            - "/*"
-  ssl-required: external
-  enabled: false
-
-
 
 management:
   endpoint:
