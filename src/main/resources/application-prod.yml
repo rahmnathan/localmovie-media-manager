@@ -41,7 +41,6 @@ service:
     - "/opt/localmovie/5/LocalMedia"
   notificationsEnabled: false
   omdb:
-    apiKey: a825746e
     enabled: true
   repository:
     enabled: true

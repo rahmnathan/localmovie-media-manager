@@ -16,7 +16,7 @@ service:
   mediaPaths: "/media/nathan/LocalMedia/"
   notificationsEnabled: false
   omdb:
-    apiKey: "a825746e"
+    apiKey: "key"
     enabled: true
   repository:
     enabled: true

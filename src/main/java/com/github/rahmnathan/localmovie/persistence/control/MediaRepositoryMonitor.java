@@ -5,7 +5,6 @@ import com.github.rahmnathan.localmovie.control.MediaService;
 import com.github.rahmnathan.localmovie.data.Duration;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
-import com.github.rahmnathan.localmovie.persistence.repository.MediaImageRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import io.micrometer.core.annotation.Timed;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,6 @@ import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_
 public class MediaRepositoryMonitor {
     private final MediaFileRepository mediaFileRepository;
     private final MediaRepository mediaRepository;
-    private final MediaImageRepository mediaImageRepository;
     private final MediaService mediaService;
     private final ServiceConfig serviceConfig;
 

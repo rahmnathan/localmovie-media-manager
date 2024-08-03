@@ -33,10 +33,10 @@ public class MediaFileService {
     }
 
     private MediaFile loadNewMediaFile(File file, String relativePath){
-        MediaFile mediaFile = MediaFile.Builder.forPath(file.getAbsolutePath())
-                .setMedia(mediaService.loadNewMedia(relativePath))
-                .setMediaFileId(UUID.randomUUID().toString())
-                .setAbsolutePath(file.getAbsolutePath())
+        MediaFile mediaFile = MediaFile.forPath(file.getAbsolutePath())
+                .media(mediaService.loadNewMedia(relativePath))
+                .mediaFileId(UUID.randomUUID().toString())
+                .absolutePath(file.getAbsolutePath())
                 .build();
 
         return mediaFileRepository.save(mediaFile);

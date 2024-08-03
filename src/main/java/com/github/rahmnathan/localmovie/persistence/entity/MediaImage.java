@@ -60,7 +60,7 @@ public class MediaImage {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         MediaImage media = (MediaImage) o;
         return id != null && Objects.equals(id, media.id);
     }

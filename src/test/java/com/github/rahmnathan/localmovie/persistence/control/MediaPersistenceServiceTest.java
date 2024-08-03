@@ -57,7 +57,7 @@ public class MediaPersistenceServiceTest {
 
     @Test
     public void getMediaFileEventsTest() {
-        com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = com.github.rahmnathan.localmovie.persistence.entity.MediaFile.Builder.forPath("/home/LocalMedia/some/test/path").build();
+        com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = com.github.rahmnathan.localmovie.persistence.entity.MediaFile.forPath("/home/LocalMedia/some/test/path").build();
         MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
 
         save(mediaFileEvent);

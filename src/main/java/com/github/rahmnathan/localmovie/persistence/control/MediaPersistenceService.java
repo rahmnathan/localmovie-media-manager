@@ -86,12 +86,12 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        List<Predicate> predicates = new ArrayList<>();
         predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
         predicates.add(QMediaFile.mediaFile.mediaViews.any().updated.after(LocalDateTime.now().minusMonths(6)));
 
         return jpaQuery.from(qMediaFile)
-                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .where(predicates.toArray(new Predicate[0]))
                 .fetchCount();
     }
 
@@ -99,16 +99,16 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        List<Predicate> predicates = new ArrayList<>();
         predicates.add(QMediaFile.mediaFile.mediaViews.any().mediaUser.userId.eq(getUsername()));
         predicates.add(QMediaFile.mediaFile.mediaViews.any().updated.after(LocalDateTime.now().minusMonths(6)));
 
-        OrderSpecifier orderSpecifier = qMediaFile.mediaViews.any().updated.desc();
+        OrderSpecifier<LocalDateTime> orderSpecifier = qMediaFile.mediaViews.any().updated.desc();
 
         List<String> ids = jpaQuery.from(qMediaFile)
                 .select(qMediaFile.mediaFileId)
                 .orderBy(orderSpecifier)
-                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .where(predicates.toArray(new Predicate[0]))
                 .offset((long) request.getPage() * request.getPageSize())
                 .limit(request.getPageSize())
                 .fetch();
@@ -130,7 +130,7 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
+        List<Predicate> predicates = new ArrayList<>();
         predicates.add(qMediaFile.parentPath.eq(request.getPath()));
 
         if(StringUtils.hasText(request.getGenre())){
@@ -144,7 +144,7 @@ public class MediaPersistenceService {
         }
 
         return jpaQuery.from(qMediaFile)
-                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .where(predicates.toArray(new Predicate[0]))
                 .fetchCount();
     }
 

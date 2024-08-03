@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -15,6 +14,7 @@ import java.util.UUID;
 
 import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
 
+@Builder
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -76,6 +76,17 @@ public class MediaFile implements Serializable {
         this.mediaViews.add(mediaView);
     }
 
+    public static MediaFileBuilder forPath(String path){
+        String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
+        File file = new File(relativePath);
+        return builder()
+                .fileName(file.getName())
+                .parentPath(file.getParent())
+                .mediaFileId(UUID.randomUUID().toString())
+                .absolutePath(path)
+                .path(relativePath);
+    }
+
     @Override
     public String toString(){
         if(media != null) {
@@ -85,68 +96,22 @@ public class MediaFile implements Serializable {
         return fileName;
     }
 
-    public static class Builder {
-        private MediaFile mediaFile = new MediaFile();
-
-        public static Builder newInstance(){
-            return new Builder();
-        }
-
-        public Builder setFileName(String fileName) {
-            this.mediaFile.fileName = fileName;
-            return this;
-        }
-
-        public Builder setMedia(com.github.rahmnathan.localmovie.persistence.entity.Media media) {
-            this.mediaFile.media = media;
-            return this;
-        }
-
-        public Builder setPath(String path) {
-            this.mediaFile.path = path;
-            return this;
-        }
-
-        public Builder setParentPath(String path) {
-            this.mediaFile.parentPath = path;
-            return this;
-        }
-
-        public Builder setMediaFileId(String mediaFileId) {
-            this.mediaFile.mediaFileId = mediaFileId;
-            return this;
-        }
-
-        public Builder setAbsolutePath(String path) {
-            this.mediaFile.absolutePath = path;
-            return this;
-        }
-
-        public MediaFile build(){
-            MediaFile result = mediaFile;
-            mediaFile = new MediaFile();
-
-            return result;
-        }
-
-        public static Builder forPath(String path){
-            String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
-            File file = new File(relativePath);
-            return Builder.newInstance()
-                    .setFileName(file.getName())
-                    .setParentPath(file.getParent())
-                    .setMediaFileId(UUID.randomUUID().toString())
-                    .setAbsolutePath(path)
-                    .setPath(relativePath);
-        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         MediaFile mediaFile = (MediaFile) o;
-        return id != null && Objects.equals(id, mediaFile.id);
+        return version == mediaFile.version &&
+                Objects.equals(id, mediaFile.id) &&
+                Objects.equals(parentPath, mediaFile.parentPath) &&
+                Objects.equals(path, mediaFile.path) &&
+                Objects.equals(fileName, mediaFile.fileName) &&
+                Objects.equals(created, mediaFile.created) &&
+                Objects.equals(updated, mediaFile.updated) &&
+                Objects.equals(mediaFileId, mediaFile.mediaFileId) &&
+                Objects.equals(absolutePath, mediaFile.absolutePath) &&
+                Objects.equals(mediaViews, mediaFile.mediaViews) &&
+                Objects.equals(media, mediaFile.media);
     }
 
     @Override
