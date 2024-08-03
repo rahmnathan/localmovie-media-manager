@@ -7,6 +7,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.springframework.util.StringUtils;
 
+import java.io.Serializable;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -16,7 +17,7 @@ import java.util.Objects;
 @Setter
 @Entity
 @NoArgsConstructor
-public class Media {
+public class Media implements Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_sequence_generator")
@@ -111,7 +112,7 @@ public class Media {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         Media media = (Media) o;
         return id != null && Objects.equals(id, media.id);
     }

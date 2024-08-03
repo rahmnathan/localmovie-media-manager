@@ -1,9 +1,10 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,7 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(indexes = @Index(name = "idx_media_user_user_id", columnList = "userId"))
-public class MediaUser {
+public class MediaUser implements Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_user_sequence_generator")

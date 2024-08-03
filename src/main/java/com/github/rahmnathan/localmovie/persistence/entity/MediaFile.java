@@ -49,7 +49,7 @@ public class MediaFile implements Serializable {
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn
-    private com.github.rahmnathan.localmovie.persistence.entity.Media media;
+    private Media media;
 
     @Version
     private long version;

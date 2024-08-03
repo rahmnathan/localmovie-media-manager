@@ -1,9 +1,10 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -13,7 +14,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Entity
 @Table(indexes = @Index(name = "idx_media_view", columnList = "media_file_id,media_user_id", unique = true))
-public class MediaView {
+public class MediaView implements Serializable {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO, generator="media_view_sequence_generator")
