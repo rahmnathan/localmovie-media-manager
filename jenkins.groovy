@@ -42,6 +42,11 @@ node {
         stage('Test') {
             sh "'${mvnHome}/bin/mvn' test"
         }
+        stage('SonarQube Analysis') {
+            withSonarQubeEnv() {
+                sh "${mvnHome}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName='localmovie-media-manager'"
+            }
+        }
         stage('Package & Deploy Jar to Artifactory') {
             rtMaven.run pom: 'pom.xml', goals: 'install -DskipTests', buildInfo: buildInfo
         }
