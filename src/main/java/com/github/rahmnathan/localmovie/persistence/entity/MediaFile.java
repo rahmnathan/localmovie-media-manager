@@ -17,7 +17,8 @@ import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.R
 @Builder
 @Getter
 @Setter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(
         indexes = {
