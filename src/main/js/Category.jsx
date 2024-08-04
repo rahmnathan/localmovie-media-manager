@@ -14,7 +14,10 @@ export const Category = ({setPath, switchUrl}) => {
             <p style={categoryStyle}>Category: </p>
             <button style={{marginRight: 5}} onClick={(e) => setPath(e.target.value)} value='Movies'>Movies</button>
             <button style={{marginRight: 5}} onClick={(e) => setPath(e.target.value)} value='Series'>Series</button>
-            <button onClick={(e) => switchUrl(e.target.value)} value='history'>History</button>
+            <button onClick={(e) => {
+                switchUrl(e.target.value)
+                setPath('History')
+            }} value='history'>History</button>
         </div>
     );
 };
