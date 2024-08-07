@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
+import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
@@ -40,6 +41,8 @@ public class MediaConversionService {
 
     private final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
 
+    private final Pattern etaPattern = Pattern.compile("\\d\\dh\\d\\d");
+
     private final ServiceConfig.MediaEventMonitorConfig eventMonitorConfig;
     private final MediaJobRepository mediaJobRepository;
     private final MediaEventService mediaEventService;
@@ -53,7 +56,8 @@ public class MediaConversionService {
         this.meterRegistry = meterRegistry;
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Timed
+    @Scheduled(cron = "0 * * * * *")
     public void scanConversions() throws Exception {
         log.info("Scanning for video conversions.");
 
@@ -96,6 +100,7 @@ public class MediaConversionService {
         }
     }
 
+    @Timed
     @Scheduled(cron = "0 * * * * *")
     public void updateJobStatus() throws Exception {
         log.info("Updating job status.");
@@ -122,6 +127,7 @@ public class MediaConversionService {
 
                 if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
                     mediaJob.setStatus(MediaJobStatus.FAILED.name());
+                    client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
                 } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
                     mediaJob.setStatus(MediaJobStatus.RUNNING.name());
                 } else {
@@ -154,7 +160,6 @@ public class MediaConversionService {
 
                 // Extracting hours and minutes from log statement.
                 // Example pod log: "ETA 01h25m15s)"
-                Pattern etaPattern = Pattern.compile("\\d\\dh\\d\\d");
                 Matcher etaMatcher = etaPattern.matcher(podLog);
                 if(etaMatcher.find()) {
                     String eta = etaMatcher.group();
@@ -174,7 +179,8 @@ public class MediaConversionService {
     }
 
     public void completeJob(MediaJob mediaJob, KubernetesClient client, String namespace, Job job) {
-        mediaJobRepository.delete(mediaJob);
+        mediaJob.setStatus(MediaJobStatus.SUCCEEDED.name());
+        mediaJobRepository.save(mediaJob);
         new File(mediaJob.getInputFile()).delete();
         client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
         mediaEventService.handleCreateEvent(new File(mediaJob.getOutputFile()));
