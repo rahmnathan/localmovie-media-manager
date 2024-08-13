@@ -2,10 +2,10 @@ package com.github.rahmnathan.localmovie.web.webapp;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -17,13 +17,12 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class MediaStreamingService {
-    private final AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active", new AtomicInteger(0));
+    private final MeterRegistry registry;
 
     @Timed(value = "media_stream", longTask = true)
     public void streamMediaFile(MediaFile path, HttpServletRequest request, HttpServletResponse response) {
@@ -50,17 +49,20 @@ public class MediaStreamingService {
         response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(totalBytes - startByte));
 
         String jobId = path.getPath().replaceAll("[/.]", "-");
-        AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active",
-                List.of(Tag.of("jobId", jobId)),
-                new AtomicInteger(0));
+
+        LongTaskTimer longTaskTimer = LongTaskTimer
+                .builder("localmovies.streams.active")
+                .tag("jobId", jobId)
+                .register(registry);
+
+        LongTaskTimer.Sample taskId = longTaskTimer.start();
 
         try {
-            activeStreamGauge.getAndIncrement();
             streamFile(file, response, startByte);
         } catch (IOException e){
             log.error("Failure streaming file", e);
         } finally {
-            activeStreamGauge.getAndDecrement();
+            taskId.stop();
         }
     }
 
