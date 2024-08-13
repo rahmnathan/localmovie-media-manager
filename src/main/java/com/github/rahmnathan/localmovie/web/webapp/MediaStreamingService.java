@@ -49,7 +49,7 @@ public class MediaStreamingService {
         response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + startByte + "-" + (totalBytes - 1) + "/" + totalBytes);
         response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(totalBytes - startByte));
 
-        String jobId = path.getPath().replaceAll("/\\.", "-");
+        String jobId = path.getPath().replaceAll("[/.]", "-");
         AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active",
                 List.of(Tag.of("jobId", jobId)),
                 new AtomicInteger(0));
