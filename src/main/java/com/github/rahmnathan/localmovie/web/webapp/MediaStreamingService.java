@@ -53,7 +53,7 @@ public class MediaStreamingService {
 
         String jobId = path.getPath().replaceAll("[/.]", "-");
 
-        registry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId)))
+        registry.timer("localmovies.streams.active", List.of(Tag.of("jobId", jobId)))
                 .record(() -> streamFile(file, response, startByte));
     }
 
