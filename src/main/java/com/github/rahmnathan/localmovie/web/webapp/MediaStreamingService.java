@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -38,11 +39,13 @@ public class MediaStreamingService {
             log.error("Failure loading file size", e);
         }
 
-        long startByte = 0L;
+        long startByte;
         String rangeHeader = request.getHeader(HttpHeaders.RANGE);
         if (rangeHeader != null) {
             startByte = Long.parseLong(rangeHeader.split("-")[0].substring(6));
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+        } else {
+            startByte = 0L;
         }
 
         response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + startByte + "-" + (totalBytes - 1) + "/" + totalBytes);
@@ -50,28 +53,18 @@ public class MediaStreamingService {
 
         String jobId = path.getPath().replaceAll("[/.]", "-");
 
-        LongTaskTimer longTaskTimer = LongTaskTimer
-                .builder("localmovies.streams.active")
-                .tag("jobId", jobId)
-                .register(registry);
-
-        LongTaskTimer.Sample taskId = longTaskTimer.start();
-
-        try {
-            streamFile(file, response, startByte);
-        } catch (IOException e){
-            log.error("Failure streaming file", e);
-        } finally {
-            taskId.stop();
-        }
+        registry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId)))
+                .record(() -> streamFile(file, response, startByte));
     }
 
-    private void streamFile(Path file, HttpServletResponse response, long startByte) throws IOException {
+    private void streamFile(Path file, HttpServletResponse response, long startByte) {
         try (InputStream input = new BufferedInputStream(Files.newInputStream(file));
              OutputStream output = response.getOutputStream()) {
 
             skip(input, startByte);
             input.transferTo(output);
+        } catch (IOException e){
+            log.error("Failure streaming file", e);
         }
     }
 
