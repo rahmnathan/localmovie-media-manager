@@ -28,11 +28,11 @@ public class MediaStreamingService {
 
     private final MeterRegistry registry;
 
-    public void streamMediaFile(MediaFile path, HttpServletRequest request, HttpServletResponse response) {
+    public void streamMediaFile(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
         if (response == null || request == null)
             return;
 
-        Path file = Paths.get(path.getAbsolutePath());
+        Path file = Paths.get(mediaFile.getAbsolutePath());
 
         long totalBytes = 0L;
         try {
@@ -53,21 +53,20 @@ public class MediaStreamingService {
         response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + startByte + "-" + (totalBytes - 1) + "/" + totalBytes);
         response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(totalBytes - startByte));
 
-        streamFile(file, response, startByte);
+        streamFile(file, response, startByte, getGauge(mediaFile.getPath()));
     }
 
-    private void streamFile(Path file, HttpServletResponse response, long startByte) {
+    private void streamFile(Path file, HttpServletResponse response, long startByte, AtomicInteger streamGauge) {
         try (InputStream input = new BufferedInputStream(Files.newInputStream(file));
              OutputStream output = response.getOutputStream()) {
 
-            getGauge(file).getAndIncrement();
-
+            streamGauge.getAndIncrement();
             skip(input, startByte);
             input.transferTo(output);
         } catch (IOException e){
             log.error("Failure streaming file", e);
         } finally {
-            getGauge(file).getAndDecrement();
+            streamGauge.getAndDecrement();
         }
     }
 
@@ -79,8 +78,8 @@ public class MediaStreamingService {
         }
     }
 
-    private AtomicInteger getGauge(Path path) {
-        String jobId = path.toString().replaceAll("[/.]", "-");
+    private AtomicInteger getGauge(String path) {
+        String jobId = path.replaceAll("[/.]", "-");
 
         if(!activeStreams.containsKey(jobId)) {
             Gauge.builder("localmovies.streams.active", activeStreams, map -> map.get(jobId).doubleValue())
