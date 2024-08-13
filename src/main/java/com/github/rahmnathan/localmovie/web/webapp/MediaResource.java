@@ -7,6 +7,7 @@ import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceServ
 import java.util.List;
 import java.util.Optional;
 
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -87,7 +88,7 @@ public class MediaResource {
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
         log.info("Received streaming request - {}", mediaFileId);
 
-        Optional<String> mediaFilePath = persistenceService.getMediaFilePathById(mediaFileId);
+        Optional<MediaFile> mediaFilePath = persistenceService.findByMediaFileId(mediaFileId);
         if(mediaFilePath.isEmpty()){
             log.warn("Media file not found for id.");
             response.setStatus(HttpStatus.NOT_FOUND.value());

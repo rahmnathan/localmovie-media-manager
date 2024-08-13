@@ -56,8 +56,8 @@ public class MediaPersistenceService {
         fileRepository.deleteByPath(path);
     }
 
-    public Optional<String> getMediaFilePathById(String id) {
-        return fileRepository.getAbsolutePathById(id);
+    public Optional<MediaFile> findByMediaFileId(String id) {
+        return fileRepository.findByMediaFileId(id);
     }
 
     public Optional<MediaFile> getMediaFileByIdWithViews(String id) {

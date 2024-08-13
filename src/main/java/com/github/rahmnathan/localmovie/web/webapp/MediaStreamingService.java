@@ -1,7 +1,9 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -23,11 +26,11 @@ public class MediaStreamingService {
     private final AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active", new AtomicInteger(0));
 
     @Timed(value = "media_stream", longTask = true)
-    public void streamMediaFile(String path, HttpServletRequest request, HttpServletResponse response) {
+    public void streamMediaFile(MediaFile path, HttpServletRequest request, HttpServletResponse response) {
         if (response == null || request == null)
             return;
 
-        Path file = Paths.get(path);
+        Path file = Paths.get(path.getAbsolutePath());
 
         long totalBytes = 0L;
         try {
@@ -46,21 +49,27 @@ public class MediaStreamingService {
         response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + startByte + "-" + (totalBytes - 1) + "/" + totalBytes);
         response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(totalBytes - startByte));
 
-        streamFile(file, response, startByte);
+        String jobId = path.getPath().replaceAll("/\\.", "-");
+        AtomicInteger activeStreamGauge = Metrics.gauge("localmovies.stream.active",
+                List.of(Tag.of("jobId", jobId)),
+                new AtomicInteger(0));
+
+        try {
+            activeStreamGauge.getAndIncrement();
+            streamFile(file, response, startByte);
+        } catch (IOException e){
+            log.error("Failure streaming file", e);
+        } finally {
+            activeStreamGauge.getAndDecrement();
+        }
     }
 
-    private void streamFile(Path file, HttpServletResponse response, long startByte){
+    private void streamFile(Path file, HttpServletResponse response, long startByte) throws IOException {
         try (InputStream input = new BufferedInputStream(Files.newInputStream(file));
              OutputStream output = response.getOutputStream()) {
 
-            activeStreamGauge.getAndIncrement();
-
             skip(input, startByte);
             input.transferTo(output);
-        } catch (IOException e) {
-            log.info("Client stopped stream.");
-        } finally {
-            activeStreamGauge.getAndDecrement();
         }
     }
 
