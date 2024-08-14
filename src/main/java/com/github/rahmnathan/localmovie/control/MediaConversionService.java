@@ -71,7 +71,7 @@ public class MediaConversionService {
 
         // Launch new conversions, if applicable
         if (runningCount < eventMonitorConfig.getConcurrentConversionLimit() && queuedCount > 0) {
-            int jobsToLaunch = Math.min(queuedCount - runningCount, eventMonitorConfig.getConcurrentConversionLimit());
+            int jobsToLaunch = Math.min(eventMonitorConfig.getConcurrentConversionLimit() - runningCount, queuedCount);
 
             List<MediaJob> mediaJobList = mediaJobRepository.findAllByStatusOrderByCreatedAsc(MediaJobStatus.QUEUED.name()).stream()
                     .limit(jobsToLaunch)
@@ -128,6 +128,7 @@ public class MediaConversionService {
                 if (job.getStatus().getFailed() != null && job.getStatus().getFailed() > 0) {
                     mediaJob.setStatus(MediaJobStatus.FAILED.name());
                     client.batch().v1().jobs().inNamespace(namespace).withName(job.getMetadata().getName()).delete();
+                    new File(mediaJob.getOutputFile()).delete();
                 } else if (job.getStatus().getActive() != null && job.getStatus().getActive() > 0) {
                     mediaJob.setStatus(MediaJobStatus.RUNNING.name());
                 } else {
