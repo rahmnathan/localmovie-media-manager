@@ -57,7 +57,7 @@ public class MediaConversionService {
     }
 
     @Timed
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(fixedDelay = 120000L)
     public void scanConversions() throws Exception {
         log.info("Scanning for video conversions.");
 
@@ -101,7 +101,7 @@ public class MediaConversionService {
     }
 
     @Timed
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(fixedDelay = 10000L)
     public void updateJobStatus() throws Exception {
         log.info("Updating job status.");
         extractAndRecordETAs();
