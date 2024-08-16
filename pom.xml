@@ -6,7 +6,7 @@
 
     <groupId>com.github.rahmnathan.localmovie</groupId>
     <artifactId>localmovie-media-manager</artifactId>
-    <version>5</version>
+    <version>6</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
