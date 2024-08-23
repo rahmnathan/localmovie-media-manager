@@ -5,11 +5,9 @@ import com.github.rahmnathan.localmovie.control.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
-import com.github.rahmnathan.video.cast.handbrake.boundary.VideoConverterHandbrake;
-import com.github.rahmnathan.video.converter.data.HandbrakePreset;
-import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
-import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
@@ -23,12 +21,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,7 +36,9 @@ public class MediaConversionService {
     private final AtomicInteger queuedConversionGauge = Metrics.gauge("localmovie.conversions.queued", new AtomicInteger(0));
     private final AtomicInteger activeConversionGauge = Metrics.gauge("localmovie.conversions.active", new AtomicInteger(0));
 
-    private final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
+    private static final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
+
+    private static final String HANDBRAKE_PRESET = "Chromecast 1080p60 Surround";
 
     private final Pattern etaPattern = Pattern.compile("\\d\\dh\\d\\d");
 
@@ -61,7 +60,7 @@ public class MediaConversionService {
     public void scanConversions() throws Exception {
         log.info("Scanning for video conversions.");
 
-        String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+        String namespace = getNamespace();
 
         // Get DB state
         int runningCount = mediaJobRepository.countAllByStatus(MediaJobStatus.RUNNING.name());
@@ -106,7 +105,7 @@ public class MediaConversionService {
         log.info("Updating job status.");
         extractAndRecordETAs();
 
-        String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+        String namespace = getNamespace();
 
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
 
@@ -146,7 +145,7 @@ public class MediaConversionService {
     }
 
     public void extractAndRecordETAs() throws Exception {
-        String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+        String namespace = getNamespace();
 
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
 
@@ -206,7 +205,7 @@ public class MediaConversionService {
                 .inputFile(inputPath)
                 .outputFile(resultFilePath)
                 .jobId(formatPath(inputPath))
-                .handbrakePreset(HandbrakePreset.CHROMECAST_1080p_60fps.getValue())
+                .handbrakePreset(HANDBRAKE_PRESET)
                 .status(MediaJobStatus.QUEUED.name())
                 .build();
 
@@ -216,14 +215,96 @@ public class MediaConversionService {
     }
 
     public void launchVideoConverter(MediaJob mediaJob) {
-        SimpleConversionJob conversionJob = SimpleConversionJob.builder()
-                .handbrakePreset(HandbrakePreset.CHROMECAST_1080p_60fps.getValue())
-                .inputFile(new File(mediaJob.getInputFile()))
-                .outputFile(new File(mediaJob.getOutputFile()))
-                .build();
-
         log.info("Launching video converter.");
 
-        CompletableFuture.supplyAsync(new VideoConverterHandbrake(conversionJob));
+        File inputFile = new File(mediaJob.getInputFile());
+        File outputFile = new File(mediaJob.getOutputFile());
+
+        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+
+            if (Files.exists(outputFile.toPath())) {
+                Files.delete(outputFile.toPath());
+            }
+
+            Optional<Pod> localmoviesPodOptional = client.pods().list().getItems().stream()
+                    .filter(pod -> "localmovies".equalsIgnoreCase(pod.getMetadata().getLabels().get("app")))
+                    .findAny();
+
+            if (localmoviesPodOptional.isEmpty()) {
+                return;
+            }
+
+            String podName = "handbrake-" + UUID.randomUUID();
+
+            log.info("Creating job {} to process media conversion.", podName);
+
+            List<String> args = List.of("-Z", HANDBRAKE_PRESET,
+                    "-i", inputFile.getAbsolutePath(),
+                    "-o", outputFile.getAbsolutePath(),
+                    "-v");
+
+            List<Volume> volumes = localmoviesPodOptional.get().getSpec().getVolumes().stream()
+                    .filter(volume -> volume.getName().startsWith("media"))
+                    .toList();
+
+            List<VolumeMount> volumeMounts = localmoviesPodOptional.get().getSpec().getContainers().stream()
+                    .filter(container -> "localmovies".equalsIgnoreCase(container.getName()))
+                    .findAny()
+                    .get()
+                    .getVolumeMounts().stream()
+                    .filter(volumeMount -> volumeMount.getName().startsWith("media"))
+                    .toList();
+
+            String namespace = getNamespace();
+
+            ResourceRequirements resources = new ResourceRequirements(
+                    new ArrayList<>(),
+                    Map.of("cpu", Quantity.parse("6"),
+                            "memory", Quantity.parse("6Gi")),
+                    Map.of("cpu", Quantity.parse("2"),
+                            "memory", Quantity.parse("2Gi"))
+            );
+
+            Job job = new JobBuilder()
+                    .withApiVersion("batch/v1")
+                    .withNewMetadata()
+                    .withName(podName)
+                    .withLabels(Map.of(
+                            "app", "handbrake",
+                            "jobId", transformPath(inputFile.getAbsolutePath()))
+                    )
+                    .endMetadata()
+                    .withNewSpec()
+                    .withBackoffLimit(1)
+                    .withNewTemplate()
+                    .withNewSpec()
+                    .addNewContainer()
+                    .withName(podName)
+                    .withImage("rahmnathan/handbrake:latest")
+                    .withArgs(args)
+                    .withVolumeMounts(volumeMounts)
+                    .withResources(resources)
+                    .endContainer()
+                    .withVolumes(volumes)
+                    .withRestartPolicy("Never")
+                    .endSpec()
+                    .endTemplate()
+                    .endSpec()
+                    .build();
+
+            client.batch().v1().jobs().inNamespace(namespace).resource(job).createOrReplace();
+
+            log.info("Created job successfully.");
+        } catch (IOException e) {
+            log.error("Failed to create video conversion job.", e);
+        }
+    }
+
+    private String getNamespace() throws IOException {
+        return Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+    }
+
+    private String transformPath(String path) {
+        return path.split(File.separator + "LocalMedia" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
     }
 }

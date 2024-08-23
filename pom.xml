@@ -61,11 +61,6 @@
             <artifactId>omdb-client</artifactId>
             <version>${internal-adapters.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.rahmnathan.utils</groupId>
-            <artifactId>video-converter-handbrake-kubernetes</artifactId>
-            <version>${internal-utils.version}</version>
-        </dependency>
 
         <!-- Spring -->
         <dependency>
@@ -141,6 +136,16 @@
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>8.0.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>6.13.3</version>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-httpclient-jdk</artifactId>
+            <version>6.13.3</version>
         </dependency>
 
         <!-- Test -->
