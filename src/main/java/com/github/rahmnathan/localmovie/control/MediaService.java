@@ -32,11 +32,15 @@ public class MediaService {
             return mediaFile.get().getMedia();
         }
 
-        return loadNewMedia(path);
+        return loadNewMediaInternal(path);
     }
 
     @Transactional
     public Media loadNewMedia(String path) {
+        return loadNewMediaInternal(path);
+    }
+
+    private Media loadNewMediaInternal(String path) {
         try {
             if (isTopLevel(path) || isEpisode(path)) {
                 return Media.fromOmdbMedia(loadMediaFromProvider(path));
