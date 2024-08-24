@@ -90,8 +90,6 @@ public class MediaJobService {
 
         log.info("Updating job status.");
 
-        kubernetesService.extractAndRecordETAs();
-
         List<MediaJob> mediaJobs = mediaJobRepository.findAllByStatusInOrderByCreatedAsc(Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name()));
 
         for(MediaJob mediaJob : mediaJobs) {

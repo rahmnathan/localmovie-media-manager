@@ -12,6 +12,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -139,7 +141,10 @@ public class KubernetesService {
         }
     }
 
+    @Scheduled(fixedDelay = 30000L)
     public void extractAndRecordETAs() throws Exception {
+        long startTime = System.currentTimeMillis();
+
         String namespace = getNamespace();
 
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
@@ -169,8 +174,9 @@ public class KubernetesService {
                     meterRegistry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId))).record(Duration.ofMinutes(minutesRemaining));
                 }
             }
-
         }
+
+        meterRegistry.timer("localmovies.record-etas").record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
     }
 
     private String getNamespace() throws IOException {
