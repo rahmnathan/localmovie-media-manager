@@ -156,7 +156,12 @@ public class KubernetesService {
 
             for(Pod pod : pods) {
                 String podName = pod.getMetadata().getName();
-                String podLog = client.pods().inNamespace(namespace).withName(podName).tailingLines(1).getLog();
+
+                String podLog = client.pods()
+                        .inNamespace(namespace)
+                        .withName(podName)
+                        .tailingLines(1)
+                        .getLog();
 
                 // Extracting hours and minutes from log statement.
                 // Example pod log: "ETA 01h25m15s)"
@@ -168,7 +173,9 @@ public class KubernetesService {
                     String[] time = eta.split("h");
                     int minutesRemaining = (Integer.parseInt(time[0]) * 60) + Integer.parseInt(time[1]);
 
-                    String jobId = client.batch().v1().jobs().inNamespace(namespace).withName(pod.getMetadata().getLabels().get("job-name")).get()
+                    String jobId = client.batch().v1().jobs()
+                            .inNamespace(namespace)
+                            .withName(pod.getMetadata().getLabels().get("job-name")).get()
                             .getMetadata().getLabels().get("jobId");
 
                     meterRegistry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId))).record(Duration.ofMinutes(minutesRemaining));
