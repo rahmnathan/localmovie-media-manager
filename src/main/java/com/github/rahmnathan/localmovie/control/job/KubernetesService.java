@@ -107,7 +107,7 @@ public class KubernetesService {
         }
     }
 
-    public MediaJobStatus getJobStatus(String jobId) throws IOException {
+    public Optional<MediaJobStatus> getJobStatus(String jobId) throws IOException {
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
 
             Optional<JobStatus> jobStatusOptional = client.batch().v1().jobs().inNamespace(getNamespace())
@@ -116,21 +116,22 @@ public class KubernetesService {
                     .findFirst()
                     .map(Job::getStatus);
 
-            if (jobStatusOptional.isEmpty()) {
-                return MediaJobStatus.UNKNOWN;
+            if (jobStatusOptional.isPresent()) {
+
+                JobStatus jobStatus = jobStatusOptional.get();
+
+                if (jobStatus.getSucceeded() != null && jobStatus.getSucceeded() > 0) {
+                    return Optional.of(MediaJobStatus.SUCCEEDED);
+                } else if (jobStatus.getFailed() != null && jobStatus.getFailed() > 0) {
+                    return Optional.of(MediaJobStatus.FAILED);
+                } else if (jobStatus.getActive() != null && jobStatus.getActive() > 0) {
+                    return Optional.of(MediaJobStatus.RUNNING);
+                }
             }
 
-            JobStatus jobStatus = jobStatusOptional.get();
+            log.warn("Unable to determine status for job: {}", jobId);
 
-            if (jobStatus.getSucceeded() != null && jobStatus.getSucceeded() > 0) {
-                return MediaJobStatus.SUCCEEDED;
-            } else if (jobStatus.getFailed() != null && jobStatus.getFailed() > 0) {
-                return MediaJobStatus.FAILED;
-            } else if (jobStatus.getActive() != null && jobStatus.getActive() > 0) {
-                return MediaJobStatus.RUNNING;
-            }
-
-            return MediaJobStatus.UNKNOWN;
+            return Optional.empty();
         }
     }
 

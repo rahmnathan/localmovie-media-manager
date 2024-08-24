@@ -73,9 +73,9 @@ public class MediaJobService {
             });
 
             for (MediaJob mediaJob : mediaJobList) {
-                MediaJobStatus jobStatus = kubernetesService.getJobStatus(mediaJob.getJobId());
+                Optional<MediaJobStatus> jobStatus = kubernetesService.getJobStatus(mediaJob.getJobId());
 
-                if (jobStatus == MediaJobStatus.SUCCEEDED || jobStatus == MediaJobStatus.RUNNING) {
+                if (jobStatus.isEmpty() || jobStatus.get() == MediaJobStatus.SUCCEEDED || jobStatus.get() == MediaJobStatus.RUNNING) {
                     log.info("Job with status {} already exists for input file: {}", jobStatus, formatPath(mediaJob.getInputFile()));
                     continue;
                 }
@@ -99,16 +99,20 @@ public class MediaJobService {
         List<MediaJob> mediaJobs = mediaJobRepository.findAllByStatusInOrderByCreatedAsc(Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name()));
 
         for(MediaJob mediaJob : mediaJobs) {
-            MediaJobStatus jobStatus = kubernetesService.getJobStatus(mediaJob.getJobId());
+            Optional<MediaJobStatus> jobStatus = kubernetesService.getJobStatus(mediaJob.getJobId());
 
-            mediaJob.setStatus(jobStatus.name());
+            if(jobStatus.isEmpty()) {
+                continue;
+            }
 
-            if (jobStatus == MediaJobStatus.SUCCEEDED) {
+            mediaJob.setStatus(jobStatus.get().name());
+
+            if (jobStatus.get() == MediaJobStatus.SUCCEEDED) {
                 log.info("Found completed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
                 new File(mediaJob.getInputFile()).delete();
                 mediaEventService.handleCreateEvent(new File(mediaJob.getOutputFile()));
-            } else if (jobStatus == MediaJobStatus.FAILED) {
+            } else if (jobStatus.get() == MediaJobStatus.FAILED) {
                 log.warn("Found failed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
                 new File(mediaJob.getOutputFile()).delete();
