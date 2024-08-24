@@ -62,7 +62,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
-                log.error("Failure waiting for file to finish writing", e);
+                log.error("Thread interrupted waiting for file write to complete.", e);
+                Thread.currentThread().interrupt();
             }
 
             long afterLastModified = file.lastModified();

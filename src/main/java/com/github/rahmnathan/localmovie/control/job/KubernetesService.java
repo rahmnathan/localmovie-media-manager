@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 public class KubernetesService {
 
+    private static final String JOB_ID_LABEL = "jobId";
+
     private static final String HANDBRAKE_PRESET = "Chromecast 1080p60 Surround";
 
     private static final Pattern ETA_PATTERN = Pattern.compile("\\d\\dh\\d\\d");
@@ -84,7 +86,7 @@ public class KubernetesService {
                         .withName(podName)
                         .withLabels(Map.of(
                                 "app", "handbrake",
-                                "jobId", transformPath(inputFile.getAbsolutePath()))
+                                JOB_ID_LABEL, transformPath(inputFile.getAbsolutePath()))
                         )
                     .endMetadata()
                     .withNewSpec()
@@ -113,7 +115,7 @@ public class KubernetesService {
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
 
             Optional<JobStatus> jobStatusOptional = client.batch().v1().jobs().inNamespace(getNamespace())
-                    .withLabel("jobId", jobId).list().getItems()
+                    .withLabel(JOB_ID_LABEL, jobId).list().getItems()
                     .stream()
                     .findFirst()
                     .map(Job::getStatus);
@@ -176,9 +178,9 @@ public class KubernetesService {
                     String jobId = client.batch().v1().jobs()
                             .inNamespace(namespace)
                             .withName(pod.getMetadata().getLabels().get("job-name")).get()
-                            .getMetadata().getLabels().get("jobId");
+                            .getMetadata().getLabels().get(JOB_ID_LABEL);
 
-                    meterRegistry.timer("conversion.time.left", List.of(Tag.of("jobId", jobId))).record(Duration.ofMinutes(minutesRemaining));
+                    meterRegistry.timer("conversion.time.left", List.of(Tag.of(JOB_ID_LABEL, jobId))).record(Duration.ofMinutes(minutesRemaining));
                 }
             }
         }

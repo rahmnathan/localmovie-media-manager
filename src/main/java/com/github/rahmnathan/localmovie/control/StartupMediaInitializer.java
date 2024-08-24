@@ -3,7 +3,7 @@ package com.github.rahmnathan.localmovie.control;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
-import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,9 +15,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -27,30 +25,31 @@ public class StartupMediaInitializer {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
     private final ServiceConfig serviceConfig;
+    private final MeterRegistry meterRegistry;
     private final MediaService dataService;
-    private CompletableFuture<Void> initializationFuture;
+
+    // Hold onto this for testing
+    private ForkJoinTask<?> fileInitializationTask;
 
     @EventListener(ApplicationReadyEvent.class)
-    public void initializeFileList() {
-        this.initializationFuture = CompletableFuture.runAsync(this::initializeFileListSynchronous);
-    }
-
-    @Timed(value = "file_list_initialization") // Need to proxy this call for metric (probably)
     public void initializeFileListSynchronous() {
         try (ForkJoinPool customThreadPool = new ForkJoinPool(16)) {
-            customThreadPool.submit(() -> serviceConfig.getMediaPaths().stream()
-                    .parallel()
-                    .flatMap(this::streamDirectoryTree)
-                    .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
-                    .flatMap(this::listFiles)
-                    .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
-                    .map(this::buildMediaFile)
-                    .forEach(mediaFileRepository::save)).get();
+            fileInitializationTask = customThreadPool.submit(() -> {
+                long startTime = System.currentTimeMillis();
 
-            log.info("File list initialized.");
-        } catch (ExecutionException | InterruptedException e) {
-            log.error("Failed to initialize files.", e);
-            throw new RuntimeException(e);
+                serviceConfig.getMediaPaths().stream()
+                        .parallel()
+                        .flatMap(this::streamDirectoryTree)
+                        .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
+                        .flatMap(this::listFiles)
+                        .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
+                        .map(this::buildMediaFile)
+                        .forEach(mediaFileRepository::save);
+
+                log.info("File list initialized.");
+
+                meterRegistry.timer("localmovies.file-list-initialization").record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+            });
         }
     }
 
@@ -88,7 +87,7 @@ public class StartupMediaInitializer {
         return Set.of(files).parallelStream();
     }
 
-    public CompletableFuture<Void> getInitializationFuture() {
-        return initializationFuture;
+    public ForkJoinTask<?> getInitializationFuture() {
+        return fileInitializationTask;
     }
 }
