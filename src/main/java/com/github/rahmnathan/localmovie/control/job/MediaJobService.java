@@ -75,7 +75,7 @@ public class MediaJobService {
             for (MediaJob mediaJob : mediaJobList) {
                 Optional<MediaJobStatus> jobStatus = kubernetesService.getJobStatus(mediaJob.getJobId());
 
-                if (jobStatus.isEmpty() || jobStatus.get() == MediaJobStatus.SUCCEEDED || jobStatus.get() == MediaJobStatus.RUNNING) {
+                if (jobStatus.isPresent() && (jobStatus.get() == MediaJobStatus.SUCCEEDED || jobStatus.get() == MediaJobStatus.RUNNING)) {
                     log.info("Job with status {} already exists for input file: {}", jobStatus, formatPath(mediaJob.getInputFile()));
                     continue;
                 }
