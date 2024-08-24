@@ -5,7 +5,6 @@ import com.github.rahmnathan.localmovie.control.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
@@ -45,11 +44,9 @@ public class MediaJobService {
         this.meterRegistry = registry;
     }
 
-    @Scheduled(fixedDelay = 120000L)
+    @Scheduled(fixedDelay = 30000L)
     public void scanQueuedJobs() throws Exception {
         long startTime = System.currentTimeMillis();
-
-        log.info("Scanning for video conversions.");
 
         // Get DB state
         int runningCount = mediaJobRepository.countAllByStatus(MediaJobStatus.RUNNING.name());
@@ -87,8 +84,7 @@ public class MediaJobService {
         meterRegistry.timer("localmovies.scan-queued-jobs").record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
     }
 
-    @Timed
-    @Scheduled(fixedDelay = 10000L)
+    @Scheduled(fixedDelay = 30000L)
     public void updateJobStatus() throws Exception {
         long startTime = System.currentTimeMillis();
 

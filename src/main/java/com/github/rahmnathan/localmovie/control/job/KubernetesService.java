@@ -129,8 +129,6 @@ public class KubernetesService {
                 }
             }
 
-            log.warn("Unable to determine status for job: {}", jobId);
-
             return Optional.empty();
         }
     }
