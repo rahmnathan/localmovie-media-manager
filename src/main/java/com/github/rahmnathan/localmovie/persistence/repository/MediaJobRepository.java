@@ -11,6 +11,7 @@ import java.util.Set;
 public interface MediaJobRepository extends CrudRepository<MediaJob, String> {
     int countAllByStatus(String status);
     List<MediaJob> findAllByStatusOrderByCreatedAsc(String status);
+    List<MediaJob> findAllByStatusInOrderByCreatedAsc(Set<String> status);
     boolean existsByOutputFileAndStatusIn(String outputFile, Set<String> statuses);
     boolean existsByInputFileAndStatusIn(String inputFile, Set<String> statuses);
     MediaJob findByJobId(String jobId);

@@ -2,7 +2,7 @@ package com.github.rahmnathan.localmovie.control.event;
 
 import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.control.MediaConversionService;
+import com.github.rahmnathan.localmovie.control.job.MediaJobService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
@@ -20,12 +20,12 @@ import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_
 @Service
 public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final MediaEventService eventService;
-    private final MediaConversionService mediaConversionService;
+    private final MediaJobService mediaJobService;
 
-    public MediaEventMonitor(MediaEventService eventService, ServiceConfig serviceConfig, MediaConversionService mediaConversionService) throws IOException {
+    public MediaEventMonitor(MediaEventService eventService, ServiceConfig serviceConfig, MediaJobService mediaJobService) throws IOException {
         ServiceConfig.MediaEventMonitorConfig eventMonitorConfig = serviceConfig.getDirectoryMonitor();
         log.info("Number of concurrent video conversions allowed: {}", eventMonitorConfig.getConcurrentConversionLimit());
-        this.mediaConversionService = mediaConversionService;
+        this.mediaJobService = mediaJobService;
         this.eventService = eventService;
     }
 
@@ -36,7 +36,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         String absolutePath = file.getAbsolutePath();
         log.info("Detected media event {} at path: {}", event.name(), absolutePath);
 
-        if(absolutePath.endsWith("partial~") || mediaConversionService.isActiveConversion(file)) {
+        if(absolutePath.endsWith("partial~") || mediaJobService.isActiveConversion(file)) {
             log.info("File {} is currently being converted. Skipping event.", absolutePath);
             return;
         }
@@ -44,7 +44,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         if (event == StandardWatchEventKinds.ENTRY_CREATE) {
             waitForWriteComplete(file);
             if (Files.isRegularFile(file.toPath())) {
-                mediaConversionService.createConversionJob(file);
+                mediaJobService.createConversionJob(file);
             } else {
                 eventService.handleCreateEvent(file);
             }
