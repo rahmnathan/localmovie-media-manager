@@ -64,7 +64,7 @@ spec:
                 }
                 stage('Unit Test') {
                     steps {
-                        withSonarQubeEnv() {
+                        withSonarQubeEnv('SonarQube') {
                             sh "${mvnHome}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName='localmovie-media-manager'"
                         }
                     }
