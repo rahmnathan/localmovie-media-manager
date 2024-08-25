@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: jnlp
-    image: rahmnathan/inbound-agent:4.10-2
+    image: rahmnathan/inbound-agent
     imagePullPolicy: Always
     tty: true
     volumeMounts:
@@ -83,18 +83,12 @@ spec:
                 }
             }
         }
-        stage('Docker Build') {
-            steps {
-                sh "mvn dockerfile:build"
-            }
-        }
-        stage('Docker Push') {
+        stage('Docker Build/Push') {
             environment {
                 DOCKERHUB = credentials('Dockerhub')
-                VAULT_TOKEN = credentials('VaultToken')
             }
             steps {
-                sh "mvn dockerfile:push -Ddockerfile.username=$DOCKERHUB_USR -Ddockerfile.password='$DOCKERHUB_PSW'"
+                sh "mvn spring-boot:build-image -DskipTests -Ddocker.password='$DOCKERHUB_PSW' -Ddocker.publish=true"
             }
         }
         stage('Deploy to Kubernetes') {
