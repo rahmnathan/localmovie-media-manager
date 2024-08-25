@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class KubernetesService {
     private static final Pattern ETA_PATTERN = Pattern.compile("\\d\\dh\\d\\d");
 
     public void launchVideoConverter(File inputFile, File outputFile) throws IOException {
-        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
 
             Optional<Pod> localmoviesPodOptional = client.pods().list().getItems().stream()
                     .filter(pod -> "localmovies".equalsIgnoreCase(pod.getMetadata().getLabels().get("app")))
@@ -107,7 +106,7 @@ public class KubernetesService {
     }
 
     public Optional<MediaJobStatus> getJobStatus(String jobId) throws IOException {
-        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
 
             Optional<JobStatus> jobStatusOptional = client.batch().v1().jobs().inNamespace(getNamespace())
                     .withLabel(JOB_ID_LABEL, jobId).list().getItems()
@@ -133,7 +132,7 @@ public class KubernetesService {
     }
 
     public void deleteJob(String jobId) throws IOException {
-        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
             client.batch().v1().jobs().inNamespace(getNamespace()).withLabel(JOB_ID_LABEL, jobId).delete();
         }
     }
@@ -141,7 +140,7 @@ public class KubernetesService {
     public Optional<Duration> getETA(String jobId) throws IOException {
         String namespace = getNamespace();
 
-        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
 
             // Lookup job by jobId
             List<Job> jobList = client.batch().v1().jobs()
