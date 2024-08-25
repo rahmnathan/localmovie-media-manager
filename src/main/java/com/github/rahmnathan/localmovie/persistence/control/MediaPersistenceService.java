@@ -171,17 +171,19 @@ public class MediaPersistenceService {
                     .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
         }
 
-        OrderSpecifier orderSpecifier = qMediaFile.fileName.asc();
+        OrderSpecifier<?> orderSpecifier;
         if (request.getPath().split(File.separator).length > 1) {
             orderSpecifier = SEASONS_EPISODES.getOrderSpecifier();
         } else if (StringUtils.hasText(request.getOrder())) {
             orderSpecifier = MediaOrder.lookup(request.getOrder()).getOrderSpecifier();
+        } else {
+            orderSpecifier = qMediaFile.fileName.asc();
         }
 
         List<String> ids = jpaQuery.from(qMediaFile)
                 .select(qMediaFile.mediaFileId)
                 .orderBy(orderSpecifier)
-                .where(predicates.toArray(new Predicate[predicates.size()]))
+                .where(predicates.toArray(new Predicate[0]))
                 .offset((long) request.getPage() * request.getPageSize())
                 .limit(request.getPageSize())
                 .fetch();

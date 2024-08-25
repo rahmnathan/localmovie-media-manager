@@ -61,8 +61,8 @@ public class MediaImage implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MediaImage media = (MediaImage) o;
-        return id != null && Objects.equals(id, media.id);
+        MediaImage mediaImage = (MediaImage) o;
+        return id != null && Objects.equals(id, mediaImage.id);
     }
 
     @Override

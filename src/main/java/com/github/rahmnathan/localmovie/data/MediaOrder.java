@@ -16,11 +16,11 @@ public enum MediaOrder {
     TITLE("title", QMediaFile.mediaFile.fileName.asc());
 
     private final String key;
-    private final OrderSpecifier orderSpecifier;
+    private final OrderSpecifier<?> orderSpecifier;
 
     private static final Map<String, MediaOrder> lookup = new HashMap<>();
 
-    MediaOrder(String key, OrderSpecifier orderSpecifier) {
+    MediaOrder(String key, OrderSpecifier<?> orderSpecifier) {
         this.orderSpecifier = orderSpecifier;
         this.key = key;
     }

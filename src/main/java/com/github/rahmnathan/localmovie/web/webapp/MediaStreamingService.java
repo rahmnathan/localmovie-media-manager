@@ -63,7 +63,7 @@ public class MediaStreamingService {
             streamGauge.getAndIncrement();
             skip(input, startByte);
             input.transferTo(output);
-        } catch (IOException e){
+        } catch (IOException e) {
             log.error("Failure streaming file", e);
         } finally {
             streamGauge.getAndDecrement();
@@ -73,7 +73,7 @@ public class MediaStreamingService {
     private void skip(InputStream inputStream, long amount) throws IOException {
         log.info("Skipping first {} bytes.", amount);
         long skipped = inputStream.skip(amount);
-        if(skipped < amount) {
+        if (skipped < amount) {
             skip(inputStream, amount - skipped);
         }
     }
@@ -81,14 +81,12 @@ public class MediaStreamingService {
     private AtomicInteger getGauge(String path) {
         String jobId = path.replaceAll("[/.]", "-");
 
-        if(!activeStreams.containsKey(jobId)) {
+        return activeStreams.computeIfAbsent(jobId, k -> {
             Gauge.builder("localmovies.streams.active", activeStreams, map -> map.get(jobId).doubleValue())
                     .tags(Tags.of("job_id", jobId))
                     .register(registry);
 
-            activeStreams.put(jobId, new AtomicInteger(0));
-        }
-
-        return activeStreams.get(jobId);
+            return new AtomicInteger(0);
+        });
     }
 }
