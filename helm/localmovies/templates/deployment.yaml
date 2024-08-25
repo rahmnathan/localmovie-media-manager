@@ -31,6 +31,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: prod
+            - name: LANG
+              value: en_US.utf8
           volumeMounts:
             - name: application-config
               mountPath: /opt/localmovie/config
