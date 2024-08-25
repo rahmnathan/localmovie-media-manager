@@ -68,7 +68,7 @@ spec:
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonar') {
-                    sh 'mvn package sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName=localmovie-media-manager'
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName=localmovie-media-manager'
                 }
             }
         }
