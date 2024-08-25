@@ -35,7 +35,10 @@ spec:
               value: en_US.utf8
           volumeMounts:
             - name: application-config
-              mountPath: /opt/localmovie/config
+              mountPath: /workspace/config
+              readOnly: true
+            - name: secrets
+              mountPath: /workspace/secrets
               readOnly: true
               # media(number) is a required convention for video conversion
             - name: media1
@@ -48,9 +51,6 @@ spec:
               mountPath: /opt/localmovie/4/LocalMedia
             - name: media5
               mountPath: /opt/localmovie/5/LocalMedia
-            - name: secrets
-              mountPath: /opt/localmovie/secrets
-              readOnly: true
           resources:
             requests:
               cpu: "1"
