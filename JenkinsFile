@@ -65,13 +65,13 @@ spec:
                 sh 'mvn test'
             }
         }
-//         stage('SonarQube Analysis') {
-//             steps {
-//                 withSonarQubeEnv('SonarQube') {
-//                     sh 'mvn sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName=localmovie-media-manager'
-//                 }
-//             }
-//         }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('Sonar') {
+                    sh 'mvn package sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName=localmovie-media-manager'
+                }
+            }
+        }
         stage('Package & Deploy Jar to Artifactory') {
             steps {
                 script {
