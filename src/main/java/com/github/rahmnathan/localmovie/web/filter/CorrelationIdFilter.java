@@ -24,7 +24,7 @@ public class CorrelationIdFilter implements Filter {
             String correlationId = httpServletRequest.getHeader(X_CORRELATION_ID);
             MDC.put(X_CORRELATION_ID, StringUtils.isEmpty(correlationId) ? UUID.randomUUID().toString() : correlationId);
 
-            String clientAddress = ((HttpServletRequest) servletRequest).getHeader("X-FORWARDED-FOR");
+            String clientAddress = httpServletRequest.getHeader("X-FORWARDED-FOR");
             MDC.put(CLIENT_ADDRESS, clientAddress);
 
             filterChain.doFilter(httpServletRequest, servletResponse);
