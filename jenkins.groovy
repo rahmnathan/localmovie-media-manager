@@ -53,7 +53,7 @@ node {
         withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'Dockerhub',
                           usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
             stage('Docker Build and Push') {
-                sh "'${mvnHome}/bin/mvn' spring-boot:build-image -Ddocker.password='$PASSWORD' -Ddocker.publish=true"
+                sh "'${mvnHome}/bin/mvn' spring-boot:build-image -DskipTests -Ddocker.password='$PASSWORD' -Ddocker.publish=true"
             }
         }
         stage('Deploy to Kubernetes') {
