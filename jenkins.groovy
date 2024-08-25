@@ -50,13 +50,10 @@ node {
         stage('Package & Deploy Jar to Artifactory') {
             rtMaven.run pom: 'pom.xml', goals: 'install -DskipTests', buildInfo: buildInfo
         }
-        stage('Docker Build') {
-            sh "'${mvnHome}/bin/mvn' dockerfile:build"
-        }
         withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'Dockerhub',
                           usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-            stage('Docker Push') {
-                sh "'${mvnHome}/bin/mvn' dockerfile:push -Ddockerfile.username=$USERNAME -Ddockerfile.password='$PASSWORD'"
+            stage('Docker Build and Push') {
+                sh "'${mvnHome}/bin/mvn' spring-boot:build-image -Ddocker.password='$PASSWORD' -Ddocker.push=true"
             }
         }
         stage('Deploy to Kubernetes') {

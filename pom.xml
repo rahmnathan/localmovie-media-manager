@@ -21,6 +21,9 @@
         <internal-utils.version>3.18</internal-utils.version>
         <internal-adapters.version>3.6</internal-adapters.version>
         <querydsl.version>5.1.0</querydsl.version>
+
+        <docker.publish>false</docker.publish>
+        <docker.password/>
     </properties>
 
     <scm>
@@ -182,27 +185,18 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <executable>true</executable>
+                    <image>
+                        <name>rahmnathan/localmovie-media-manager:${project.version}</name>
+                        <publish>${docker.publish}</publish>
+                    </image>
+                    <docker>
+                        <publishRegistry>
+                            <username>rahmnathan</username>
+                            <password>${docker.password}</password>
+                            <url>https://docker.io</url>
+                        </publishRegistry>
+                    </docker>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.13</version>
-                <configuration>
-                    <repository>rahmnathan/localmovie-media-manager</repository>
-                    <tag>${project.version}</tag>
-                    <buildArgs>
-                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
-                    </buildArgs>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>activation</artifactId>
-                        <version>1.1.1</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
