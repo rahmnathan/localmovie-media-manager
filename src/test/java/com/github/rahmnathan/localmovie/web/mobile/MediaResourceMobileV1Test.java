@@ -1,9 +1,9 @@
 package com.github.rahmnathan.localmovie.web.mobile;
 
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.data.MediaEventDto;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ class MediaResourceMobileV1Test {
 
     @Test
     void getEventsTest() {
-        List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged(), new MockHttpServletResponse());
+        List<MediaEventDto> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged(), new MockHttpServletResponse());
         assertEquals(0, events.size());
     }
 

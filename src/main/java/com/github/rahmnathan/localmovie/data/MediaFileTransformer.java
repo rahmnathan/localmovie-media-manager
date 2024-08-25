@@ -1,15 +1,22 @@
 package com.github.rahmnathan.localmovie.data;
 
-import com.github.rahmnathan.localmovie.persistence.entity.Media;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaUser;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaView;
+import com.github.rahmnathan.localmovie.persistence.entity.*;
 import lombok.experimental.UtilityClass;
 
 import java.util.Set;
 
 @UtilityClass
 public class MediaFileTransformer {
+
+    public static MediaEventDto toMediaEventDto(MediaFileEvent mediaFileEvent) {
+        return MediaEventDto.builder()
+                .id(mediaFileEvent.getId())
+                .event(mediaFileEvent.getEvent())
+                .timestamp(mediaFileEvent.getTimestamp())
+                .relativePath(mediaFileEvent.getRelativePath())
+                .mediaFile(toMediaFileDto(mediaFileEvent.getMediaFile(), true))
+                .build();
+    }
 
     public static MediaFileDto toMediaFileDto(MediaFile mediaFile, boolean includeImage) {
         MediaFileDto.MediaFileDtoBuilder builder = MediaFileDto.builder();

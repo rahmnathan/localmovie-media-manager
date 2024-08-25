@@ -1,9 +1,10 @@
 package com.github.rahmnathan.localmovie.web.mobile;
 
+import com.github.rahmnathan.localmovie.data.MediaEventDto;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
+import com.github.rahmnathan.localmovie.data.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -86,7 +87,7 @@ public class MediaResourceMobileV1 {
      * @return - List of MediaFileEvents
      */
     @GetMapping(path = "/events")
-    public List<MediaFileEvent> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable, HttpServletResponse response) {
+    public List<MediaEventDto> getEvents(@RequestParam("timestamp") Long epoch, Pageable pageable, HttpServletResponse response) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(epoch), ZoneId.systemDefault());
         log.info("Request for events since: {}", localDateTime);
 
@@ -97,7 +98,9 @@ public class MediaResourceMobileV1 {
             return List.of();
         }
 
-        List<MediaFileEvent> events = persistenceService.getMediaFileEvents(localDateTime, pageable);
+        List<MediaEventDto> events = persistenceService.getMediaFileEvents(localDateTime, pageable).stream()
+                .map(MediaFileTransformer::toMediaEventDto)
+                .toList();
 
         log.info("Events response. Time: {} EventList: {}", localDateTime, events);
         return events;
