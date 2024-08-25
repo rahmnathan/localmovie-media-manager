@@ -62,8 +62,13 @@ spec:
         }
         stage('Unit Test') {
             steps {
+                sh 'mvn test'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh "${mvnHome}/bin/mvn verify sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName='localmovie-media-manager'"
+                    sh "mvn verify sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName='localmovie-media-manager'"
                 }
             }
         }
