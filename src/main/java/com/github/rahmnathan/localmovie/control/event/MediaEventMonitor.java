@@ -6,6 +6,7 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.LockProvider;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,11 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     private final MediaJobRepository mediaJobRepository;
     private final MediaEventService eventService;
+    private final LockProvider lockProvider;
+
+    /*
+        Figure out how to handle this across multiple instances!
+     */
 
     @Override
     public void directoryModified(WatchEvent.Kind event, File file) {

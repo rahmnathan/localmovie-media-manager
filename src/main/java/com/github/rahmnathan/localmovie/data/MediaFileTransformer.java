@@ -4,9 +4,11 @@ import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaUser;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaView;
+import lombok.experimental.UtilityClass;
 
 import java.util.Set;
 
+@UtilityClass
 public class MediaFileTransformer {
 
     public static MediaFileDto toMediaFileDto(MediaFile mediaFile, boolean includeImage) {

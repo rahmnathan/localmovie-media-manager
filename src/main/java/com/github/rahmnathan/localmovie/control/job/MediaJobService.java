@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -112,12 +113,12 @@ public class MediaJobService {
             if (jobStatus.get() == MediaJobStatus.SUCCEEDED) {
                 log.info("Found completed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
-                new File(mediaJob.getInputFile()).delete();
+                Files.delete(Paths.get(mediaJob.getInputFile()));
                 mediaEventService.handleCreateEvent(new File(mediaJob.getOutputFile()));
             } else if (jobStatus.get() == MediaJobStatus.FAILED) {
                 log.warn("Found failed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
-                new File(mediaJob.getOutputFile()).delete();
+                Files.delete(Paths.get(mediaJob.getOutputFile()));
             }
         }
 
