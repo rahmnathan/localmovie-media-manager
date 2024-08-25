@@ -141,8 +141,8 @@
             <version>8.0.1.Final</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
         </dependency>
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
