@@ -88,7 +88,7 @@ public class MediaService {
         File file = getParentFile(path);
         log.info("{} - Parent resolved to: {}", path, file.getPath());
 
-        Media parentInfo = loadMedia(file.getPath());
+        Media parentInfo = loadNewMediaInternal(file.getPath());
         Integer number = isEpisode(path) ? parseEpisodeNumber(filename) : parseSeasonNumber(filename);
         return com.github.rahmnathan.omdb.data.Media.copyWithNewTitleNumberAndType(parentInfo.toOmdbMedia(), getTitle(filename), number, mediaType);
     }

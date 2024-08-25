@@ -10,6 +10,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.MDC;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -46,6 +47,7 @@ public class MediaJobService {
     }
 
     @Scheduled(fixedDelay = 30000L)
+    @SchedulerLock(name = "scan-queued-jobs-lock")
     public void scanQueuedJobs() {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
@@ -88,6 +90,7 @@ public class MediaJobService {
     }
 
     @Scheduled(fixedDelay = 30000L)
+    @SchedulerLock(name = "update-job-status-lock")
     public void updateJobStatus() throws IOException {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
@@ -130,6 +133,7 @@ public class MediaJobService {
     }
 
     @Scheduled(fixedDelay = 30000L)
+    @SchedulerLock(name = "record-etas-lock")
     public void extractAndRecordETAs() throws IOException {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
