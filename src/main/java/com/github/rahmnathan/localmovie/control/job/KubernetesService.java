@@ -133,7 +133,16 @@ public class KubernetesService {
 
     public void deleteJob(String jobId) throws IOException {
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            client.batch().v1().jobs().inNamespace(getNamespace()).withLabel(JOB_ID_LABEL, jobId).delete();
+            Optional<Job> jobOptional = client.batch().v1().jobs()
+                    .inNamespace(getNamespace())
+                    .withLabel(JOB_ID_LABEL, jobId).list().getItems().stream()
+                    .findAny();
+
+            if(jobOptional.isPresent()) {
+                client.batch().v1().jobs().inNamespace(getNamespace()).resource(jobOptional.get()).delete();
+            } else {
+                log.warn("No kubernetes job found for jobId: {}", jobId);
+            }
         }
     }
 
