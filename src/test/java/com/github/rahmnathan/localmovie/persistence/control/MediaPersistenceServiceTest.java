@@ -21,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class MediaPersistenceServiceTest {
+class MediaPersistenceServiceTest {
 
     private final MediaPersistenceService mediaPersistenceService;
 
     @Autowired
-    public MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, StartupMediaInitializer initializer) {
+    MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, StartupMediaInitializer initializer) {
         this.mediaPersistenceService = mediaPersistenceService;
 
         try {
@@ -37,26 +37,26 @@ public class MediaPersistenceServiceTest {
     }
 
     @Test
-    public void getMediaImageTest() {
+    void getMediaImageTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
         List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFiles(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }
 
     @Test
-    public void getMediaFileByPathTest() {
+    void getMediaFileByPathTest() {
         Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> resultMediaFile = mediaPersistenceService.getMediaFileByPath("Movies/300.mkv");
         assertTrue(resultMediaFile.isPresent());
     }
 
     @Test
-    public void getMediaFilesTest() {
+    void getMediaFilesTest() {
         byte[] outputImage = mediaPersistenceService.getMediaImage("Movies/300.mkv");
         assertNotNull(outputImage);
     }
 
     @Test
-    public void getMediaFileEventsTest() {
+    void getMediaFileEventsTest() {
         com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = com.github.rahmnathan.localmovie.persistence.entity.MediaFile.forPath("/home/LocalMedia/some/test/path").build();
         MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
 
@@ -68,7 +68,7 @@ public class MediaPersistenceServiceTest {
     }
 
     @Transactional
-    public void save(MediaFileEvent mediaFileEvent) {
+    void save(MediaFileEvent mediaFileEvent) {
         mediaPersistenceService.saveEvent(mediaFileEvent);
     }
 }

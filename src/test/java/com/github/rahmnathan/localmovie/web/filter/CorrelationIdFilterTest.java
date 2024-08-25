@@ -9,11 +9,11 @@ import java.util.UUID;
 
 import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
 
-public class CorrelationIdFilterTest {
+class CorrelationIdFilterTest {
     private final CorrelationIdFilter correlationIdFilter = new CorrelationIdFilter();
 
     @Test
-    public void doFilterTest() throws Exception {
+    void doFilterTest() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         String requestId = UUID.randomUUID().toString();
         request.addHeader(X_CORRELATION_ID, requestId);

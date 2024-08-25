@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class MediaFileServiceTest {
+class MediaFileServiceTest {
     private final MediaFileService mediaFileService;
 
     @Autowired
-    public MediaFileServiceTest(MediaFileService mediaFileService, StartupMediaInitializer initializer) {
+    MediaFileServiceTest(MediaFileService mediaFileService, StartupMediaInitializer initializer) {
         this.mediaFileService = mediaFileService;
 
         try {
@@ -40,7 +40,7 @@ public class MediaFileServiceTest {
 
     @ParameterizedTest
     @MethodSource("filePaths")
-    public void loadMediaFileTest(String path) {
+    void loadMediaFileTest(String path) {
         MediaFile mediaFile = mediaFileService.loadMediaFile(new File(path));
         assertNotNull(mediaFile);
     }

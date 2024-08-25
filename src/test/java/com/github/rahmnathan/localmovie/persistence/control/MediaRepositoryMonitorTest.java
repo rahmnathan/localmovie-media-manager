@@ -8,16 +8,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class MediaRepositoryMonitorTest {
+class MediaRepositoryMonitorTest {
     private final MediaRepositoryMonitor repositoryMonitor;
 
     @Autowired
-    public MediaRepositoryMonitorTest(MediaRepositoryMonitor repositoryMonitor) {
+    MediaRepositoryMonitorTest(MediaRepositoryMonitor repositoryMonitor) {
         this.repositoryMonitor = repositoryMonitor;
     }
 
     @Test
-    public void checkForEmptyValuesTest() {
+    void checkForEmptyValuesTest() {
         repositoryMonitor.checkForEmptyValues();
     }
 }

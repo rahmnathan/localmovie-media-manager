@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class MediaResourceMobileV1Test {
+class MediaResourceMobileV1Test {
     private final MediaResourceMobileV1 mediaResource;
 
     @Autowired
-    public MediaResourceMobileV1Test(MediaResourceMobileV1 mediaResource, StartupMediaInitializer initializer) {
+    MediaResourceMobileV1Test(MediaResourceMobileV1 mediaResource, StartupMediaInitializer initializer) {
         this.mediaResource = mediaResource;
         try {
             initializer.getInitializationFuture().get();
@@ -35,13 +35,13 @@ public class MediaResourceMobileV1Test {
     }
 
     @Test
-    public void getEventsTest() {
+    void getEventsTest() {
         List<MediaFileEvent> events = mediaResource.getEvents(System.currentTimeMillis(), Pageable.unpaged(), new MockHttpServletResponse());
         assertEquals(0, events.size());
     }
 
     @Test
-    public void countEventsTest() {
+    void countEventsTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         mediaResource.countEvents(System.currentTimeMillis(), response);
 
@@ -49,13 +49,13 @@ public class MediaResourceMobileV1Test {
     }
 
     @Test
-    public void getMediaTest() {
+    void getMediaTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertTrue(mediaFileList.size() > 0);
     }
 
     @Test
-    public void getMediaCountTest() {
+    void getMediaCountTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         mediaResource.getMediaCount(buildRequest(), response);
 

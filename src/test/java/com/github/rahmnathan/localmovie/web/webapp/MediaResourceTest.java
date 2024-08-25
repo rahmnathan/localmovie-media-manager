@@ -3,7 +3,6 @@ package com.github.rahmnathan.localmovie.web.webapp;
 import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class MediaResourceTest {
+class MediaResourceTest {
     private final MediaResource mediaResource;
 
     @Autowired
-    public MediaResourceTest(MediaResource mediaResource, StartupMediaInitializer initializer) {
+    MediaResourceTest(MediaResource mediaResource, StartupMediaInitializer initializer) {
         this.mediaResource = mediaResource;
         try {
             initializer.getInitializationFuture().get();
@@ -36,13 +35,13 @@ public class MediaResourceTest {
     }
 
     @Test
-    public void getMediaTest() {
+    void getMediaTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertTrue(mediaFileList.size() > 0);
     }
 
     @Test
-    public void getMediaCountTest() {
+    void getMediaCountTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         mediaResource.getMediaCount(buildRequest(), response);
 
@@ -50,7 +49,7 @@ public class MediaResourceTest {
     }
 
     @Test
-    public void streamVideoTest() {
+    void streamVideoTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         mediaResource.streamVideo(mediaFileList.get(0).getMediaFileId(), response, new MockHttpServletRequest());
@@ -60,7 +59,7 @@ public class MediaResourceTest {
     }
 
     @Test
-    public void getPosterTest() {
+    void getPosterTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         byte[] poster = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());
@@ -69,7 +68,7 @@ public class MediaResourceTest {
 
     @Test
     @Transactional
-    public void addViewTest() {
+    void addViewTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         double position = 10.0;
@@ -83,7 +82,7 @@ public class MediaResourceTest {
 
     @Test
     @Transactional
-    public void addMultipleViewsTest() {
+    void addMultipleViewsTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         double position = 10.0;

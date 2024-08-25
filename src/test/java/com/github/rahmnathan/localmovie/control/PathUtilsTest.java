@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class PathUtilsTest {
+class PathUtilsTest {
 
     @Test
-    public void getEpisodeNumberLegacyTest() throws InvalidMediaException {
+    void getEpisodeNumberLegacyTest() throws InvalidMediaException {
         String testPath = "LocalMedia/Series/South Park/Season 01/Episode 4.mkv";
 
         int result = PathUtils.parseEpisodeNumber(testPath);
@@ -17,7 +17,7 @@ public class PathUtilsTest {
     }
 
     @Test
-    public void getEpisodeNumberTest() throws InvalidMediaException {
+    void getEpisodeNumberTest() throws InvalidMediaException {
         String testPath = "LocalMedia/Series/South Park/Season 01/S04E09.mkv";
 
         int result = PathUtils.parseEpisodeNumber(testPath);
@@ -25,7 +25,7 @@ public class PathUtilsTest {
     }
 
     @Test
-    public void getEpisodeNumberInvalidNameTest() {
+    void getEpisodeNumberInvalidNameTest() {
         String testPath = "LocalMedia/Series/South Park/Season 01/Ep 5.mkv";
         assertThrows(InvalidMediaException.class, () -> PathUtils.parseEpisodeNumber(testPath));
     }

@@ -3,9 +3,8 @@ package com.github.rahmnathan.localmovie.persistence.entity;
 import com.github.rahmnathan.omdb.data.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.Hibernate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.sql.Types;
@@ -83,7 +82,7 @@ public class Media implements Serializable {
         resultMedia.actors = inputMedia.getActors();
         resultMedia.genre = inputMedia.getGenre();
         String inputImage = inputMedia.getImage();
-        resultMedia.image = new MediaImage(StringUtils.isEmpty(inputImage) ? new byte[0] : Base64.getDecoder().decode(inputImage), resultMedia);
+        resultMedia.image = new MediaImage(StringUtils.isBlank(inputImage) ? new byte[0] : Base64.getDecoder().decode(inputImage), resultMedia);
         resultMedia.imdbRating = inputMedia.getImdbRating();
         resultMedia.metaRating = inputMedia.getMetaRating();
         resultMedia.mediaType = inputMedia.getMediaType();

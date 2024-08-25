@@ -18,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class MediaEventServiceTest {
+class MediaEventServiceTest {
     private final MediaPersistenceService mediaPersistenceService;
     private final MediaEventService mediaEventService;
 
     @Autowired
-    public MediaEventServiceTest(MediaPersistenceService mediaPersistenceService, MediaEventService mediaEventService, StartupMediaInitializer initializer) {
+    MediaEventServiceTest(MediaPersistenceService mediaPersistenceService, MediaEventService mediaEventService, StartupMediaInitializer initializer) {
         this.mediaPersistenceService = mediaPersistenceService;
         this.mediaEventService = mediaEventService;
 
@@ -35,13 +35,13 @@ public class MediaEventServiceTest {
     }
 
     @Test
-    public void handleCreateEventTest() {
+    void handleCreateEventTest() {
         mediaEventService.handleCreateEvent(new File("src/test/resources/LocalMedia/Movies/300.mkv"));
         assertTrue(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged()).size() >= 1);
     }
 
     @Test
-    public void handleDeleteEventTest() {
+    void handleDeleteEventTest() {
         assertTrue(mediaPersistenceService.getMediaFileByPath("Movies/300.mkv").isPresent());
 
         mediaEventService.handleDeleteEvent(new File("/home/test/LocalMedia/Movies/300.mkv"));
