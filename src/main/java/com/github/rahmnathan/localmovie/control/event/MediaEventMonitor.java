@@ -40,7 +40,6 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
 
         String absolutePath = file.getAbsolutePath();
-        log.info("Detected media event {} at path: {}", event.name(), absolutePath);
 
         if(absolutePath.endsWith("partial~") || isActiveConversion(file)) {
             log.info("File {} is currently being converted. Skipping event.", absolutePath);
