@@ -5,17 +5,18 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PushNotificationService {
     private static final String MOVIE_TOPIC = "movies";
     private final ServiceConfig serviceConfig;
-    private final FirebaseMessaging firebaseApp;
+    private FirebaseMessaging firebaseApp;
 
     void sendPushNotifications(String title, String path) {
         if (serviceConfig.isNotificationsEnabled()) {
@@ -38,5 +39,10 @@ public class PushNotificationService {
                 log.error("Failed to send push notification.", e);
             }
         }
+    }
+
+    @Autowired(required = false)
+    public void setMyServiceB(FirebaseMessaging firebaseApp) {
+        this.firebaseApp = firebaseApp;
     }
 }
