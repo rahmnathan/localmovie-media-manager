@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.data;
 import com.github.rahmnathan.omdb.data.MediaType;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -26,6 +27,7 @@ public class MediaFileDto {
     public static class MediaDto {
         private Long id;
         private MediaType mediaType;
+        @ToString.Exclude
         private byte[] image;
         private String title;
         private String imdbRating;
