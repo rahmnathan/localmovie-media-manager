@@ -15,7 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -23,7 +22,6 @@ import java.util.Set;
 
 @Configuration
 @AllArgsConstructor
-@EnableAspectJAutoProxy
 public class BeanProducer {
     private final ServiceConfig serviceConfig;
 
