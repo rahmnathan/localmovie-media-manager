@@ -56,8 +56,10 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: false
+  flyway:
+    enabled: true
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
