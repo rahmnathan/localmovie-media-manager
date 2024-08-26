@@ -6,6 +6,10 @@ import com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.boundary.MediaProviderOmdb;
 import com.github.rahmnathan.omdb.boundary.MediaProviderStub;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.AllArgsConstructor;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
@@ -18,6 +22,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Set;
 
 @Configuration
@@ -48,6 +55,26 @@ public class BeanProducer {
 
         return new MediaProviderStub();
     }
+
+    @Bean
+    FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        return FirebaseMessaging.getInstance(firebaseApp);
+    }
+
+    @Bean
+    FirebaseApp firebaseApp() throws IOException {
+        GoogleCredentials googleCredential = GoogleCredentials
+                .fromStream(new FileInputStream("/workspace/secrets/google-services.json"))
+                .createScoped(Collections.singleton("https://www.googleapis.com/auth/firebase.messaging"));
+
+        FirebaseOptions options = FirebaseOptions.builder()
+                .setCredentials(googleCredential)
+                .build();
+
+        return FirebaseApp.initializeApp(options);
+    }
+
+
 
     @Bean
     public LockProvider jdbcLockProvider(DataSource dataSource) {

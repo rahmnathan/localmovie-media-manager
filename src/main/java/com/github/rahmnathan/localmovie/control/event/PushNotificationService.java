@@ -1,36 +1,42 @@
 package com.github.rahmnathan.localmovie.control.event;
 
-import com.github.rahmnathan.google.pushnotification.boundary.FirebaseNotificationService;
-import com.github.rahmnathan.google.pushnotification.data.PushNotification;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.ProducerTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class PushNotificationService {
     private static final String MOVIE_TOPIC = "movies";
-    private final FirebaseNotificationService notificationService;
-    private final boolean enabled;
-
-    public PushNotificationService(ProducerTemplate template, CamelContext context, ServiceConfig serviceConfig) {
-        this.notificationService = new FirebaseNotificationService(template, context);
-        this.enabled = serviceConfig.isNotificationsEnabled();
-    }
+    private final ServiceConfig serviceConfig;
+    private final FirebaseMessaging firebaseApp;
 
     void sendPushNotifications(String title, String path) {
-        if (enabled) {
+        if (serviceConfig.isNotificationsEnabled()) {
             log.info("Sending notification of new movie: {} to {} clients", path, MOVIE_TOPIC);
-            PushNotification pushNotification = PushNotification.Builder.newInstance()
+
+            Message msg = Message.builder()
                     .setTopic(MOVIE_TOPIC)
-                    .setTitle("New Movie!")
-                    .setBody(title)
-                    .addData("path", path)
+                    .putData("title", "New Movie!")
+                    .putData("path", path)
+                    .putData("body", title)
+                    .setNotification(Notification.builder()
+                            .setBody(title)
+                            .setTitle("New Movie!")
+                            .build())
                     .build();
 
-            notificationService.sendPushNotification(pushNotification);
+            try {
+                firebaseApp.send(msg);
+            } catch (FirebaseMessagingException e) {
+                log.error("Failed to send push notification.", e);
+            }
         }
     }
 }

@@ -56,11 +56,6 @@
         </dependency>
         <dependency>
             <groupId>com.github.rahmnathan.adapters</groupId>
-            <artifactId>google-pushnotification</artifactId>
-            <version>${internal-adapters.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.rahmnathan.adapters</groupId>
             <artifactId>omdb-client</artifactId>
             <version>${internal-adapters.version}</version>
         </dependency>
@@ -165,6 +160,11 @@
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
             <version>5.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.1.1</version>
         </dependency>
 
         <!-- Test -->
