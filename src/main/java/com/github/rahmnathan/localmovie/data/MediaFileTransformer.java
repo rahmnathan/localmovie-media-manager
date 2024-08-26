@@ -9,13 +9,17 @@ import java.util.Set;
 public class MediaFileTransformer {
 
     public static MediaEventDto toMediaEventDto(MediaFileEvent mediaFileEvent) {
-        return MediaEventDto.builder()
+        MediaEventDto.MediaEventDtoBuilder builder = MediaEventDto.builder()
                 .id(mediaFileEvent.getId())
                 .event(mediaFileEvent.getEvent())
                 .timestamp(mediaFileEvent.getTimestamp())
-                .relativePath(mediaFileEvent.getRelativePath())
-                .mediaFile(toMediaFileDto(mediaFileEvent.getMediaFile(), true))
-                .build();
+                .relativePath(mediaFileEvent.getRelativePath());
+
+        if(mediaFileEvent.getMediaFile() != null) {
+            builder.mediaFile(toMediaFileDto(mediaFileEvent.getMediaFile(), true))
+        }
+
+        return builder.build();
     }
 
     public static MediaFileDto toMediaFileDto(MediaFile mediaFile, boolean includeImage) {
