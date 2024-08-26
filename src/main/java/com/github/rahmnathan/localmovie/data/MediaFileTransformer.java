@@ -16,7 +16,7 @@ public class MediaFileTransformer {
                 .relativePath(mediaFileEvent.getRelativePath());
 
         if(mediaFileEvent.getMediaFile() != null) {
-            builder.mediaFile(toMediaFileDto(mediaFileEvent.getMediaFile(), true))
+            builder.mediaFile(toMediaFileDto(mediaFileEvent.getMediaFile(), true));
         }
 
         return builder.build();
