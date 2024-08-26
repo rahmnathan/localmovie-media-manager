@@ -48,7 +48,7 @@ public class MediaJobService {
     }
 
     @Scheduled(fixedDelay = 30000L)
-    @SchedulerLock(name = "scan-queued-jobs-lock")
+//    @SchedulerLock(name = "scan-queued-jobs-lock")
     public void scanQueuedJobs() {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
@@ -91,7 +91,7 @@ public class MediaJobService {
     }
 
     @Scheduled(fixedDelay = 30000L)
-    @SchedulerLock(name = "update-job-status-lock")
+//    @SchedulerLock(name = "update-job-status-lock")
     public void updateJobStatus() throws IOException {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
@@ -134,7 +134,7 @@ public class MediaJobService {
     }
 
     @Scheduled(fixedDelay = 30000L)
-    @SchedulerLock(name = "record-etas-lock")
+//    @SchedulerLock(name = "record-etas-lock")
     public void extractAndRecordETAs() throws IOException {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());

@@ -14,6 +14,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.github.rahmnathan.localmovie.web.mobile.MediaResourceMobileV1.RESPONSE_HEADER_COUNT;
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,19 +46,28 @@ class MediaResourceMobileV1Test {
         MockHttpServletResponse response = new MockHttpServletResponse();
         mediaResource.countEvents(System.currentTimeMillis(), response);
 
-        assertEquals(0, Integer.valueOf(response.getHeader(RESPONSE_HEADER_COUNT)));
+        assertEquals(0, Integer.valueOf(Objects.requireNonNull(response.getHeader(RESPONSE_HEADER_COUNT))));
     }
 
     @Test
     void getMediaTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
-        assertTrue(mediaFileList.size() > 0);
+        assertFalse(mediaFileList.isEmpty());
     }
 
     @Test
     void getMediaCountTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         mediaResource.getMediaCount(buildRequest(), response);
+
+        assertTrue(response.getHeaderNames().contains("Count"));
+    }
+
+    @Test
+    void getHistoryTest() {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        mediaResource.getMediaHistory(buildRequest(), response);
 
         assertTrue(response.getHeaderNames().contains("Count"));
     }
