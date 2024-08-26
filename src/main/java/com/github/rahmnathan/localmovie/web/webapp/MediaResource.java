@@ -84,7 +84,6 @@ public class MediaResource {
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
     public void streamVideo(@PathVariable("mediaFileId") String mediaFileId, HttpServletResponse response, HttpServletRequest request) {
-        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
         log.info("Received streaming request - {}", mediaFileId);
 
