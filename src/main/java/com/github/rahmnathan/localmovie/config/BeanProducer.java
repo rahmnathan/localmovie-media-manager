@@ -86,7 +86,7 @@ public class BeanProducer {
     @Bean
     public LockRepository DefaultLockRepository(DataSource dataSource){
         DefaultLockRepository repository = new DefaultLockRepository(dataSource);
-        repository.setTimeToLive(Duration.of(5, ChronoUnit.MINUTES).toMillisPart());
+        repository.setTimeToLive(Duration.of(1, ChronoUnit.MINUTES).toMillisPart());
         return repository;
     }
 

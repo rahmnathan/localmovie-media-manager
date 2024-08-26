@@ -38,13 +38,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
         String absolutePath = file.getAbsolutePath();
 
-        if (absolutePath.endsWith("partial~") || isActiveConversion(file)) {
-            log.info("File {} is currently being converted. Skipping event.", absolutePath);
-            return;
-        }
-
         // Only process events on one instance
-        Lock directoryModificationLock = lockRegistry.obtain(absolutePath);
+        Lock directoryModificationLock = lockRegistry.obtain(event.name() + ":" + absolutePath);
         boolean lockAcquired = directoryModificationLock.tryLock();
         if (!lockAcquired) {
             log.info("Lock ({}) is currently held by another instance.", directoryModificationLock);
@@ -53,6 +48,11 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         }
 
         try {
+            if (absolutePath.endsWith("partial~") || isActiveConversion(file)) {
+                log.info("File {} is currently being converted. Skipping event.", absolutePath);
+                return;
+            }
+
             if (event == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(file);
                 if (Files.isRegularFile(file.toPath())) {
