@@ -113,12 +113,18 @@ public class MediaJobService {
             if (jobStatus.get() == MediaJobStatus.SUCCEEDED) {
                 log.info("Found completed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
-                Files.delete(Paths.get(mediaJob.getInputFile()));
+                File inputFile = new File(mediaJob.getInputFile());
+                if(inputFile.exists()) {
+                    Files.delete(inputFile.toPath());
+                }
                 mediaEventService.handleCreateEvent(new File(mediaJob.getOutputFile()));
             } else if (jobStatus.get() == MediaJobStatus.FAILED) {
                 log.warn("Found failed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
-                Files.delete(Paths.get(mediaJob.getOutputFile()));
+                File outputFile = new File(mediaJob.getOutputFile());
+                if(outputFile.exists()) {
+                    Files.delete(outputFile.toPath());
+                }
             }
         }
 
