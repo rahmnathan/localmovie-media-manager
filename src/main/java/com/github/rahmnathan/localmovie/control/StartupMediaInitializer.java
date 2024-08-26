@@ -32,7 +32,7 @@ public class StartupMediaInitializer {
     private ForkJoinTask<?> fileInitializationTask;
 
     @EventListener(ApplicationReadyEvent.class)
-    public void initializeFileListSynchronous() {
+    public void initializeFileList() {
         try (ForkJoinPool customThreadPool = new ForkJoinPool(16)) {
             fileInitializationTask = customThreadPool.submit(() -> {
                 long startTime = System.currentTimeMillis();
