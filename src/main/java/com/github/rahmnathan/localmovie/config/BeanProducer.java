@@ -57,11 +57,13 @@ public class BeanProducer {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "service.notificationsEnabled", havingValue = "true")
     FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
         return FirebaseMessaging.getInstance(firebaseApp);
     }
 
     @Bean
+    @ConditionalOnProperty(name = "service.notificationsEnabled", havingValue = "true")
     FirebaseApp firebaseApp() throws IOException {
         GoogleCredentials googleCredential = GoogleCredentials
                 .fromStream(new FileInputStream("/workspace/secrets/google-services.json"))
