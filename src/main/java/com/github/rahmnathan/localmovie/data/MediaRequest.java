@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.data;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,11 +8,17 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class MediaRequest {
+    @Max(100)
     private final String path;
+    @Max(100)
     private int page;
-    @Min(value = 1, message = "The value must be positive")
+    @Min(1)
+    @Max(100)
     private int pageSize;
+    @Max(50)
     private final String order;
+    @Max(50)
     private String q;
+    @Max(50)
     private final String genre;
 }

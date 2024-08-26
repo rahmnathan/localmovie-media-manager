@@ -42,6 +42,10 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
+  data:
+    web:
+      pageable:
+        max-page-size: 100
   security:
     oauth2:
       resourceserver:
