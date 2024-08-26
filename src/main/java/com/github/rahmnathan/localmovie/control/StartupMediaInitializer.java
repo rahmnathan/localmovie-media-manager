@@ -56,7 +56,7 @@ public class StartupMediaInitializer {
     private MediaFile buildMediaFile(File file) {
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         return MediaFile.forPath(file.getAbsolutePath())
-                .media(dataService.loadNewMedia(relativePath))
+                .media(dataService.loadMedia(relativePath))
                 .mediaFileId(UUID.randomUUID().toString())
                 .absolutePath(file.getAbsolutePath())
                 .build();

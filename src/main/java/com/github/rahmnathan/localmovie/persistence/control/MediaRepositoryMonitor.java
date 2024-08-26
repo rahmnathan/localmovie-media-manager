@@ -45,7 +45,7 @@ public class MediaRepositoryMonitor {
         mediaFileRepository.findAllByUpdatedBeforeOrderByUpdated(queryCutoff, PageRequest.of(0, updateLimit))
                 .forEach(mediaFile -> {
                     log.info("Updating media at path: {}", mediaFile.getPath());
-                    Media newMedia = mediaService.loadNewMedia(mediaFile.getPath());
+                    Media newMedia = mediaService.loadMedia(mediaFile.getPath());
                     if(newMedia.getImage() != null && newMedia.getImage().getImage() != null && newMedia.getImage().getImage().length > 0) {
                         Media oldMedia = mediaFile.getMedia();
                         oldMedia.setMediaFile(null);

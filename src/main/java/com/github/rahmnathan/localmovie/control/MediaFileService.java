@@ -34,7 +34,7 @@ public class MediaFileService {
 
     private MediaFile loadNewMediaFile(File file, String relativePath){
         MediaFile mediaFile = MediaFile.forPath(file.getAbsolutePath())
-                .media(mediaService.loadNewMedia(relativePath))
+                .media(mediaService.loadMedia(relativePath))
                 .mediaFileId(UUID.randomUUID().toString())
                 .absolutePath(file.getAbsolutePath())
                 .build();

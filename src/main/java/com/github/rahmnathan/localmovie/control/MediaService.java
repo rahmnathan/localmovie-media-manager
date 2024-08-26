@@ -3,7 +3,6 @@ package com.github.rahmnathan.localmovie.control;
 import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
-import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.data.MediaType;
 import com.github.rahmnathan.omdb.exception.MediaProviderException;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.util.Optional;
 
 import static com.github.rahmnathan.localmovie.control.PathUtils.*;
 
@@ -26,21 +24,10 @@ public class MediaService {
 
     @Transactional
     public Media loadMedia(String path) {
-        Optional<MediaFile> mediaFile = persistenceService.getMediaFileByPath(path);
-        if (mediaFile.isPresent()) {
-            log.info("Getting from database - {}", path);
-            return mediaFile.get().getMedia();
-        }
-
-        return loadNewMediaInternal(path);
+        return loadMediaInternal(path);
     }
 
-    @Transactional
-    public Media loadNewMedia(String path) {
-        return loadNewMediaInternal(path);
-    }
-
-    private Media loadNewMediaInternal(String path) {
+    private Media loadMediaInternal(String path) {
         try {
             if (isTopLevel(path) || isEpisode(path)) {
                 return Media.fromOmdbMedia(loadMediaFromProvider(path));
@@ -88,7 +75,7 @@ public class MediaService {
         File file = getParentFile(path);
         log.info("{} - Parent resolved to: {}", path, file.getPath());
 
-        Media parentInfo = loadNewMediaInternal(file.getPath());
+        Media parentInfo = loadMediaInternal(file.getPath());
         Integer number = isEpisode(path) ? parseEpisodeNumber(filename) : parseSeasonNumber(filename);
         return com.github.rahmnathan.omdb.data.Media.copyWithNewTitleNumberAndType(parentInfo.toOmdbMedia(), getTitle(filename), number, mediaType);
     }

@@ -101,7 +101,7 @@ spec:
                 path: bootstrap.yml
         - name: secrets
           secret:
-            # Create this secret via: kubectl create secret generic localmovie-firebase-key --from-file=localmovie-firebase-key.json
+            # Create this secret via: kubectl create secret generic localmovie-firebase-key --from-file=google-services.json
             secretName: localmovie-firebase-key
       dnsPolicy: ClusterFirst
       restartPolicy: Always
