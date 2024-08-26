@@ -37,7 +37,7 @@ class MediaEventServiceTest {
     @Test
     void handleCreateEventTest() {
         mediaEventService.handleCreateEvent(new File("src/test/resources/LocalMedia/Movies/300.mkv"));
-        assertTrue(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged()).size() >= 1);
+        assertFalse(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged()).isEmpty());
     }
 
     @Test

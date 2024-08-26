@@ -4,10 +4,10 @@ import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.core.LockProvider;
 import org.slf4j.MDC;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -16,12 +16,13 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     private static final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
@@ -29,11 +30,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     private final MediaJobRepository mediaJobRepository;
     private final MediaEventService eventService;
-    private final LockProvider lockProvider;
-
-    /*
-        Figure out how to handle this across multiple instances!
-     */
+    private final LockRegistry lockRegistry;
 
     @Override
     public void directoryModified(WatchEvent.Kind event, File file) {
@@ -41,20 +38,33 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
         String absolutePath = file.getAbsolutePath();
 
-        if(absolutePath.endsWith("partial~") || isActiveConversion(file)) {
+        if (absolutePath.endsWith("partial~") || isActiveConversion(file)) {
             log.info("File {} is currently being converted. Skipping event.", absolutePath);
             return;
         }
 
-        if (event == StandardWatchEventKinds.ENTRY_CREATE) {
-            waitForWriteComplete(file);
-            if (Files.isRegularFile(file.toPath())) {
-                queueConversionJob(file);
-            } else {
-                eventService.handleCreateEvent(file);
+        // Only process events on one instance
+        Lock directoryModificationLock = lockRegistry.obtain(absolutePath);
+        boolean lockAcquired = directoryModificationLock.tryLock();
+        if (!lockAcquired) {
+            log.info("Lock ({}) is currently held by another instance.", directoryModificationLock);
+            MDC.clear();
+            return;
+        }
+
+        try {
+            if (event == StandardWatchEventKinds.ENTRY_CREATE) {
+                waitForWriteComplete(file);
+                if (Files.isRegularFile(file.toPath())) {
+                    queueConversionJob(file);
+                } else {
+                    eventService.handleCreateEvent(file);
+                }
+            } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
+                eventService.handleDeleteEvent(file);
             }
-        } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
-            eventService.handleDeleteEvent(file);
+        } finally {
+            directoryModificationLock.unlock();
         }
 
         MDC.clear();

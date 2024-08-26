@@ -34,7 +34,7 @@ spring:
   flyway:
     enabled: false
   profiles:
-    active: stub
+    active: stub,test
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher

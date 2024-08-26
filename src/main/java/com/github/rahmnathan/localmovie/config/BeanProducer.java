@@ -12,6 +12,7 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.AllArgsConstructor;
 import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.inmemory.InMemoryLockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
@@ -19,11 +20,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.integration.jdbc.lock.DefaultLockRepository;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.jdbc.lock.LockRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Set;
 
@@ -76,9 +83,26 @@ public class BeanProducer {
         return FirebaseApp.initializeApp(options);
     }
 
-
+    @Bean
+    public LockRepository DefaultLockRepository(DataSource dataSource){
+        DefaultLockRepository repository = new DefaultLockRepository(dataSource);
+        repository.setTimeToLive(Duration.of(5, ChronoUnit.MINUTES).toMillisPart());
+        return repository;
+    }
 
     @Bean
+    public JdbcLockRegistry jdbcLockRegistry(LockRepository lockRepository){
+        return new JdbcLockRegistry(lockRepository);
+    }
+
+    @Bean
+    @Profile("test")
+    public LockProvider lockProvider() {
+        return new InMemoryLockProvider();
+    }
+
+    @Bean
+    @Profile("!test")
     public LockProvider jdbcLockProvider(DataSource dataSource) {
         return new JdbcTemplateLockProvider(
                 JdbcTemplateLockProvider.Configuration.builder()

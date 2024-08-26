@@ -13,8 +13,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -78,7 +76,6 @@ class MediaJobServiceTest {
         jobRepository.save(mediaJob);
 
         new File("/tmp/LocalMedia/").mkdir();
-        Files.createFile(Paths.get("/tmp/LocalMedia/localmovies-test-input-file.txt"));
 
         when(kubernetesService.getJobStatus("job-id")).thenReturn(Optional.of(MediaJobStatus.SUCCEEDED));
 
