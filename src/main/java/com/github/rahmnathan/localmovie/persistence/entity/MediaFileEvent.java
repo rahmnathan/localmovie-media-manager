@@ -1,7 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

@@ -25,13 +25,13 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class MediaJobServiceTest {
+class MediaJobServiceTest {
 
     @MockBean
-    public KubernetesService kubernetesService;
+    KubernetesService kubernetesService;
 
     @MockBean
-    public MediaEventService mediaEventService;
+    MediaEventService mediaEventService;
 
     private final MediaJobService mediaJobService;
     private final MediaJobRepository jobRepository;
@@ -49,7 +49,7 @@ public class MediaJobServiceTest {
     }
 
     @Test
-    public void testLaunchQueuedJob() throws Exception {
+    void testLaunchQueuedJob() throws Exception {
         MediaJob mediaJob = MediaJob.builder()
                 .inputFile("input-path")
                 .outputFile("output-path")
@@ -66,7 +66,7 @@ public class MediaJobServiceTest {
     }
 
     @Test
-    public void testUpdateJobStatus() throws Exception {
+    void testUpdateJobStatus() throws Exception {
         MediaJob mediaJob = MediaJob.builder()
                 .inputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
                 .outputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
@@ -88,7 +88,7 @@ public class MediaJobServiceTest {
     }
 
     @Test
-    public void testRecordETAs() throws Exception {
+    void testRecordETAs() throws Exception {
         MediaJob mediaJob = MediaJob.builder()
                 .inputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
                 .outputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
