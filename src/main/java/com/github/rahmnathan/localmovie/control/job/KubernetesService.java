@@ -165,6 +165,8 @@ public class KubernetesService {
 
             String jobName = jobList.getFirst().getMetadata().getLabels().get(JOB_NAME);
 
+            log.info("Resolved job-name: {} for jobId: {}", jobName, jobId);
+
             // Find running pod associated with job
             Optional<Pod> podOptional = client.pods()
                     .inNamespace(namespace)
@@ -179,6 +181,8 @@ public class KubernetesService {
             }
 
             String podName = podOptional.get().getMetadata().getName();
+
+            log.info("Resolved pod-name: {} for jobId: {}", jobName, jobId);
 
             String podLog = client.pods()
                     .inNamespace(namespace)
