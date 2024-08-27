@@ -163,7 +163,7 @@ public class KubernetesService {
                 return Optional.empty();
             }
 
-            String jobName = jobList.getFirst().getMetadata().getLabels().get(JOB_NAME);
+            String jobName = jobList.getFirst().getMetadata().getName();
 
             log.info("Resolved job-name: {} for jobId: {}", jobName, jobId);
 
