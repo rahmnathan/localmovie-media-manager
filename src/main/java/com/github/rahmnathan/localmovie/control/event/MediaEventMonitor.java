@@ -25,7 +25,7 @@ import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_
 @RequiredArgsConstructor
 public class MediaEventMonitor implements DirectoryMonitorObserver {
 
-    private static final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
+    public static final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
     private static final String HANDBRAKE_PRESET = "Chromecast 1080p60 Surround";
 
     private final MediaJobRepository mediaJobRepository;

@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.control;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +19,15 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
+import static com.github.rahmnathan.localmovie.control.event.MediaEventMonitor.ACTIVE_STATUSES;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StartupMediaInitializer {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
+    private final MediaJobRepository jobRepository;
     private final ServiceConfig serviceConfig;
     private final MeterRegistry meterRegistry;
     private final MediaService dataService;
@@ -43,6 +47,7 @@ public class StartupMediaInitializer {
                         .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
                         .flatMap(this::listFiles)
                         .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
+                        .filter(file -> !isActiveConversion(file))
                         .map(this::buildMediaFile)
                         .forEach(mediaFileRepository::save);
 
@@ -85,6 +90,11 @@ public class StartupMediaInitializer {
         File[] files = Optional.ofNullable(new File(absolutePath).listFiles()).orElse(new File[0]);
         log.info("Found {} files.", files.length);
         return Set.of(files).parallelStream();
+    }
+
+    private boolean isActiveConversion(File file) {
+        return jobRepository.existsByOutputFileAndStatusIn(file.toString(), ACTIVE_STATUSES) ||
+                jobRepository.existsByInputFileAndStatusIn(file.toString(), ACTIVE_STATUSES);
     }
 
     public ForkJoinTask<?> getInitializationFuture() {
