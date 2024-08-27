@@ -13,7 +13,7 @@ spec:
       app: localmovies
   strategy:
     rollingUpdate:
-      maxSurge: 1
+      maxSurge: 0
       maxUnavailable: 1
     type: RollingUpdate
   template:
