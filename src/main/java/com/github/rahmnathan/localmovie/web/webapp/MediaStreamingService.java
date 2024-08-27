@@ -57,10 +57,10 @@ public class MediaStreamingService {
     }
 
     private void streamFile(Path file, HttpServletResponse response, long startByte, AtomicInteger streamGauge) {
+        streamGauge.getAndIncrement();
+
         try (InputStream input = new BufferedInputStream(Files.newInputStream(file));
              OutputStream output = response.getOutputStream()) {
-
-            streamGauge.getAndIncrement();
             skip(input, startByte);
             input.transferTo(output);
         } catch (IOException e) {
