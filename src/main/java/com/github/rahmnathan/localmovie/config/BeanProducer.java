@@ -1,7 +1,5 @@
 package com.github.rahmnathan.localmovie.config;
 
-import com.github.rahmnathan.directory.monitor.DirectoryMonitor;
-import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.boundary.MediaProviderOmdb;
@@ -32,18 +30,11 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Set;
 
 @Configuration
 @AllArgsConstructor
 public class BeanProducer {
     private final ServiceConfig serviceConfig;
-
-    @Bean
-    @ConditionalOnProperty(name = "service.directoryMonitor.enabled", havingValue = "true")
-    public DirectoryMonitor buildDirectoryMonitor(Set<DirectoryMonitorObserver> observers) {
-        return new DirectoryMonitor(serviceConfig.getMediaPaths(), observers);
-    }
 
     @Bean
     public FilterRegistrationBean<CorrelationIdFilter> loggingFilter(){

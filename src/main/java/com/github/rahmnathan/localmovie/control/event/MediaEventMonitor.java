@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.control.event;
 
-import com.github.rahmnathan.directory.monitor.DirectoryMonitorObserver;
+import com.github.rahmnathan.localmovie.control.event.files.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
