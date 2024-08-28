@@ -39,6 +39,7 @@ export function MainPage() {
             currentPath = 'Movies';
         }
 
+        navigationState.page = 0;
         navigationState.path = currentPath;
         navigationState.genre = genre;
         navigationState.order = order;
@@ -106,19 +107,16 @@ export function MainPage() {
     }
 
     function selectSort(sort) {
-        navigationState.page = 0;
         navigationState.order = sort;
         search()
     }
 
     function selectGenre(genre) {
-        navigationState.page = 0;
         navigationState.genre = genre;
         search()
     }
 
     function resetSearchParams() {
-        navigationState.page = 0;
         navigationState.genre = '';
         navigationState.q = '';
         navigationState.order = 'title';
@@ -133,7 +131,6 @@ export function MainPage() {
     }
 
     function filterMediaNavigate(searchText) {
-        navigationState.page = 0;
         navigationState.q = searchText;
         search()
     }
