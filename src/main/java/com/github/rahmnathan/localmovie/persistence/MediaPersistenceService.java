@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.persistence.control;
+package com.github.rahmnathan.localmovie.persistence;
 
 import com.github.rahmnathan.localmovie.data.*;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;

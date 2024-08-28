@@ -1,7 +1,7 @@
 package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
-import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
+import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.data.MediaType;

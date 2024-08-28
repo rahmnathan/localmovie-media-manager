@@ -4,7 +4,7 @@ import com.github.rahmnathan.localmovie.data.MediaEventDto;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
+import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

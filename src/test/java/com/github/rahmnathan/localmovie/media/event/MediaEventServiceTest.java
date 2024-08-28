@@ -1,7 +1,7 @@
 package com.github.rahmnathan.localmovie.media.event;
 
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
-import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
+import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

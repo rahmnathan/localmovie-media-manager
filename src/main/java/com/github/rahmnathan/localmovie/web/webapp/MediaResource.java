@@ -3,7 +3,7 @@ package com.github.rahmnathan.localmovie.web.webapp;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
-import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
+import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import java.util.List;
 import java.util.Optional;
 

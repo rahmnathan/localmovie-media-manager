@@ -1,7 +1,7 @@
 package com.github.rahmnathan.localmovie.media.event;
 
 import com.github.rahmnathan.localmovie.media.MediaFileService;
-import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
+import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import lombok.AllArgsConstructor;
