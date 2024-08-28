@@ -117,9 +117,6 @@ export function MainPage() {
     }
 
     function resetSearchParams() {
-        navigationState.genre = '';
-        navigationState.q = '';
-        navigationState.order = 'title';
         navigationState.type = 'movies'
         navigationState.path = 'Movies'
     }
