@@ -25,6 +25,9 @@ public class MediaFileEvent {
     @OneToOne(targetEntity = MediaFile.class, cascade = CascadeType.ALL, orphanRemoval = true)
     private MediaFile mediaFile;
 
+    @Version
+    private Long version;
+
     public MediaFileEvent(String event, MediaFile mediaFile, String relativePath) {
         this.relativePath = relativePath;
         this.mediaFile = mediaFile;

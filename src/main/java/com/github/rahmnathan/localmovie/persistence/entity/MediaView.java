@@ -31,6 +31,9 @@ public class MediaView implements Serializable {
     private LocalDateTime created;
     private LocalDateTime updated;
 
+    @Version
+    private Long version;
+
     public MediaView(MediaFile mediaFile, MediaUser mediaUser, Double position) {
         this.mediaFile = mediaFile;
         this.mediaUser = mediaUser;

@@ -31,6 +31,9 @@ public class MediaImage implements Serializable {
     @OneToOne(cascade = CascadeType.ALL)
     private Media media;
 
+    @Version
+    private Long version;
+
     public MediaImage(byte[] image, Media media) {
         this.image = image;
         this.media = media;

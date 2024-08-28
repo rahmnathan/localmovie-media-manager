@@ -32,6 +32,9 @@ public class MediaUser implements Serializable {
     @ToString.Exclude
     private Set<MediaView> mediaView = new HashSet<>();
 
+    @Version
+    private Long version;
+
     public MediaUser(String userId){
         this.userId = userId;
     }

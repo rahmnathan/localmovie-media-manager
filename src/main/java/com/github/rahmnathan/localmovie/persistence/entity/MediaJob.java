@@ -28,6 +28,9 @@ public class MediaJob {
     private LocalDateTime created;
     private LocalDateTime updated;
 
+    @Version
+    private Long version;
+
     @PrePersist
     public void runPrePersist(){
         created = LocalDateTime.now();

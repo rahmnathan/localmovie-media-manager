@@ -47,6 +47,9 @@ public class Media implements Serializable {
     @OneToOne(mappedBy = "media")
     private MediaFile mediaFile;
 
+    @Version
+    private Long version;
+
     @PrePersist
     public void setCreated(){
         created = LocalDateTime.now();
