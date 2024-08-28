@@ -1,6 +1,6 @@
-package com.github.rahmnathan.localmovie.control.event;
+package com.github.rahmnathan.localmovie.media.event;
 
-import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

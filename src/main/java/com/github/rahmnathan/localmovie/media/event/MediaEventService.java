@@ -1,6 +1,6 @@
-package com.github.rahmnathan.localmovie.control.event;
+package com.github.rahmnathan.localmovie.media.event;
 
-import com.github.rahmnathan.localmovie.control.MediaFileService;
+import com.github.rahmnathan.localmovie.media.MediaFileService;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 
-import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.media.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
 
 @Slf4j
 @Service

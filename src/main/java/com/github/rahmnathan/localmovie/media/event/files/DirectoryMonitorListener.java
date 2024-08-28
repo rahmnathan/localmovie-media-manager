@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control.event.files;
+package com.github.rahmnathan.localmovie.media.event.files;
 
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;

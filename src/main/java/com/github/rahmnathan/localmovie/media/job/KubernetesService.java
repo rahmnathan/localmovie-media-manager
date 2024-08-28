@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control.job;
+package com.github.rahmnathan.localmovie.media.job;
 
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import io.fabric8.kubernetes.api.model.*;

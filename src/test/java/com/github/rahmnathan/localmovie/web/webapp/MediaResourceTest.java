@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
-import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.junit.jupiter.api.Test;

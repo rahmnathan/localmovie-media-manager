@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control.event;
+package com.github.rahmnathan.localmovie.media.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

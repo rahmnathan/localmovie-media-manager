@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control;
+package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import org.junit.jupiter.api.extension.ExtendWith;

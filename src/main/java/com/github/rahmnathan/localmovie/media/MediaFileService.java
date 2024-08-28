@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control;
+package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.github.rahmnathan.localmovie.control.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.media.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
 
 @Slf4j
 @Service

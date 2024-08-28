@@ -1,7 +1,7 @@
-package com.github.rahmnathan.localmovie.control.job;
+package com.github.rahmnathan.localmovie.media.job;
 
-import com.github.rahmnathan.localmovie.control.StartupMediaInitializer;
-import com.github.rahmnathan.localmovie.control.event.MediaEventService;
+import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;

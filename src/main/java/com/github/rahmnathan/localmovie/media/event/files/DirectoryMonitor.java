@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control.event.files;
+package com.github.rahmnathan.localmovie.media.event.files;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import lombok.AllArgsConstructor;

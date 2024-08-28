@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.control;
+package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-import static com.github.rahmnathan.localmovie.control.event.MediaEventMonitor.ACTIVE_STATUSES;
+import static com.github.rahmnathan.localmovie.media.event.MediaEventMonitor.ACTIVE_STATUSES;
 
 @Slf4j
 @Service

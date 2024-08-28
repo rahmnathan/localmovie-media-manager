@@ -1,6 +1,6 @@
-package com.github.rahmnathan.localmovie.control;
+package com.github.rahmnathan.localmovie.media;
 
-import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.omdb.boundary.MediaProvider;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 
-import static com.github.rahmnathan.localmovie.control.PathUtils.*;
+import static com.github.rahmnathan.localmovie.media.PathUtils.*;
 
 @Slf4j
 @Service

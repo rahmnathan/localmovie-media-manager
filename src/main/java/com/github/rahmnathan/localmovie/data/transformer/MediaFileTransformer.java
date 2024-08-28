@@ -1,5 +1,7 @@
-package com.github.rahmnathan.localmovie.data;
+package com.github.rahmnathan.localmovie.data.transformer;
 
+import com.github.rahmnathan.localmovie.data.MediaEventDto;
+import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import lombok.experimental.UtilityClass;
 

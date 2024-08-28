@@ -1,6 +1,6 @@
-package com.github.rahmnathan.localmovie.control;
+package com.github.rahmnathan.localmovie.media;
 
-import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import lombok.experimental.UtilityClass;
 
 import java.io.File;

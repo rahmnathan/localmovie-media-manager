@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
 import com.github.rahmnathan.localmovie.data.*;
+import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.*;

@@ -1,6 +1,6 @@
-package com.github.rahmnathan.localmovie.control;
+package com.github.rahmnathan.localmovie.media;
 
-import com.github.rahmnathan.localmovie.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

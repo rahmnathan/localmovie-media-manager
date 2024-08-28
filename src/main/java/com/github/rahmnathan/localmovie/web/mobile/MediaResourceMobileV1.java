@@ -2,7 +2,7 @@ package com.github.rahmnathan.localmovie.web.mobile;
 
 import com.github.rahmnathan.localmovie.data.MediaEventDto;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
-import com.github.rahmnathan.localmovie.data.MediaFileTransformer;
+import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.control.MediaPersistenceService;
 import java.time.Instant;

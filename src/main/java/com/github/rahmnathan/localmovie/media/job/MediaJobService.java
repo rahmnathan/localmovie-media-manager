@@ -1,8 +1,8 @@
-package com.github.rahmnathan.localmovie.control.job;
+package com.github.rahmnathan.localmovie.media.job;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.control.MediaService;
-import com.github.rahmnathan.localmovie.control.event.MediaEventService;
+import com.github.rahmnathan.localmovie.media.MediaService;
+import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.Duration;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
