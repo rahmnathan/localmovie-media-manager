@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.web.mobile;
 
-import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaEventDto;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
@@ -26,7 +26,7 @@ class MediaResourceMobileV1Test {
     private final MediaResourceMobileV1 mediaResource;
 
     @Autowired
-    MediaResourceMobileV1Test(MediaResourceMobileV1 mediaResource, StartupMediaInitializer initializer) {
+    MediaResourceMobileV1Test(MediaResourceMobileV1 mediaResource, MediaInitializer initializer) {
         this.mediaResource = mediaResource;
         try {
             initializer.getInitializationFuture().get();

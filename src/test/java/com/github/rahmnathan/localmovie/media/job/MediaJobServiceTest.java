@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.media.job;
 
-import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
@@ -35,7 +35,7 @@ class MediaJobServiceTest {
     private final MediaJobRepository jobRepository;
 
     @Autowired
-    MediaJobServiceTest(MediaJobService mediaJobService, MediaJobRepository jobRepository, StartupMediaInitializer initializer) {
+    MediaJobServiceTest(MediaJobService mediaJobService, MediaJobRepository jobRepository, MediaInitializer initializer) {
         this.mediaJobService = mediaJobService;
         this.jobRepository = jobRepository;
 

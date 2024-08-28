@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.github.rahmnathan.localmovie.media.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.media.MediaInitializer.ROOT_MEDIA_FOLDER;
 
 @Builder
 @Getter

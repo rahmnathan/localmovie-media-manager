@@ -20,7 +20,7 @@ class MediaFileServiceTest {
     private final MediaFileService mediaFileService;
 
     @Autowired
-    MediaFileServiceTest(MediaFileService mediaFileService, StartupMediaInitializer initializer) {
+    MediaFileServiceTest(MediaFileService mediaFileService, MediaInitializer initializer) {
         this.mediaFileService = mediaFileService;
 
         try {

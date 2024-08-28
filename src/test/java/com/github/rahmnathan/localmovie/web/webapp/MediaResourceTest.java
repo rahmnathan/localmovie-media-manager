@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
-import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ class MediaResourceTest {
     private final MediaResource mediaResource;
 
     @Autowired
-    MediaResourceTest(MediaResource mediaResource, StartupMediaInitializer initializer) {
+    MediaResourceTest(MediaResource mediaResource, MediaInitializer initializer) {
         this.mediaResource = mediaResource;
         try {
             initializer.getInitializationFuture().get();

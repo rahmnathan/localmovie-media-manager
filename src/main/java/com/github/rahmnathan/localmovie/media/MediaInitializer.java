@@ -24,7 +24,7 @@ import static com.github.rahmnathan.localmovie.media.event.MediaEventMonitor.ACT
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class StartupMediaInitializer {
+public class MediaInitializer {
     public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
     private final MediaJobRepository jobRepository;

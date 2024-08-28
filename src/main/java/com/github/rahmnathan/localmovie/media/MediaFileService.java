@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.github.rahmnathan.localmovie.media.StartupMediaInitializer.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.media.MediaInitializer.ROOT_MEDIA_FOLDER;
 
 @Slf4j
 @Service

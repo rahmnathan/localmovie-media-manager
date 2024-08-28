@@ -1,6 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
-import com.github.rahmnathan.localmovie.media.StartupMediaInitializer;
+import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
@@ -26,7 +26,7 @@ class MediaPersistenceServiceTest {
     private final MediaPersistenceService mediaPersistenceService;
 
     @Autowired
-    MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, StartupMediaInitializer initializer) {
+    MediaPersistenceServiceTest(MediaPersistenceService mediaPersistenceService, MediaInitializer initializer) {
         this.mediaPersistenceService = mediaPersistenceService;
 
         try {
