@@ -8,16 +8,13 @@ const categoryStyle = {
     marginRight: 10
 };
 
-export const Category = ({setPath, switchUrl}) => {
+export const Category = ({setPath, setType}) => {
     return (
         <div style={categoryStyle}>
             <p style={categoryStyle}>Category: </p>
             <button style={{marginRight: 5}} onClick={(e) => setPath(e.target.value)} value='Movies'>Movies</button>
             <button style={{marginRight: 5}} onClick={(e) => setPath(e.target.value)} value='Series'>Series</button>
-            <button onClick={(e) => {
-                switchUrl(e.target.value)
-                setPath('History')
-            }} value='history'>History</button>
+            <button onClick={(e) => setType('history')} value='history'>History</button>
         </div>
     );
 };

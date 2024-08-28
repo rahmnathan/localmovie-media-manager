@@ -21,4 +21,6 @@ public class MediaRequest {
     private String q;
     @Max(50)
     private final String genre;
+    @Max(20)
+    private final String type;
 }

@@ -38,7 +38,7 @@ class MediaPersistenceServiceTest {
 
     @Test
     void getMediaImageTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null);
+        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null, "movies");
         List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFiles(mediaRequest);
         assertTrue(mediaFiles.size() >= 1);
     }

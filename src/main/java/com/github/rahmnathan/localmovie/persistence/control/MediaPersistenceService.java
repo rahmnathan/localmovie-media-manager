@@ -1,12 +1,9 @@
 package com.github.rahmnathan.localmovie.persistence.control;
 
-import com.github.rahmnathan.localmovie.data.MediaFileDto;
-import com.github.rahmnathan.localmovie.data.MediaFileTransformer;
-import com.github.rahmnathan.localmovie.data.MediaOrder;
+import com.github.rahmnathan.localmovie.data.*;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
-import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -127,6 +124,11 @@ public class MediaPersistenceService {
     }
 
     public long count(MediaRequest request) {
+        MediaType mediaType = MediaType.lookup(request.getType()).orElse(MediaType.MOVIES);
+        if (mediaType == MediaType.HISTORY) {
+            return countHistory();
+        }
+
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
@@ -155,6 +157,11 @@ public class MediaPersistenceService {
     }
 
     public List<MediaFile> getMediaFiles(MediaRequest request) {
+        MediaType mediaType = MediaType.lookup(request.getType()).orElse(MediaType.MOVIES);
+        if (mediaType == MediaType.HISTORY) {
+            return getHistory(request);
+        }
+
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 

@@ -42,29 +42,6 @@ public class MediaResource {
         return mediaFiles;
     }
 
-    @PostMapping(value = "/history", produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFileDto> getMediaHistory(@RequestBody MediaRequest mediaRequest, HttpServletResponse response) {
-        log.info("Received history request: {}", mediaRequest.toString());
-        handleDemoUser(mediaRequest);
-
-        if(mediaRequest.getPage() == 0)
-            getMediaHistoryCount(response);
-
-        log.info("Loading history media files for webapp.");
-        List<MediaFileDto> mediaFiles = persistenceService.getMediaHistory(mediaRequest, false);
-        log.info("Returning history media list. Size: {}", mediaFiles.size());
-        return mediaFiles;
-    }
-
-    @PostMapping(value = "/history/count")
-    public void getMediaHistoryCount(HttpServletResponse response){
-
-        long count = persistenceService.countHistory();
-
-        log.info("Returning history count of - {}", count);
-        response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
-    }
-
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received media request for id - {}", mediaFileId);

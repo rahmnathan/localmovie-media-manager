@@ -16,18 +16,14 @@ const navigationState = {
     client: 'WEBAPP',
     q: '',
     page: 0,
-    pageSize: 50
+    pageSize: 50,
+    type: 'movies'
 }
 
 export function MainPage() {
 
     const [media, setMedia] = React.useState([]);
     const [searchParams] = useSearchParams();
-    let url = 'media';
-
-    let urls = new Map()
-    urls.set('history', '/localmovie/v1/media/history')
-    urls.set('media', '/localmovie/v1/media')
 
     let totalCount = 0;
 
@@ -37,6 +33,7 @@ export function MainPage() {
         let genre = searchParams.get('genre');
         let order = searchParams.get('order');
         let q = searchParams.get('q');
+        let type = searchParams.get('type')
 
         if(currentPath === null || currentPath === undefined || currentPath === ''){
             currentPath = 'Movies';
@@ -46,13 +43,14 @@ export function MainPage() {
         navigationState.genre = genre;
         navigationState.order = order;
         navigationState.q = q;
+        navigationState.type = type;
 
         loadMedia();
     }, [searchParams]);
 
     function loadMedia() {
         trackPromise(
-            fetch(urls.get(url), {
+            fetch('/localmovie/v1/media', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -73,7 +71,7 @@ export function MainPage() {
 
     function loadMoreMedia() {
         trackPromise(
-            fetch(urls.get(url), {
+            fetch('/localmovie/v1/media', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -108,13 +106,24 @@ export function MainPage() {
     }
 
     function selectSort(sort) {
+        navigationState.page = 0;
         navigationState.order = sort;
         search()
     }
 
     function selectGenre(genre) {
+        navigationState.page = 0;
         navigationState.genre = genre;
         search()
+    }
+
+    function resetSearchParams() {
+        navigationState.page = 0;
+        navigationState.genre = '';
+        navigationState.q = '';
+        navigationState.order = 'title';
+        navigationState.type = 'movies'
+        navigationState.path = 'Movies'
     }
 
     function filterMedia(searchText) {
@@ -124,18 +133,24 @@ export function MainPage() {
     }
 
     function filterMediaNavigate(searchText) {
+        navigationState.page = 0;
         navigationState.q = searchText;
         search()
     }
 
-    function switchUrl(newUrl) {
-        url = newUrl;
-        loadMedia()
+    function setType(type) {
+        // Change type means a fresh view - reset filters
+        resetSearchParams()
+
+        navigationState.type = type;
+        search()
     }
 
     function setPath(path) {
+        // Change path means a fresh view - reset filters
+        resetSearchParams()
+
         navigationState.path = path;
-        url = 'media';
         search()
     }
 
@@ -155,6 +170,9 @@ export function MainPage() {
         if(navigationState.order !== null && navigationState.order !== undefined && navigationState.order !== ''){
             urlSearchParams.set('order', navigationState.order);
         }
+        if(navigationState.type !== null && navigationState.type !== undefined && navigationState.type !== '' && navigationState.type !== 'movies'){
+            urlSearchParams.set('type', navigationState.type);
+        }
 
         navigate({
             search: urlSearchParams.toString()
@@ -163,7 +181,7 @@ export function MainPage() {
 
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate} switchUrl={switchUrl}/>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
             <MediaList media={media} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             <LoadingIndicator/>
         </div>

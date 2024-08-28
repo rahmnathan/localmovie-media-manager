@@ -73,6 +73,6 @@ class MediaResourceMobileV1Test {
     }
 
     private MediaRequest buildRequest() {
-        return new MediaRequest("Movies", 0, 100, null, null, null);
+        return new MediaRequest("Movies", 0, 100, null, null, null, "movies");
     }
 }
