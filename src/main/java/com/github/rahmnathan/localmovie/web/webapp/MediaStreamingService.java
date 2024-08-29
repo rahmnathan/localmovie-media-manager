@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,7 +58,7 @@ public class MediaStreamingService {
     private void streamFile(Path file, HttpServletResponse response, long startByte, AtomicInteger streamGauge) {
         streamGauge.getAndIncrement();
 
-        try (InputStream input = new BufferedInputStream(Files.newInputStream(file));
+        try (InputStream input = Files.newInputStream(file);
              OutputStream output = response.getOutputStream()) {
             skip(input, startByte);
             input.transferTo(output);
