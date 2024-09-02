@@ -68,10 +68,10 @@ public class KubernetesService {
 
             ResourceRequirements resources = new ResourceRequirements(
                     new ArrayList<>(),
-                    Map.of("cpu", Quantity.parse("6"),
-                            "memory", Quantity.parse("6Gi")),
-                    Map.of("cpu", Quantity.parse("2"),
-                            "memory", Quantity.parse("2Gi"))
+                    Map.of("cpu", Quantity.parse("8"),
+                            "memory", Quantity.parse("8Gi")),
+                    Map.of("cpu", Quantity.parse("4"),
+                            "memory", Quantity.parse("4Gi"))
             );
 
             Job job = new JobBuilder()
