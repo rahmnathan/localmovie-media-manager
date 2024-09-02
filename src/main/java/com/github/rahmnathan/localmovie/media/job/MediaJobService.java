@@ -69,10 +69,7 @@ public class MediaJobService {
 
             log.info("Launching {} new conversions.", mediaJobList.size());
 
-            mediaJobList.forEach(mediaJob -> {
-                mediaJob.setStatus(MediaJobStatus.RUNNING.name());
-                mediaJobRepository.save(mediaJob);
-            });
+            mediaJobList.forEach(mediaJob -> mediaJob.setStatus(MediaJobStatus.RUNNING.name()));
 
             for (MediaJob mediaJob : mediaJobList) {
                 try {
@@ -80,9 +77,10 @@ public class MediaJobService {
                 } catch (IOException e) {
                     log.error("Failed to launch video conversion for jobId: {}", mediaJob.getJobId(), e);
                     mediaJob.setStatus(MediaJobStatus.FAILED.name());
-                    mediaJobRepository.save(mediaJob);
                 }
             }
+
+            mediaJobRepository.saveAll(mediaJobList);
         }
 
         MDC.clear();
@@ -97,7 +95,7 @@ public class MediaJobService {
 
         log.debug("Updating job status.");
 
-        List<MediaJob> mediaJobs = mediaJobRepository.findAllByStatusInOrderByCreatedAsc(Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name()));
+        List<MediaJob> mediaJobs = mediaJobRepository.findAllByStatusOrderByCreatedAsc(MediaJobStatus.RUNNING.name());
 
         for(MediaJob mediaJob : mediaJobs) {
             Optional<MediaJobStatus> jobStatus = kubernetesService.getJobStatus(mediaJob.getJobId());
