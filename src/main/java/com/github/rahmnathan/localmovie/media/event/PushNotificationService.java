@@ -42,7 +42,7 @@ public class PushNotificationService {
     }
 
     @Autowired(required = false)
-    public void setMyServiceB(FirebaseMessaging firebaseApp) {
+    public void setFirebaseMessaging(FirebaseMessaging firebaseApp) {
         this.firebaseApp = firebaseApp;
     }
 }
