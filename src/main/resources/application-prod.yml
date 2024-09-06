@@ -39,7 +39,7 @@ service:
     - "/opt/localmovie/3/LocalMedia"
     - "/opt/localmovie/4/LocalMedia"
     - "/opt/localmovie/5/LocalMedia"
-  notificationsEnabled: true
+  notificationsEnabled: false
   omdb:
     enabled: true
   repository:
