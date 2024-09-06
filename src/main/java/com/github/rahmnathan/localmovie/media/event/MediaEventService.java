@@ -23,10 +23,13 @@ public class MediaEventService {
     private final MediaFileService mediaFileService;
 
     public void handleCreateEvent(File file){
-        MediaFile mediaFile = mediaFileService.loadMediaFile(file);
-
         log.info("Adding CREATE event to repository.");
         String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
+
+        // Clean up existing events/metadata
+        persistenceService.deleteAllByRelativePath(relativePath);
+
+        MediaFile mediaFile = mediaFileService.loadMediaFile(file);
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
         persistenceService.saveEvent(event);
 
