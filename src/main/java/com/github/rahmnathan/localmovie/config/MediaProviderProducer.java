@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.config;
 
+import com.github.rahmnathan.omdb.boundary.MediaProvider;
 import com.github.rahmnathan.omdb.boundary.MediaProviderOmdb;
 import com.github.rahmnathan.omdb.boundary.MediaProviderStub;
 import org.apache.camel.CamelContext;
@@ -11,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class MediaProviderProducer {
 
     @Bean
-    public com.github.rahmnathan.omdb.boundary.MediaProvider createMovieProvider(CamelContext context, ProducerTemplate template, ServiceConfig serviceConfig){
+    public MediaProvider createMovieProvider(CamelContext context, ProducerTemplate template, ServiceConfig serviceConfig){
         if(serviceConfig.getOmdb().isEnabled()) {
             context.setUseMDCLogging(true);
             return new MediaProviderOmdb(context, template, serviceConfig.getOmdb().getApiKey());
