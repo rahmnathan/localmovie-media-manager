@@ -16,7 +16,7 @@ You can view a brief demo of this project [here](https://nathanrahm.com/projects
 <h4>APIs</h4>
 This service exposes a set of endpoints that facilitate:
 
-- Loading media at a given path ('/Movies', '/Series', etc).
+- Loading media at a given path ('Movies', 'Series', etc).
 - Streaming a media file.
 - Loading media events (for persistent Android clients).
 
@@ -30,7 +30,7 @@ The directory naming convention is as follows:
 
 When new media is added to a monitored directory, the following process is triggered:
 
- - Media is converted to H.264/AAC format (if necessary).
+ - Kubernetes job is launched to transcode to H.264/AAC.
  - Media metadata is downloaded from OMDB and stored in database.
  - 'New Media' event is added to database for processing by Android clients.
  - Push notifications are sent to Android devices to notify of new media.
@@ -52,7 +52,8 @@ When new media is added to a monitored directory, the following process is trigg
 <h4>CI/CD</h4>
 
 - [Kubernetes](https://kube.nathanrahm.com)
-- [Jenkins](https://jenkins.nathanrahm.com)
+- [Jenkins](https://jenkins.nathanrahm.com/job/localmovie-media-manager/)
+- [SonarQube](https://sonarqube.nathanrahm.com/dashboard?id=localmovie-media-manager&codeScope=overall)
 - Helm (chart located in helm/localmovies directory)
 
 <h4>System Diagram</h4>
