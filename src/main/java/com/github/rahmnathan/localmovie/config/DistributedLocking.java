@@ -19,7 +19,7 @@ import java.time.temporal.ChronoUnit;
 public class DistributedLocking {
 
     @Bean
-    public LockRepository DefaultLockRepository(DataSource dataSource){
+    public LockRepository defaultLockRepository(DataSource dataSource){
         DefaultLockRepository repository = new DefaultLockRepository(dataSource);
         repository.setTimeToLive(Duration.of(1, ChronoUnit.MINUTES).toMillisPart());
         return repository;
