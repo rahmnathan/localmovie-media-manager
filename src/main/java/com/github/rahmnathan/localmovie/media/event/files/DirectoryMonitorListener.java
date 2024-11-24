@@ -26,7 +26,7 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onStart(FileAlterationObserver fileAlterationObserver) {
-
+        // no-op
     }
 
     @Override
