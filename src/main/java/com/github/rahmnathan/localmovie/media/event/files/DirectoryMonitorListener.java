@@ -37,6 +37,7 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onDirectoryChange(File file) {
+        // no-op
     }
 
     @Override
@@ -51,6 +52,7 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onFileChange(File file) {
+        // no-op
     }
 
     @Override
@@ -60,7 +62,7 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onStop(FileAlterationObserver fileAlterationObserver) {
-
+        // no-op
     }
 
     private void notifyObservers(WatchEvent.Kind event, File file) {
