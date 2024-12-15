@@ -5,6 +5,7 @@ import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
+import com.google.common.annotations.VisibleForTesting;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -103,28 +104,10 @@ public class MediaPersistenceService {
 
         OrderSpecifier<LocalDateTime> orderSpecifier = qMediaFile.mediaViews.any().updated.desc();
 
-        List<String> ids = jpaQuery.from(qMediaFile)
-                .select(qMediaFile.mediaFileId)
-                .orderBy(orderSpecifier)
-                .where(predicates.toArray(new Predicate[0]))
-                .offset((long) request.getPage() * request.getPageSize())
-                .limit(request.getPageSize())
-                .fetch();
-
-        log.info("Found {} ids", ids.size());
-
-        jpaQuery = new JPAQuery<>(entityManager);
-        qMediaFile = QMediaFile.mediaFile;
-
-        return jpaQuery.from(qMediaFile)
-                .where(qMediaFile.mediaFileId.in(ids))
-                .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
-                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
-                .orderBy(orderSpecifier)
-                .fetch();
+        return executeQuery(request, jpaQuery, qMediaFile, predicates, orderSpecifier);
     }
 
-    public long count(MediaRequest request) {
+    public long countMediaFiles(MediaRequest request) {
         MediaType mediaType = MediaType.lookup(request.getType()).orElse(MediaType.MOVIES);
         if (mediaType == MediaType.HISTORY) {
             return countHistory();
@@ -133,18 +116,7 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(qMediaFile.parentPath.eq(request.getPath()));
-
-        if(StringUtils.hasText(request.getGenre())){
-            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getGenre()));
-        }
-
-        if(StringUtils.hasText(request.getQ())) {
-            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getQ())
-                    .or(qMediaFile.media.title.containsIgnoreCase(request.getQ()))
-                    .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
-        }
+        List<Predicate> predicates = extractPredicates(request, qMediaFile);
 
         return jpaQuery.from(qMediaFile)
                 .where(predicates.toArray(new Predicate[0]))
@@ -157,7 +129,8 @@ public class MediaPersistenceService {
                 .toList();
     }
 
-    public List<MediaFile> getMediaFiles(MediaRequest request) {
+    @VisibleForTesting
+    List<MediaFile> getMediaFiles(MediaRequest request) {
         MediaType mediaType = MediaType.lookup(request.getType()).orElse(MediaType.MOVIES);
         if (mediaType == MediaType.HISTORY) {
             return getHistory(request);
@@ -166,18 +139,7 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<com.querydsl.core.types.Predicate> predicates = new ArrayList<>();
-        predicates.add(qMediaFile.parentPath.eq(request.getPath()));
-
-        if(StringUtils.hasText(request.getGenre())){
-            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getGenre()));
-        }
-
-        if(StringUtils.hasText(request.getQ())) {
-            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getQ())
-                    .or(qMediaFile.media.title.containsIgnoreCase(request.getQ()))
-                    .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
-        }
+        List<Predicate> predicates = extractPredicates(request, qMediaFile);
 
         OrderSpecifier<?> orderSpecifier;
         if (request.getPath().split(File.separator).length > 1) {
@@ -188,25 +150,7 @@ public class MediaPersistenceService {
             orderSpecifier = qMediaFile.fileName.asc();
         }
 
-        List<String> ids = jpaQuery.from(qMediaFile)
-                .select(qMediaFile.mediaFileId)
-                .orderBy(orderSpecifier)
-                .where(predicates.toArray(new Predicate[0]))
-                .offset((long) request.getPage() * request.getPageSize())
-                .limit(request.getPageSize())
-                .fetch();
-
-        log.info("Found {} ids", ids.size());
-
-        jpaQuery = new JPAQuery<>(entityManager);
-        qMediaFile = QMediaFile.mediaFile;
-
-        return jpaQuery.from(qMediaFile)
-                .where(qMediaFile.mediaFileId.in(ids))
-                .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
-                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
-                .orderBy(orderSpecifier)
-                .fetch();
+        return executeQuery(request, jpaQuery, qMediaFile, predicates, orderSpecifier);
     }
 
     @Transactional
@@ -239,6 +183,46 @@ public class MediaPersistenceService {
 
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {
         return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime, pageable);
+    }
+
+    private List<Predicate> extractPredicates(MediaRequest request, QMediaFile qMediaFile) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(qMediaFile.parentPath.eq(request.getPath()));
+
+        if(StringUtils.hasText(request.getGenre())){
+            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getGenre()));
+        }
+
+        if(StringUtils.hasText(request.getQ())) {
+            predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getQ())
+                    .or(qMediaFile.media.title.containsIgnoreCase(request.getQ()))
+                    .or(qMediaFile.media.actors.containsIgnoreCase(request.getQ())));
+        }
+
+        return predicates;
+    }
+
+    private List<MediaFile> executeQuery(MediaRequest request, JPAQuery<MediaFile> jpaQuery, QMediaFile qMediaFile, List<Predicate> predicates, OrderSpecifier<?> orderSpecifier) {
+        List<String> ids = jpaQuery.from(qMediaFile)
+                .select(qMediaFile.mediaFileId)
+                .orderBy(orderSpecifier)
+                .where(predicates.toArray(new Predicate[0]))
+                .offset((long) request.getPage() * request.getPageSize())
+                .limit(request.getPageSize())
+                .fetch();
+
+        log.info("Found {} ids", ids.size());
+
+        jpaQuery = new JPAQuery<>(entityManager);
+        qMediaFile = QMediaFile.mediaFile;
+
+        return jpaQuery.from(qMediaFile)
+                .where(qMediaFile.mediaFileId.in(ids))
+                .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
+                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
+                .orderBy(orderSpecifier)
+                .fetch();
     }
 
     private String getUsername(){

@@ -1,7 +1,6 @@
-package com.github.rahmnathan.localmovie.persistence.control;
+package com.github.rahmnathan.localmovie.persistence;
 
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
-import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
@@ -41,7 +40,7 @@ class MediaPersistenceServiceTest {
     void getMediaImageTest() {
         MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null, "movies");
         List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFiles(mediaRequest);
-        assertTrue(mediaFiles.size() >= 1);
+        assertFalse(mediaFiles.isEmpty());
     }
 
     @Test
@@ -65,7 +64,7 @@ class MediaPersistenceServiceTest {
 
         List<MediaFileEvent> mediaFileEvents = mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged());
 
-        assertTrue(mediaFileEvents.size() >= 1);
+        assertFalse(mediaFileEvents.isEmpty());
     }
 
     @Transactional

@@ -76,7 +76,7 @@ public class MediaResourceMobileV1 {
     public void getMediaCount(@RequestBody MediaRequest mediaRequest, HttpServletResponse response){
         log.info("Received count request: {}", mediaRequest);
 
-        long count = persistenceService.count(mediaRequest);
+        long count = persistenceService.countMediaFiles(mediaRequest);
 
         log.info("Returning count of - {}", count);
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
