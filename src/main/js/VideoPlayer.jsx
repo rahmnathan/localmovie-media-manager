@@ -62,6 +62,38 @@ export function VideoPlayer() {
     let { mediaId } = useParams();
 
     useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1";
+        script.async = true;
+        document.body.appendChild(script);
+
+        script.onload = () => {
+            if (window.cast) {
+                initializeCast();
+            }
+        };
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
+    const initializeCast = () => {
+        const context = cast.framework.CastContext.getInstance();
+        context.setOptions({
+            receiverApplicationId: "5F217DDB"
+        });
+
+        context.addEventListener(cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
+            if (event.sessionState === cast.framework.SessionState.SESSION_STARTED) {
+                console.log("Cast session started");
+            } else if (event.sessionState === cast.framework.SessionState.SESSION_ENDED) {
+                console.log("Cast session ended");
+            }
+        });
+    };
+
+    useEffect(() => {
         trackPromise(
             fetch('/localmovie/v1/media/token', {
                 method: 'GET'
@@ -126,8 +158,6 @@ export function VideoPlayer() {
     if(mediaFile !== null && mediaFile !== undefined) {
         return (
             <div style={videoPlayerStyle}>
-                <script type="text/javascript"
-                        src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
                 <Dialog open={!prompted && canResumePlayback}
                         onClose={() => setPrompted(true)}
                         style={dialogStyle}>
