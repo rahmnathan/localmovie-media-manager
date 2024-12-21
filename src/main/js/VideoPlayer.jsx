@@ -54,11 +54,21 @@ const dialogStyle = {
 export function VideoPlayer() {
 
     const [mediaFile, setMediaFile] = React.useState(null);
+    const [token, setToken] = React.useState(null);
     const [prompted, setPrompted] = React.useState(false);
     const [resumePlayback, setResumePlayback] = React.useState(false);
     const [canResumePlayback, setCanResumePlayback] = React.useState(false);
     const [url, setUrl] = React.useState('');
     let { mediaId } = useParams();
+
+    useEffect(() => {
+        trackPromise(
+            fetch('/localmovie/v1/media/token', {
+                method: 'GET'
+            }).then(response => response.text())
+                .then(token => setToken(token))
+        )
+    }, []);
 
     useEffect(() => {
         trackPromise(
@@ -85,7 +95,7 @@ export function VideoPlayer() {
             console.log("position: " + position);
         }
 
-        setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4#t=" + startPosition);
+        setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4?access_token" + token + "#t=" + startPosition);
     }, [resumePlayback, mediaFile]);
 
     useEffect(() => {

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -86,6 +87,19 @@ public class MediaResource {
         log.info("Updating position for MediaFile id: {} position: {}", id, position);
 
         persistenceService.addView(id, position);
+    }
+
+    @GetMapping("/token")
+    public String getToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof DefaultOidcUser user) {
+            if (user.getIdToken() != null) {
+                return user.getIdToken().getTokenValue();
+            }
+        }
+
+        return "";
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {
