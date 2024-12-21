@@ -130,7 +130,7 @@ public class MediaResourceMobileV1 {
     }
 
     private boolean isDemoUser() {
-        return "demouser".equalsIgnoreCase(getUsername()) || "67b9e1d6-e817-45b6-b532-bc626e642faa".equalsIgnoreCase(getUsername());
+        return "demouser".equalsIgnoreCase(getUsername()) || "def8e370-c7e6-4fc8-9301-7a40765927db".equalsIgnoreCase(getUsername());
     }
 
     private String getUsername(){

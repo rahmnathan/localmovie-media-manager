@@ -89,7 +89,7 @@ public class MediaResource {
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {
-        if("demouser".equalsIgnoreCase(getUsername()) || "67b9e1d6-e817-45b6-b532-bc626e642faa".equalsIgnoreCase(getUsername())) {
+        if("demouser".equalsIgnoreCase(getUsername()) || "def8e370-c7e6-4fc8-9301-7a40765927db".equalsIgnoreCase(getUsername())) {
             mediaRequest.setQ("Big Buck Bunny");
         }
     }
