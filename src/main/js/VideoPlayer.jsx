@@ -75,7 +75,7 @@ export function VideoPlayer() {
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
 
-        let startPosition = 0;
+        let startPosition = 1;
 
         if (canResumePlayback && resumePlayback) {
             let mediaView = mediaFile.mediaViews[0];
@@ -116,6 +116,8 @@ export function VideoPlayer() {
     if(mediaFile !== null && mediaFile !== undefined) {
         return (
             <div style={videoPlayerStyle}>
+                <script type="text/javascript"
+                        src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
                 <Dialog open={!prompted && canResumePlayback}
                         onClose={() => setPrompted(true)}
                         style={dialogStyle}>
@@ -126,12 +128,16 @@ export function VideoPlayer() {
                             <Description>Pick up from where you left off, or start from the beginning!</Description>
                             <div>
                                 <button onClick={() => {
-                                            setResumePlayback(false)
-                                            setPrompted(true)}}
-                                        style={{marginRight: 5}}>Play</button>
+                                    setResumePlayback(false)
+                                    setPrompted(true)
+                                }}
+                                        style={{marginRight: 5}}>Play
+                                </button>
                                 <button onClick={() => {
-                                            setResumePlayback(true)
-                                            setPrompted(true)}}>Resume</button>
+                                    setResumePlayback(true)
+                                    setPrompted(true)
+                                }}>Resume
+                                </button>
                             </div>
                         </DialogPanel>
                     </div>
