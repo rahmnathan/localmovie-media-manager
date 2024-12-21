@@ -42,17 +42,17 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+          issuer-uri: https://login.nathanrahm.com/realms/NathanRahm
       client:
         registration:
           keycloak:
-            client-id: localmovie-login
+            client-id: localmovies
             authorization-grant-type: authorization_code
             scope:
               - openid
         provider:
           keycloak:
-            issuer-uri: https://login.nathanrahm.com/auth/realms/LocalMovies
+            issuer-uri: https://login.nathanrahm.com/realms/NathanRahm
             user-name-attribute: preferred_username
 keycloak:
   enabled: false
