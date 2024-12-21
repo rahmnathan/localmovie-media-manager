@@ -56,9 +56,13 @@ spring:
           keycloak:
             client-id: localmovies
             authorization-grant-type: authorization_code
+            scope:
+              - openid
           keycloak-token:
             client-id: localmovies
             authorization-grant-type: jwt_bearer
+            scope:
+              - openid
         provider:
           keycloak:
             issuer-uri: https://login.nathanrahm.com/realms/NathanRahm
