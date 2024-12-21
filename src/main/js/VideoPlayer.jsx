@@ -95,7 +95,7 @@ export function VideoPlayer() {
             console.log("position: " + position);
         }
 
-        setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4?access_token" + token + "#t=" + startPosition);
+        setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4?access_token=" + token + "#t=" + startPosition);
     }, [resumePlayback, mediaFile]);
 
     useEffect(() => {
