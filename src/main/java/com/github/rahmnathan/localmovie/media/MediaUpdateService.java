@@ -3,16 +3,17 @@ package com.github.rahmnathan.localmovie.media;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.Duration;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,9 +23,9 @@ import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_
 
 @Slf4j
 @Service
+@Transactional
 @AllArgsConstructor
-@ConditionalOnProperty(name = "service.repository.enabled", havingValue = "true")
-public class MediaUpdater {
+public class MediaUpdateService {
     private final MediaFileRepository mediaFileRepository;
     private final MediaRepository mediaRepository;
     private final ServiceConfig serviceConfig;
@@ -61,5 +62,16 @@ public class MediaUpdater {
         log.info("Update of existing media completed successfully.");
         MDC.clear();
         meterRegistry.timer("localmovies.refresh-media-metadata").record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+    }
+
+    public void updateMedia(String path) {
+        MediaFile mediaFile = mediaFileRepository.findByPath(path).orElseThrow();
+
+        Media oldMedia = mediaFile.getMedia();
+
+        mediaFile.setMedia(mediaService.loadMedia(path));
+        mediaFileRepository.save(mediaFile);
+
+        mediaRepository.delete(oldMedia);
     }
 }
