@@ -32,7 +32,8 @@ public class MediaUpdateService {
     private final MeterRegistry meterRegistry;
     private final MediaService mediaService;
 
-    @Scheduled(cron = "@midnight")
+    // disabled for now in favor of new manual update endpoint
+//    @Scheduled(cron = "@midnight")
     public void checkForEmptyValues() {
         long startTime = System.currentTimeMillis();
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
