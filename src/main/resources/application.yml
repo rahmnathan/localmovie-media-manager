@@ -24,6 +24,8 @@ service:
       unit: SECONDS
       value: 30
     updateLimit: 201
+  conversion-service:
+    enabled: true
 
 spring:
   application:

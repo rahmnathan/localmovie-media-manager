@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media.event;
 
+import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.media.event.files.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
@@ -30,6 +31,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     private final MediaJobRepository mediaJobRepository;
     private final MediaEventService eventService;
+    private final ServiceConfig serviceConfig;
     private final LockRegistry lockRegistry;
 
     @Override
@@ -55,7 +57,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
             if (event == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(file);
-                if (Files.isRegularFile(file.toPath())) {
+                if (Files.isRegularFile(file.toPath()) && serviceConfig.getConversionService().isEnabled()) {
                     queueConversionJob(file);
                 } else {
                     eventService.handleCreateEvent(file);

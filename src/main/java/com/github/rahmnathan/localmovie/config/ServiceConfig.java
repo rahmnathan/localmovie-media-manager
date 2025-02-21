@@ -14,6 +14,7 @@ import java.util.Set;
 public class ServiceConfig {
     private MediaEventMonitorConfig directoryMonitor;
     private MediaRepositoryMonitorConfig repository;
+    private ConversionServiceConfig conversionService;
     private boolean notificationsEnabled;
     private Set<String> mediaPaths;
     private String jedisHost;
@@ -30,6 +31,11 @@ public class ServiceConfig {
     public static class MediaEventMonitorConfig {
         private String ffprobeLocation = "/usr/bin/ffprobe";
         private int concurrentConversionLimit = 3;
+    }
+
+    @Data
+    public static class ConversionServiceConfig {
+        private boolean enabled;
     }
 
     @Data
