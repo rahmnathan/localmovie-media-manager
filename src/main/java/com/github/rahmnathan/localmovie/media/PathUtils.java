@@ -11,6 +11,10 @@ import java.util.regex.Pattern;
 @UtilityClass
 class PathUtils {
 
+    boolean isSeries(String currentPath){
+        return isTopLevel(currentPath) && currentPath.startsWith("Series");
+    }
+
     boolean isTopLevel(String currentPath){
         int pathLength = currentPath.split(File.separator).length;
         return pathLength == 2;

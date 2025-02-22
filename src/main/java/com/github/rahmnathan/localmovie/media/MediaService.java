@@ -54,6 +54,9 @@ public class MediaService {
                 log.error("Error getting media from provider", e);
                 return loadSeriesParentInfo(path, MediaType.EPISODE);
             }
+        } else if (isSeries(path)){
+            String title = getTitle(fileName);
+            return mediaProvider.getSeries(title);
         } else {
             String title = getTitle(fileName);
             return mediaProvider.getMovie(title);

@@ -18,7 +18,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
 
-        <internal-adapters.version>4.7</internal-adapters.version>
+        <internal-adapters.version>4.8</internal-adapters.version>
         <querydsl.version>5.1.0</querydsl.version>
 
         <docker.publish>false</docker.publish>
