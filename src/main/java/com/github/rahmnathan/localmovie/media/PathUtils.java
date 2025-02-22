@@ -9,15 +9,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @UtilityClass
-class PathUtils {
+public class PathUtils {
+    public static final String LOCAL_MEDIA_FOLDER = "LocalMedia" + File.separator;
+    public static final String MOVIES_FOLDER = "Movies" + File.separator;
+    public   static final String SERIES_FOLDER = "Series" + File.separator;
+
+    boolean isSeries(String currentPath) {
+        return isTopLevel(currentPath) && currentPath.contains(SERIES_FOLDER);
+    }
 
     boolean isTopLevel(String currentPath){
-        int pathLength = currentPath.split(File.separator).length;
+        int pathLength = currentPath.split(Pattern.quote(File.separator)).length;
         return pathLength == 2;
     }
 
     boolean isEpisode(String currentPath){
-        int pathLength = currentPath.split(File.separator).length;
+        int pathLength = currentPath.split(Pattern.quote(File.separator)).length;
         return pathLength == 4;
     }
 
@@ -29,17 +36,8 @@ class PathUtils {
         return parseNumber(NumberParser.SEASON, path);
     }
 
-    private int parseNumber(NumberParser numberParser, String path) throws InvalidMediaException {
-        return numberParser.getPatterns().stream()
-                .map(regex -> Pattern.compile(regex).matcher(path))
-                .filter(Matcher::find)
-                .map(matcher -> Integer.parseInt(matcher.group()))
-                .findAny()
-                .orElseThrow(() -> new InvalidMediaException("Unable to parse number from String: " + path));
-    }
-
     File getParentFile(String path){
-        int directoryDepth = path.split(File.separator).length - 2;
+        int directoryDepth = path.split(Pattern.quote(File.separator)).length - 2;
 
         File file = new File(path);
         for(int i = 0; i < directoryDepth; i++){
@@ -55,6 +53,19 @@ class PathUtils {
         }
 
         return fileName;
+    }
+
+    public String pathToJobId(String path) {
+        return path.split(PathUtils.LOCAL_MEDIA_FOLDER)[1].replaceAll("[^A-Za-z0-9]", "-");
+    }
+
+    private int parseNumber(NumberParser numberParser, String path) throws InvalidMediaException {
+        return numberParser.getPatterns().stream()
+                .map(regex -> Pattern.compile(regex).matcher(path))
+                .filter(Matcher::find)
+                .map(matcher -> Integer.parseInt(matcher.group()))
+                .findAny()
+                .orElseThrow(() -> new InvalidMediaException("Unable to parse number from String: " + path));
     }
 
     public enum NumberParser {
