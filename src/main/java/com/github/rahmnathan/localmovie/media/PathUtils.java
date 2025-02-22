@@ -20,6 +20,11 @@ class PathUtils {
         return pathLength == 2;
     }
 
+    boolean isSeason(String currentPath){
+        int pathLength = currentPath.split(File.separator).length;
+        return pathLength == 3;
+    }
+
     boolean isEpisode(String currentPath){
         int pathLength = currentPath.split(File.separator).length;
         return pathLength == 4;

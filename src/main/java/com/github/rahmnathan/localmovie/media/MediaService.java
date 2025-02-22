@@ -57,6 +57,8 @@ public class MediaService {
         } else if (isSeries(path)){
             String title = getTitle(fileName);
             return mediaProvider.getSeries(title);
+        } else if (isSeason(path)) {
+            return loadSeriesParentInfo(path, MediaType.SEASON);
         } else {
             String title = getTitle(fileName);
             return mediaProvider.getMovie(title);
