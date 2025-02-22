@@ -20,8 +20,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.github.rahmnathan.localmovie.media.PathUtils.pathToJobId;
-
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -82,7 +80,7 @@ public class KubernetesService {
                         .withName(podName)
                         .withLabels(Map.of(
                                 "app", "handbrake",
-                                JOB_ID_LABEL, pathToJobId(inputFile.getAbsolutePath()))
+                                JOB_ID_LABEL, transformPath(inputFile.getAbsolutePath()))
                         )
                     .endMetadata()
                     .withNewSpec()
@@ -207,5 +205,9 @@ public class KubernetesService {
 
     private String getNamespace() throws IOException {
         return Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+    }
+
+    private String transformPath(String path) {
+        return path.split(File.separator + "LocalMedia" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
     }
 }

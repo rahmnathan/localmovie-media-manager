@@ -25,6 +25,7 @@ import static com.github.rahmnathan.localmovie.media.event.MediaEventMonitor.ACT
 @Service
 @RequiredArgsConstructor
 public class MediaInitializer {
+    public static final String ROOT_MEDIA_FOLDER = File.separator + "LocalMedia" + File.separator;
     private final MediaFileRepository mediaFileRepository;
     private final MediaJobRepository jobRepository;
     private final ServiceConfig serviceConfig;
@@ -43,9 +44,9 @@ public class MediaInitializer {
                 serviceConfig.getMediaPaths().stream()
                         .parallel()
                         .flatMap(this::streamDirectoryTree)
-                        .filter(path -> path.contains(PathUtils.LOCAL_MEDIA_FOLDER))
+                        .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
                         .flatMap(this::listFiles)
-                        .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(PathUtils.LOCAL_MEDIA_FOLDER)[1]))
+                        .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
                         .filter(file -> !isActiveConversion(file))
                         .map(this::buildMediaFile)
                         .forEach(mediaFileRepository::save);
@@ -58,7 +59,7 @@ public class MediaInitializer {
     }
 
     private MediaFile buildMediaFile(File file) {
-        String relativePath = file.getAbsolutePath().split(PathUtils.LOCAL_MEDIA_FOLDER)[1];
+        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
         return MediaFile.forPath(file.getAbsolutePath())
                 .media(dataService.loadMedia(relativePath))
                 .mediaFileId(UUID.randomUUID().toString())

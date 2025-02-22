@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
-import static com.github.rahmnathan.localmovie.media.PathUtils.pathToJobId;
 import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
 
 @Slf4j
@@ -75,7 +74,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     private void queueConversionJob(File file) {
         String inputPath = file.toString();
-        String jobId = pathToJobId(inputPath);
+        String jobId = formatPath(inputPath);
         String outputPath = inputPath.substring(0, inputPath.lastIndexOf('.')) + (inputPath.endsWith(".mp4") ? ".mkv" : ".mp4");
 
         log.info("Queuing video conversion jobId: {}", jobId);
@@ -94,6 +93,10 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private boolean isActiveConversion(File file) {
         return mediaJobRepository.existsByOutputFileAndStatusIn(file.toString(), ACTIVE_STATUSES) ||
                 mediaJobRepository.existsByInputFileAndStatusIn(file.toString(), ACTIVE_STATUSES);
+    }
+
+    private String formatPath(String path) {
+        return path.split(File.separator + "LocalMedia" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
     }
 
     private void waitForWriteComplete(File file) {

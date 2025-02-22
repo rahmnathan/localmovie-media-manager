@@ -47,16 +47,13 @@ public class MediaService {
         log.info("Loading MediaFile from provider - {}", path);
         String fileName = new File(path).getName();
 
-        if (isEpisode(path)) {
+        if(isEpisode(path)){
             try {
                 return loadEpisodeFromProvider(path, fileName);
             } catch (MediaProviderException e) {
                 log.error("Error getting media from provider", e);
                 return loadSeriesParentInfo(path, MediaType.EPISODE);
             }
-        } else if (isSeries(path)) {
-            String title = getTitle(fileName);
-            return mediaProvider.getSeries(title);
         } else {
             String title = getTitle(fileName);
             return mediaProvider.getMovie(title);
