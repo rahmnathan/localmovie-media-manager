@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
+import static com.github.rahmnathan.localmovie.data.MediaPath.MEDIA_ROOT_FOLDER;
 import static com.github.rahmnathan.localmovie.media.event.MediaEventMonitor.ACTIVE_STATUSES;
 
 @Slf4j
@@ -45,7 +46,7 @@ public class MediaInitializer {
                 serviceConfig.getMediaPaths().stream()
                         .parallel()
                         .flatMap(this::streamDirectoryTree)
-                        .filter(path -> path.contains(MediaPath.MEDIA_ROOT_FOLDER))
+                        .filter(path -> path.contains(MEDIA_ROOT_FOLDER))
                         .flatMap(this::listValidMediaPaths)
                         .filter(mediaPath -> !dataService.existsInDatabase(mediaPath.getAbsolutePath()))
                         .filter(mediaPath -> !isActiveConversion(mediaPath))

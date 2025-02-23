@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.github.rahmnathan.localmovie.media.MediaInitializer.ROOT_MEDIA_FOLDER;
+import static com.github.rahmnathan.localmovie.data.MediaPath.MEDIA_ROOT_FOLDER;
 
 @Builder
 @Getter
@@ -77,7 +77,7 @@ public class MediaFile implements Serializable {
     }
 
     public static MediaFileBuilder forPath(String path){
-        String relativePath = path.split(ROOT_MEDIA_FOLDER)[1];
+        String relativePath = path.split(MEDIA_ROOT_FOLDER)[1];
         File file = new File(relativePath);
         return builder()
                 .fileName(file.getName())
