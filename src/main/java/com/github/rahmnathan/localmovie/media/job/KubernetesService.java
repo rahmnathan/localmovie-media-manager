@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.media.job;
 
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
@@ -208,6 +209,6 @@ public class KubernetesService {
     }
 
     private String transformPath(String path) {
-        return path.split(File.separator + "LocalMedia" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
+        return path.split(MediaPath.MEDIA_ROOT_FOLDER)[1].replaceAll("[^A-Za-z0-9]", "-");
     }
 }
