@@ -20,6 +20,7 @@ export const Genre = ({ selectGenre }) => {
                 <option value='horror'>Horror</option>
                 <option value='sci-fi'>Sci-Fi</option>
                 <option value='thriller'>Thriller</option>
+                <option value='war'>War</option>
             </select>
         </div>
     );
