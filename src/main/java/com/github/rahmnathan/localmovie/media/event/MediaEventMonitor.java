@@ -1,8 +1,10 @@
 package com.github.rahmnathan.localmovie.media.event;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.event.files.DirectoryMonitorObserver;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final LockRegistry lockRegistry;
 
     @Override
-    public void directoryModified(WatchEvent.Kind event, File file) {
+    public void directoryModified(WatchEvent.Kind event, File file) throws InvalidMediaException {
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
 
         String absolutePath = file.getAbsolutePath();
@@ -55,15 +57,17 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                 return;
             }
 
+            MediaPath path = MediaPath.parse(file);
+
             if (event == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(file);
                 if (Files.isRegularFile(file.toPath()) && serviceConfig.getConversionService().isEnabled()) {
-                    queueConversionJob(file);
+                    queueConversionJob(path);
                 } else {
-                    eventService.handleCreateEvent(file);
+                    eventService.handleCreateEvent(path);
                 }
             } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
-                eventService.handleDeleteEvent(file);
+                eventService.handleDeleteEvent(path);
             }
         } finally {
             directoryModificationLock.unlock();
@@ -72,9 +76,9 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         MDC.clear();
     }
 
-    private void queueConversionJob(File file) {
-        String inputPath = file.toString();
-        String jobId = formatPath(inputPath);
+    private void queueConversionJob(MediaPath path) {
+        String inputPath = path.getAbsolutePath();
+        String jobId = path.asJobId();
         String outputPath = inputPath.substring(0, inputPath.lastIndexOf('.')) + (inputPath.endsWith(".mp4") ? ".mkv" : ".mp4");
 
         log.info("Queuing video conversion jobId: {}", jobId);
@@ -93,10 +97,6 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private boolean isActiveConversion(File file) {
         return mediaJobRepository.existsByOutputFileAndStatusIn(file.toString(), ACTIVE_STATUSES) ||
                 mediaJobRepository.existsByInputFileAndStatusIn(file.toString(), ACTIVE_STATUSES);
-    }
-
-    private String formatPath(String path) {
-        return path.split(File.separator + "LocalMedia" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
     }
 
     private void waitForWriteComplete(File file) {

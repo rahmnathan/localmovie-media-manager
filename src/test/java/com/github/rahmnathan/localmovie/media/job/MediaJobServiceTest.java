@@ -66,8 +66,8 @@ class MediaJobServiceTest {
     @Test
     void testUpdateJobStatus() throws Exception {
         MediaJob mediaJob = MediaJob.builder()
-                .inputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
-                .outputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
+                .inputFile("/tmp/LocalMedia/Movies/localmovies-test-input-file.txt")
+                .outputFile("/tmp/LocalMedia/Movies/localmovies-test-input-file.txt")
                 .jobId("job-id")
                 .handbrakePreset("preset")
                 .status(MediaJobStatus.RUNNING.name())
@@ -75,7 +75,7 @@ class MediaJobServiceTest {
 
         jobRepository.save(mediaJob);
 
-        new File("/tmp/LocalMedia/").mkdir();
+        new File("/tmp/LocalMedia/Movies/").mkdir();
 
         when(kubernetesService.getJobStatus("job-id")).thenReturn(Optional.of(MediaJobStatus.SUCCEEDED));
 

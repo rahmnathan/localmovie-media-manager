@@ -40,8 +40,13 @@ public class MediaPersistenceService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    public Optional<MediaFile> getMediaFileByPath(String path) {
-        return fileRepository.findByPath(path);
+    public Optional<MediaFile> getMediaFileByPath(MediaPath path) {
+        return fileRepository.findByPath(path.getRelativePath());
+    }
+
+    @Transactional
+    public MediaFile saveMediaFile(MediaFile mediaFile) {
+        return fileRepository.save(mediaFile);
     }
 
     @Transactional
@@ -108,8 +113,8 @@ public class MediaPersistenceService {
     }
 
     public long countMediaFiles(MediaRequest request) {
-        MediaType mediaType = MediaType.lookup(request.getType()).orElse(MediaType.MOVIES);
-        if (mediaType == MediaType.HISTORY) {
+        MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(MediaRequestType.MOVIES);
+        if (mediaRequestType == MediaRequestType.HISTORY) {
             return countHistory();
         }
 
@@ -131,8 +136,8 @@ public class MediaPersistenceService {
 
     @VisibleForTesting
     List<MediaFile> getMediaFiles(MediaRequest request) {
-        MediaType mediaType = MediaType.lookup(request.getType()).orElse(MediaType.MOVIES);
-        if (mediaType == MediaType.HISTORY) {
+        MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(MediaRequestType.MOVIES);
+        if (mediaRequestType == MediaRequestType.HISTORY) {
             return getHistory(request);
         }
 

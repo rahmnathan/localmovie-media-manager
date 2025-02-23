@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.web.admin;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.media.MediaUpdateService;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -17,7 +18,7 @@ public class MediaAdminResource {
     private final ServiceConfig serviceConfig;
 
     @PostMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateMedia(@RequestBody MediaRequest mediaRequest) {
+    public void updateMedia(@RequestBody MediaRequest mediaRequest) throws InvalidMediaException {
         log.info("Received updateMedia request: {}", mediaRequest.toString());
 
         updateService.updateMedia(mediaRequest.getPath());

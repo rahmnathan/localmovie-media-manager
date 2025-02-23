@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media;
 
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
@@ -11,10 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-
-import static com.github.rahmnathan.localmovie.media.PathUtils.*;
-
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -23,19 +20,11 @@ public class MediaService {
     private final MediaProvider mediaProvider;
 
     @Transactional
-    public Media loadMedia(String path) {
-        return loadMediaInternal(path);
-    }
-
-    private Media loadMediaInternal(String path) {
+    public Media loadMedia(MediaPath path) {
         try {
-            if (isTopLevel(path) || isEpisode(path)) {
-                return Media.fromOmdbMedia(loadMediaFromProvider(path));
-            } else {
-                return Media.fromOmdbMedia(loadSeriesParentInfo(path, MediaType.SEASON));
-            }
+            return Media.fromOmdbMedia(loadMediaFromProvider(path));
         } catch (MediaProviderException | InvalidMediaException e){
-            return new Media(getTitle(new File(path).getName()));
+            return new Media(path.getTitle());
         }
     }
 
@@ -43,45 +32,30 @@ public class MediaService {
         return persistenceService.existsByPath(path);
     }
 
-    private com.github.rahmnathan.omdb.data.Media loadMediaFromProvider(String path) throws InvalidMediaException, MediaProviderException {
-        log.info("Loading MediaFile from provider - {}", path);
-        String fileName = new File(path).getName();
+    private com.github.rahmnathan.omdb.data.Media loadMediaFromProvider(MediaPath path) throws InvalidMediaException, MediaProviderException {
+        log.info("Loading media for path: {}", path);
 
-        if(isEpisode(path)){
-            try {
-                return loadEpisodeFromProvider(path, fileName);
-            } catch (MediaProviderException e) {
-                log.error("Error getting media from provider", e);
-                return loadSeriesParentInfo(path, MediaType.EPISODE);
+        return switch (path.getMediaType()) {
+            case MOVIE -> mediaProvider.getMovie(path.getTitle());
+            case SERIES -> mediaProvider.getSeries(path.getTitle());
+            case SEASON -> loadSeriesParentInfo(path);
+            case EPISODE -> {
+                try {
+                    yield mediaProvider.getEpisode(path.getSeriesPath().getTitle(), path.getSeasonNumber(), path.getEpisodeNumber());
+                } catch (MediaProviderException e) {
+                    log.error("Failed to load episode from MediaProvider.", e);
+                    yield loadSeriesParentInfo(path);
+                }
             }
-        } else if (isSeries(path)){
-            String title = getTitle(fileName);
-            return mediaProvider.getSeries(title);
-        } else if (isSeason(path)) {
-            return loadSeriesParentInfo(path, MediaType.SEASON);
-        } else {
-            String title = getTitle(fileName);
-            return mediaProvider.getMovie(title);
-        }
+        };
     }
 
-    private com.github.rahmnathan.omdb.data.Media loadEpisodeFromProvider(String path, String fileName) throws MediaProviderException, InvalidMediaException {
-        String seriesTitle = getParentFile(path).getName();
-        int seasonNumber = parseSeasonNumber(path);
-        int episodeNumber = parseEpisodeNumber(fileName);
-
-        return mediaProvider.getEpisode(seriesTitle, seasonNumber, episodeNumber);
-    }
-
-    private com.github.rahmnathan.omdb.data.Media loadSeriesParentInfo(String path, MediaType mediaType) throws InvalidMediaException {
+    private com.github.rahmnathan.omdb.data.Media loadSeriesParentInfo(MediaPath path) {
         log.info("Getting info from parent - {}", path);
 
-        String filename = new File(path).getName();
-        File file = getParentFile(path);
-        log.info("{} - Parent resolved to: {}", path, file.getPath());
+        Media parentInfo = loadMedia(path.getSeriesPath());
 
-        Media parentInfo = loadMediaInternal(file.getPath());
-        Integer number = isEpisode(path) ? parseEpisodeNumber(filename) : parseSeasonNumber(filename);
-        return com.github.rahmnathan.omdb.data.Media.copyWithNewTitleNumberAndType(parentInfo.toOmdbMedia(), getTitle(filename), number, mediaType);
+        Integer number = path.getMediaType() == MediaType.EPISODE ? path.getEpisodeNumber() : path.getSeasonNumber();
+        return com.github.rahmnathan.omdb.data.Media.copyWithNewTitleNumberAndType(parentInfo.toOmdbMedia(), path.getTitle(), number, path.getMediaType());
     }
 }

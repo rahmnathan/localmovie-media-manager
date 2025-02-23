@@ -1,6 +1,8 @@
 package com.github.rahmnathan.localmovie.media.event;
 
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -35,17 +36,17 @@ class MediaEventServiceTest {
     }
 
     @Test
-    void handleCreateEventTest() {
-        mediaEventService.handleCreateEvent(new File("src/test/resources/LocalMedia/Movies/300.mkv"));
+    void handleCreateEventTest() throws InvalidMediaException {
+        mediaEventService.handleCreateEvent(MediaPath.parse("src/test/resources/LocalMedia/Movies/300.mkv"));
         assertFalse(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged()).isEmpty());
     }
 
     @Test
-    void handleDeleteEventTest() {
-        assertTrue(mediaPersistenceService.getMediaFileByPath("Movies/300.mkv").isPresent());
+    void handleDeleteEventTest() throws InvalidMediaException {
+        assertTrue(mediaPersistenceService.getMediaFileByPath(MediaPath.parse("Movies/300.mkv")).isPresent());
 
-        mediaEventService.handleDeleteEvent(new File("/home/test/LocalMedia/Movies/300.mkv"));
+        mediaEventService.handleDeleteEvent(MediaPath.parse("/home/test/LocalMedia/Movies/300.mkv"));
 
-        assertFalse(mediaPersistenceService.getMediaFileByPath("Movies/300.mkv").isPresent());
+        assertFalse(mediaPersistenceService.getMediaFileByPath(MediaPath.parse("Movies/300.mkv")).isPresent());
     }
 }

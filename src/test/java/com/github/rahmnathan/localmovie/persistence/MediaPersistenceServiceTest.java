@@ -1,6 +1,8 @@
 package com.github.rahmnathan.localmovie.persistence;
 
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
@@ -44,8 +46,8 @@ class MediaPersistenceServiceTest {
     }
 
     @Test
-    void getMediaFileByPathTest() {
-        Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> resultMediaFile = mediaPersistenceService.getMediaFileByPath("Movies/300.mkv");
+    void getMediaFileByPathTest() throws InvalidMediaException {
+        Optional<com.github.rahmnathan.localmovie.persistence.entity.MediaFile> resultMediaFile = mediaPersistenceService.getMediaFileByPath(MediaPath.parse("Movies/300.mkv"));
         assertTrue(resultMediaFile.isPresent());
     }
 

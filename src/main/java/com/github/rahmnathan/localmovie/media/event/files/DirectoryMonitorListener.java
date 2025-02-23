@@ -67,6 +67,12 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     private void notifyObservers(WatchEvent.Kind event, File file) {
         logger.info("Detected media event {} at path {}", event, file);
-        observers.forEach(observer -> CompletableFuture.runAsync(() -> observer.directoryModified(event, file)));
+        observers.forEach(observer -> CompletableFuture.runAsync(() -> {
+            try {
+                observer.directoryModified(event, file);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }));
     }
 }

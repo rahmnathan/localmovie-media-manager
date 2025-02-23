@@ -1,6 +1,8 @@
 package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
+import com.github.rahmnathan.localmovie.data.MediaPath;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
@@ -45,10 +47,11 @@ public class MediaInitializer {
                         .parallel()
                         .flatMap(this::streamDirectoryTree)
                         .filter(path -> path.contains(ROOT_MEDIA_FOLDER))
-                        .flatMap(this::listFiles)
-                        .filter(file -> !dataService.existsInDatabase(file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1]))
-                        .filter(file -> !isActiveConversion(file))
+                        .flatMap(this::listValidMediaPaths)
+                        .filter(mediaPath -> !dataService.existsInDatabase(mediaPath.getAbsolutePath()))
+                        .filter(mediaPath -> !isActiveConversion(mediaPath))
                         .map(this::buildMediaFile)
+                        .filter(Objects::nonNull)
                         .forEach(mediaFileRepository::save);
 
                 log.info("File list initialized.");
@@ -58,13 +61,17 @@ public class MediaInitializer {
         }
     }
 
-    private MediaFile buildMediaFile(File file) {
-        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
-        return MediaFile.forPath(file.getAbsolutePath())
-                .media(dataService.loadMedia(relativePath))
-                .mediaFileId(UUID.randomUUID().toString())
-                .absolutePath(file.getAbsolutePath())
-                .build();
+    private MediaFile buildMediaFile(MediaPath path) {
+        try {
+            return MediaFile.forPath(path.getAbsolutePath())
+                    .media(dataService.loadMedia(MediaPath.parse(path.getAbsolutePath())))
+                    .mediaFileId(UUID.randomUUID().toString())
+                    .absolutePath(path.getAbsolutePath())
+                    .build();
+        } catch (InvalidMediaException e) {
+            log.error("Invalid media {}", path, e);
+            return null;
+        }
     }
 
     private Stream<String> streamDirectoryTree(String path) {
@@ -85,16 +92,25 @@ public class MediaInitializer {
         return paths.parallelStream();
     }
 
-    private Stream<File> listFiles(String absolutePath) {
+    private Stream<MediaPath> listValidMediaPaths(String absolutePath) {
         log.info("Listing files at - {}", absolutePath);
         File[] files = Optional.ofNullable(new File(absolutePath).listFiles()).orElse(new File[0]);
         log.info("Found {} files.", files.length);
-        return Set.of(files).parallelStream();
+        return Set.of(files).parallelStream()
+                .map(file -> {
+                    try {
+                        return MediaPath.parse(file.getAbsolutePath());
+                    } catch (InvalidMediaException e) {
+                        log.error("Invalid media file: {}", file.getAbsolutePath(), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull);
     }
 
-    private boolean isActiveConversion(File file) {
-        return jobRepository.existsByOutputFileAndStatusIn(file.toString(), ACTIVE_STATUSES) ||
-                jobRepository.existsByInputFileAndStatusIn(file.toString(), ACTIVE_STATUSES);
+    private boolean isActiveConversion(MediaPath mediaPath) {
+        return jobRepository.existsByOutputFileAndStatusIn(mediaPath.getAbsolutePath(), ACTIVE_STATUSES) ||
+                jobRepository.existsByInputFileAndStatusIn(mediaPath.getAbsolutePath(), ACTIVE_STATUSES);
     }
 
     public ForkJoinTask<?> getInitializationFuture() {

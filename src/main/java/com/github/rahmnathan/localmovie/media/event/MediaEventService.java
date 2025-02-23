@@ -1,6 +1,8 @@
 package com.github.rahmnathan.localmovie.media.event;
 
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaFileService;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
@@ -8,10 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.File;
-
-import static com.github.rahmnathan.localmovie.media.MediaInitializer.ROOT_MEDIA_FOLDER;
 
 @Slf4j
 @Service
@@ -22,23 +20,22 @@ public class MediaEventService {
     private final MediaPersistenceService persistenceService;
     private final MediaFileService mediaFileService;
 
-    public void handleCreateEvent(File file){
+    public void handleCreateEvent(MediaPath path) throws InvalidMediaException {
         log.info("Adding CREATE event to repository.");
-        String relativePath = file.getAbsolutePath().split(ROOT_MEDIA_FOLDER)[1];
 
         // Clean up existing events/metadata
-        persistenceService.deleteAllByRelativePath(relativePath);
+        persistenceService.deleteAllByRelativePath(path.getRelativePath());
 
-        MediaFile mediaFile = mediaFileService.loadMediaFile(file);
-        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, relativePath);
+        MediaFile mediaFile = mediaFileService.loadMediaFile(path);
+        MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, path.getRelativePath());
         persistenceService.saveEvent(event);
 
         notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
     }
 
-    public void handleDeleteEvent(File file){
-        String relativePath = file.toString().split(ROOT_MEDIA_FOLDER)[1];
-        if(persistenceService.existsByPath(relativePath)){
+    public void handleDeleteEvent(MediaPath path) {
+        String relativePath = path.getRelativePath();
+        if (persistenceService.existsByPath(relativePath)) {
             log.info("Removing media from database.");
             persistenceService.deleteAllByRelativePath(relativePath);
         }

@@ -1,8 +1,10 @@
 package com.github.rahmnathan.localmovie.media.job;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -114,7 +116,11 @@ public class MediaJobService {
                 if(inputFile.exists()) {
                     Files.delete(inputFile.toPath());
                 }
-                mediaEventService.handleCreateEvent(new File(mediaJob.getOutputFile()));
+                try {
+                    mediaEventService.handleCreateEvent(MediaPath.parse(mediaJob.getOutputFile()));
+                } catch (InvalidMediaException e) {
+                    log.info("Failed to handle create event for output file: {}", mediaJob.getOutputFile());
+                }
             } else if (jobStatus.get() == MediaJobStatus.FAILED) {
                 log.warn("Found failed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
