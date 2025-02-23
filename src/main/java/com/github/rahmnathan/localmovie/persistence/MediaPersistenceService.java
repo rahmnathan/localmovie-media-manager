@@ -187,7 +187,7 @@ public class MediaPersistenceService {
     }
 
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {
-        return eventRepository.findAllByTimestampAfterOrderByTimestamp(localDateTime, pageable);
+        return eventRepository.findAllByTimestampAfterOrderByTimestampAsc(localDateTime, pageable);
     }
 
     private List<Predicate> extractPredicates(MediaRequest request, QMediaFile qMediaFile) {
