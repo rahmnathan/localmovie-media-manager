@@ -50,6 +50,7 @@ public class KubernetesService {
             log.info("Creating job with name: {}", podName);
 
             List<String> args = List.of("-Z", HANDBRAKE_PRESET,
+                    "--audio-lang-list", "eng",
                     "-i", inputFile.getAbsolutePath(),
                     "-o", outputFile.getAbsolutePath(),
                     "-v");
