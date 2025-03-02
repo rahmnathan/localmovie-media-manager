@@ -51,12 +51,21 @@ public class KubernetesService {
             log.info("Creating job with name: {}", podName);
 
             // https://handbrake.fr/docs/en/latest/cli/command-line-reference.html
-            List<String> args = List.of("-Z", HANDBRAKE_PRESET,
-//                    "-N", ISO_639_2_ENGLISH,
-//                    "--native-dub",
+            List<String> args = List.of(
                     "-i", inputFile.getAbsolutePath(),
                     "-o", outputFile.getAbsolutePath(),
-                    "-v");
+                    "--format", "av_mp4",
+                    "--encoder", "x264",
+                    "--quality", "22",
+                    "--aencoder", "av_aac",
+                    "--audio-lang-list", ISO_639_2_ENGLISH,
+                    "--first-audio",
+                    "--subtitle-lang-list", ISO_639_2_ENGLISH,
+                    "--subtitle-default", "none",
+                    "--subtitle-burned", "1",
+                    "--optimize",
+                    "-v"
+            );
 
             List<Volume> volumes = localmoviesPodOptional.get().getSpec().getVolumes().stream()
                     .filter(volume -> volume.getName().startsWith("media"))
