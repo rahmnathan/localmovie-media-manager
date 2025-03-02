@@ -58,11 +58,8 @@ public class KubernetesService {
                     "--encoder", "x264",
                     "--quality", "24",
                     "--aencoder", "av_aac",
-                    "--audio-lang-list", ISO_639_2_ENGLISH,
-                    "--first-audio",
-                    "--subtitle-lang-list", ISO_639_2_ENGLISH,
-                    "--subtitle-default", "none",
-                    "--subtitle-burned", "1",
+                    "-N", ISO_639_2_ENGLISH,
+                    "--native-dub",
                     "--optimize",
                     "-v"
             );
