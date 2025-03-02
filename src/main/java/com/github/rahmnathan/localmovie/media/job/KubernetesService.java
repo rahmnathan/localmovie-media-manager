@@ -52,8 +52,8 @@ public class KubernetesService {
 
             // https://handbrake.fr/docs/en/latest/cli/command-line-reference.html
             List<String> args = List.of("-Z", HANDBRAKE_PRESET,
-                    "-N", ISO_639_2_ENGLISH,
-                    "--native-dub",
+//                    "-N", ISO_639_2_ENGLISH,
+//                    "--native-dub",
                     "-i", inputFile.getAbsolutePath(),
                     "-o", outputFile.getAbsolutePath(),
                     "-v");
