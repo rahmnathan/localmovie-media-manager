@@ -56,7 +56,7 @@ public class KubernetesService {
                     "-o", outputFile.getAbsolutePath(),
                     "--format", "av_mp4",
                     "--encoder", "x264",
-                    "--quality", "18",
+                    "--quality", "24",
                     "--aencoder", "av_aac",
                     "--audio-lang-list", ISO_639_2_ENGLISH,
                     "--first-audio",
