@@ -74,7 +74,7 @@ public class KubernetesService {
 
             ResourceRequirements resources = new ResourceRequirements(
                     new ArrayList<>(),
-                    Map.of("cpu", Quantity.parse("6"),
+                    Map.of("cpu", Quantity.parse("8"),
                             "memory", Quantity.parse("8Gi")),
                     Map.of("cpu", Quantity.parse("4"),
                             "memory", Quantity.parse("4Gi"))
