@@ -29,6 +29,7 @@ public class KubernetesService {
 
     private static final String JOB_NAME = "job-name";
     private static final String JOB_ID_LABEL = "jobId";
+    private static final String ISO_639_2_ENGLISH = "eng";
 
     private static final String HANDBRAKE_PRESET = "Chromecast 1080p60 Surround";
 
@@ -49,8 +50,10 @@ public class KubernetesService {
 
             log.info("Creating job with name: {}", podName);
 
+            // https://handbrake.fr/docs/en/latest/cli/command-line-reference.html
             List<String> args = List.of("-Z", HANDBRAKE_PRESET,
-                    "--audio-lang-list", "eng",
+                    "-N", ISO_639_2_ENGLISH,
+                    "--native-dub",
                     "-i", inputFile.getAbsolutePath(),
                     "-o", outputFile.getAbsolutePath(),
                     "-v");
