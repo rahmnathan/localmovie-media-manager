@@ -51,13 +51,11 @@ public class KubernetesService {
             log.info("Creating job with name: {}", podName);
 
             // https://handbrake.fr/docs/en/latest/cli/command-line-reference.html
-            List<String> args = List.of(
+            List<String> args = List.of("-Z", HANDBRAKE_PRESET,
                     "-i", inputFile.getAbsolutePath(),
                     "-o", outputFile.getAbsolutePath(),
                     "--format", "av_mp4",
                     "--encoder", "x264",
-                    "--quality", "24",
-                    "-r", "60",
                     "--aencoder", "av_aac",
                     "--audio-lang-list", ISO_639_2_ENGLISH,
                     "--first-audio",
@@ -65,8 +63,7 @@ public class KubernetesService {
                     // TODO - Figure out how to burn English subtitles in when there's no English audio track.
 //                    "--subtitle-default", "none",
 //                    "--subtitle-burned", "1",
-//                    "--subtitle-forced", "1",
-                    "--optimize",
+//                    "--subtitle-forced", "1"
                     "-v"
             );
 
