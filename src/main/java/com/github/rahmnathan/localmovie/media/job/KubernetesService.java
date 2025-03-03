@@ -62,9 +62,10 @@ public class KubernetesService {
                     "--audio-lang-list", ISO_639_2_ENGLISH,
                     "--first-audio",
                     "--subtitle-lang-list", ISO_639_2_ENGLISH,
-                    "--subtitle-default", "none",
-                    "--subtitle-burned", "1",
-                    "--subtitle-forced", "1",
+                    // TODO - Figure out how to burn English subtitles in when there's no English audio track.
+//                    "--subtitle-default", "none",
+//                    "--subtitle-burned", "1",
+//                    "--subtitle-forced", "1",
                     "--optimize",
                     "-v"
             );
