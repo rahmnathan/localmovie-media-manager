@@ -57,6 +57,7 @@ public class KubernetesService {
                     "--format", "av_mp4",
                     "--encoder", "x264",
                     "--quality", "24",
+                    "-r", "60",
                     "--aencoder", "av_aac",
                     "--audio-lang-list", ISO_639_2_ENGLISH,
                     "--first-audio",
