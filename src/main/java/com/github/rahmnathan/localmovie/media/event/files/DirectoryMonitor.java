@@ -30,10 +30,16 @@ public class DirectoryMonitor {
         FileAlterationListener listener = new DirectoryMonitorListener(monitor, observers);
 
         config.getMediaPaths().stream().map(Paths::get).forEach(p -> {
-            log.info("registering {} in watcher service", p);
-            FileAlterationObserver observer = new FileAlterationObserver(p.toFile());
-            observer.addListener(listener);
-            monitor.addObserver(observer);
+            try {
+                log.info("registering {} in watcher service", p);
+                FileAlterationObserver observer = FileAlterationObserver.builder()
+                        .setPath(p)
+                        .get();
+                observer.addListener(listener);
+                monitor.addObserver(observer);
+            } catch (Exception e) {
+                log.error("Failed to register {} in watcher service", p, e);
+            }
         });
 
         try {
