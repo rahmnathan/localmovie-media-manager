@@ -11,14 +11,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.10</version>
+        <version>3.4.5</version>
     </parent>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
 
-        <internal-adapters.version>4.9</internal-adapters.version>
+        <internal-adapters.version>4.10</internal-adapters.version>
         <querydsl.version>5.1.0</querydsl.version>
 
         <docker.publish>false</docker.publish>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
-            <version>4.8.1</version>
+            <version>4.11.0</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -208,7 +208,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2023.0.3</version>
+                <version>2024.0.1</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
