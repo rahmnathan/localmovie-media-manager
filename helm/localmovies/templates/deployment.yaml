@@ -32,7 +32,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: prod
             - name: LANG
-              value: en_US.utf8
+              value: en_US.UTF-8
           volumeMounts:
             - name: application-config
               mountPath: /workspace/config
