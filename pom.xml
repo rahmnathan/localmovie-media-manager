@@ -224,6 +224,11 @@
                     <image>
                         <name>rahmnathan/localmovie-media-manager:${project.version}</name>
                         <publish>${docker.publish}</publish>
+                        <environment>
+                            <JAVA_TOOL_OPTIONS>-Dfile.encoding=UTF-8</JAVA_TOOL_OPTIONS>
+                            <LANG>en_US.UTF-8</LANG>
+                            <LC_ALL>en_US.UTF-8</LC_ALL>
+                        </environment>
                     </image>
                     <docker>
                         <publishRegistry>
