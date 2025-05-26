@@ -224,11 +224,11 @@
                     <image>
                         <name>rahmnathan/localmovie-media-manager:${project.version}</name>
                         <publish>${docker.publish}</publish>
-                        <env>
-                            <LC_ALL>en_US.UTF-8</LC_ALL>
-                            <BPE_DELIM_JAVA_TOOL_OPTIONS xml:space="preserve"> </BPE_DELIM_JAVA_TOOL_OPTIONS>
-                            <BPE_APPEND_JAVA_TOOL_OPTIONS>-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8</BPE_APPEND_JAVA_TOOL_OPTIONS>
-                        </env>
+<!--                        <env>-->
+<!--                            <LC_ALL>en_US.UTF-8</LC_ALL>-->
+<!--                            <BPE_DELIM_JAVA_TOOL_OPTIONS xml:space="preserve"> </BPE_DELIM_JAVA_TOOL_OPTIONS>-->
+<!--                            <BPE_APPEND_JAVA_TOOL_OPTIONS>-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8</BPE_APPEND_JAVA_TOOL_OPTIONS>-->
+<!--                        </env>-->
                     </image>
                     <docker>
                         <publishRegistry>
