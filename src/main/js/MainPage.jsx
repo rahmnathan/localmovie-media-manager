@@ -119,6 +119,7 @@ export function MainPage() {
     function resetSearchParams() {
         navigationState.type = 'movies'
         navigationState.path = 'Movies'
+        navigationState.q = ''
     }
 
     function filterMedia(searchText) {
