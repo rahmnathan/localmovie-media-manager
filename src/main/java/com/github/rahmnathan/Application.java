@@ -24,8 +24,6 @@ public class Application {
 
     @PostConstruct
     public void printEnv() {
-        System.setProperty("sun.jnu.encoding", "UTF-8");
-
         log.info("file.encoding: {}", Charset.defaultCharset().displayName());
         log.info("sun.jnu.encoding: {}", System.getProperty("sun.jnu.encoding"));
     }
