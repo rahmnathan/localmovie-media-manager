@@ -89,7 +89,7 @@ spec:
                 DOCKERHUB = credentials('Dockerhub')
             }
             steps {
-                sh 'mvn spring-boot:build-image -DskipTests -Ddocker.password="$DOCKERHUB_PSW" -Ddocker.publish=true'
+                sh 'mvn spring-boot:build-image -DskipTests -Ddocker.password="$DOCKERHUB_PSW" -Ddocker.publish=true -Dspring-boot.build-image.additional-properties="JAVA_OPTS=-Dsun.jnu.encoding=UTF-8"'
             }
         }
         stage('Deploy to Kubernetes') {
