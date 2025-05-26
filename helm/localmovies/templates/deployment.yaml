@@ -33,6 +33,8 @@ spec:
               value: prod
             - name: LANG
               value: en_US.UTF-8
+            - name: LC_ALL
+              value: en_US.UTF-8
           volumeMounts:
             - name: application-config
               mountPath: /workspace/config
