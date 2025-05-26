@@ -45,9 +45,7 @@ public class DirectoryMonitor {
         try {
             monitor.start();
         } catch (Exception e) {
-            // TODO - Figure out why UTF-8 isn't working for special characters anymore
-            log.error("Directory monitor failed to start.", e);
-//            throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
 }
