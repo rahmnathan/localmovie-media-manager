@@ -226,7 +226,7 @@
                         <publish>${docker.publish}</publish>
                     </image>
                     <environmentVariables>
-                        <JAVA_TOOL_OPTIONS>-Dfile.encoding=UTF-8</JAVA_TOOL_OPTIONS>
+                        <JAVA_TOOL_OPTIONS>-Dfile.encoding="UTF-8" -Dsun.jnu.encoding="UTF-8"</JAVA_TOOL_OPTIONS>
                         <LANG>en_US.UTF-8</LANG>
                         <LC_ALL>en_US.UTF-8</LC_ALL>
                     </environmentVariables>
