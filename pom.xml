@@ -225,7 +225,7 @@
                         <name>rahmnathan/localmovie-media-manager:${project.version}</name>
                         <publish>${docker.publish}</publish>
                         <env>
-                            <BPE_APPEND_JAVA_TOOL_OPTIONS>-Dfile.encoding="UTF-8" -Dsun.jnu.encoding="UTF-8"</BPE_APPEND_JAVA_TOOL_OPTIONS>
+                            <BPE_APPEND_JAVA_TOOL_OPTIONS> -Dfile.encoding="UTF-8" -Dsun.jnu.encoding="UTF-8"</BPE_APPEND_JAVA_TOOL_OPTIONS>
                         </env>
                     </image>
                     <docker>
