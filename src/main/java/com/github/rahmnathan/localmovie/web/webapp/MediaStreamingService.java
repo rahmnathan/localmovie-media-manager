@@ -43,6 +43,7 @@ public class MediaStreamingService {
         long startByte;
         String rangeHeader = request.getHeader(HttpHeaders.RANGE);
         if (rangeHeader != null) {
+            log.info("Range header detected: {}", rangeHeader);
             startByte = Long.parseLong(rangeHeader.split("-")[0].substring(6));
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
         } else {
