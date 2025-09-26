@@ -16,7 +16,7 @@ service:
   mediaPaths: "/media/nathan/LocalMedia/"
   notificationsEnabled: false
   omdb:
-    apiKey: "key"
+    apiKey: "a825746e"
     enabled: true
   repository:
     enabled: true
@@ -30,7 +30,7 @@ service:
 spring:
   threads:
     virtual:
-      enabled: true
+      enabled: false
   application:
     name: localmovie-media-manager
   datasource:
