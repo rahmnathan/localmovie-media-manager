@@ -43,7 +43,6 @@ public class MediaStreamingService {
         long startByte;
         String rangeHeader = request.getHeader(HttpHeaders.RANGE);
         if (rangeHeader != null) {
-            log.info("Range header detected: {}", rangeHeader);
             startByte = Long.parseLong(rangeHeader.split("-")[0].substring(6));
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
         } else {
@@ -73,6 +72,7 @@ public class MediaStreamingService {
     private void skip(InputStream inputStream, long amount) throws IOException {
         log.info("Skipping first {} bytes.", amount);
         long skipped = inputStream.skip(amount);
+        log.info("Skipped first {} bytes.", amount);
         if (skipped < amount) {
             skip(inputStream, amount - skipped);
         }
