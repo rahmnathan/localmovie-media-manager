@@ -14,16 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
 @AllArgsConstructor
 public class MediaStreamingService {
-    private final Map<String, AtomicInteger> activeStreams = new ConcurrentHashMap<>();
-
     private final MeterRegistry registry;
 
     public ResponseEntity<Resource> streamMediaFile(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
@@ -32,23 +27,11 @@ public class MediaStreamingService {
 
         Path file = Paths.get(mediaFile.getAbsolutePath());
 
-        Resource resource = new FileSystemResource(file);
+        String mediaName = mediaFile.getPath().replaceAll("[/.]", "-");
+        registry.counter("localmovies.streams.requests", "media_name", mediaName).increment();
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(resource);
-    }
-
-    // TODO - figure out how to make this work
-    private AtomicInteger getGauge(String path) {
-        String jobId = path.replaceAll("[/.]", "-");
-
-        return activeStreams.computeIfAbsent(jobId, k -> {
-            Gauge.builder("localmovies.streams.active", activeStreams, map -> map.get(jobId).doubleValue())
-                    .tags(Tags.of("job_id", jobId))
-                    .register(registry);
-
-            return new AtomicInteger(0);
-        });
+                .body(new FileSystemResource(file));
     }
 }
