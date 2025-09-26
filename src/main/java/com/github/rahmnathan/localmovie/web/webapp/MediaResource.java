@@ -13,8 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -61,7 +63,7 @@ public class MediaResource {
     }
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
-    public void streamVideo(@PathVariable("mediaFileId") String mediaFileId, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseEntity<Resource> streamVideo(@PathVariable("mediaFileId") String mediaFileId, HttpServletResponse response, HttpServletRequest request) {
         response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
         log.info("Received streaming request - {}", mediaFileId);
 
@@ -69,10 +71,10 @@ public class MediaResource {
         if(mediaFilePath.isEmpty()){
             log.warn("Media file not found for id.");
             response.setStatus(HttpStatus.NOT_FOUND.value());
-            return;
+            return null;
         }
 
-        mediaStreamingService.streamMediaFile(mediaFilePath.get(), request, response);
+        return mediaStreamingService.streamMediaFile(mediaFilePath.get(), request, response);
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")

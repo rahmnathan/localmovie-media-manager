@@ -6,13 +6,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -27,57 +26,20 @@ public class MediaStreamingService {
 
     private final MeterRegistry registry;
 
-    public void streamMediaFile(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Resource> streamMediaFile(MediaFile mediaFile, HttpServletRequest request, HttpServletResponse response) {
         if (response == null || request == null)
-            return;
+            return null;
 
         Path file = Paths.get(mediaFile.getAbsolutePath());
 
-        long totalBytes = 0L;
-        try {
-            totalBytes = Files.size(file);
-        } catch (IOException e) {
-            log.error("Failure loading file size", e);
-        }
+        Resource resource = new FileSystemResource(file);
 
-        long startByte;
-        String rangeHeader = request.getHeader(HttpHeaders.RANGE);
-        if (rangeHeader != null) {
-            startByte = Long.parseLong(rangeHeader.split("-")[0].substring(6));
-            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-        } else {
-            startByte = 0L;
-        }
-
-        response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + startByte + "-" + (totalBytes - 1) + "/" + totalBytes);
-        response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(totalBytes - startByte));
-
-        streamFile(file, response, startByte, getGauge(mediaFile.getPath()));
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
-    private void streamFile(Path file, HttpServletResponse response, long startByte, AtomicInteger streamGauge) {
-        streamGauge.getAndIncrement();
-
-        try (InputStream input = Files.newInputStream(file);
-             OutputStream output = response.getOutputStream()) {
-            skip(input, startByte);
-            input.transferTo(output);
-        } catch (IOException e) {
-            log.error("Failure streaming file", e);
-        } finally {
-            streamGauge.getAndDecrement();
-        }
-    }
-
-    private void skip(InputStream inputStream, long amount) throws IOException {
-        log.info("Skipping first {} bytes.", amount);
-        long skipped = inputStream.skip(amount);
-        log.info("Skipped first {} bytes.", amount);
-        if (skipped < amount) {
-            skip(inputStream, amount - skipped);
-        }
-    }
-
+    // TODO - figure out how to make this work
     private AtomicInteger getGauge(String path) {
         String jobId = path.replaceAll("[/.]", "-");
 
