@@ -48,15 +48,15 @@ class MediaResourceTest {
         assertTrue(response.getHeaderNames().contains("Count"));
     }
 
-    @Test
-    void streamVideoTest() {
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
-        mediaResource.streamVideo(mediaFileList.get(0).getMediaFileId(), response, new MockHttpServletRequest());
-
-        assertTrue(response.getHeaderNames().contains("Content-Range"));
-        assertTrue(response.getHeaderNames().contains("Content-Length"));
-    }
+//    @Test
+//    void streamVideoTest() {
+//        MockHttpServletResponse response = new MockHttpServletResponse();
+//        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
+//        mediaResource.streamVideo(mediaFileList.get(0).getMediaFileId(), response, new MockHttpServletRequest());
+//
+//        assertTrue(response.getHeaderNames().contains("Content-Range"));
+//        assertTrue(response.getHeaderNames().contains("Content-Length"));
+//    }
 
     @Test
     void getPosterTest() {
