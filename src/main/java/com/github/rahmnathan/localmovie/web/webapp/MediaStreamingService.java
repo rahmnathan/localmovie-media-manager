@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +32,8 @@ public class MediaStreamingService {
 
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noCache())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header("Content-Type", "video/mp4")
+                .header("Accept-Ranges", "bytes")
                 .body(new FileSystemResource(file));
     }
 }

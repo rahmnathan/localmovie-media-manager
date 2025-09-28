@@ -81,7 +81,7 @@ export function VideoPlayer() {
     const initializeCast = () => {
         const context = cast.framework.CastContext.getInstance();
         context.setOptions({
-            receiverApplicationId: "5F217DDB"
+            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
         });
 
         context.addEventListener(cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
@@ -131,6 +131,20 @@ export function VideoPlayer() {
     }, [resumePlayback, mediaFile, token]);
 
     useEffect(() => {
+        if (url && mediaFile && window.cast) {
+            const session = cast.framework.CastContext.getInstance().getCurrentSession();
+            if (session) {
+                // Cast if connected
+                playOnCast(
+                    url,
+                    mediaFile.media.title,
+                    buildPosterUri(mediaId) + "?access_token=" + token
+                );
+            }
+        }
+    }, [url, mediaFile, castInitialized]);
+
+    useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
 
         let mediaViews = mediaFile.mediaViews;
@@ -155,7 +169,35 @@ export function VideoPlayer() {
         }
     }
 
+    const playOnCast = (mediaUrl, title, imageUrl) => {
+        if (!window.cast) {
+            console.warn("Cast framework not ready");
+            return;
+        }
+
+        const session = window.cast.framework.CastContext.getInstance().getCurrentSession();
+        if (!session) {
+            console.log("No cast session active.");
+            return;
+        }
+
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl, "video/mp4");
+        mediaInfo.metadata = new window.chrome.cast.media.MovieMediaMetadata();
+        mediaInfo.metadata.title = title;
+        mediaInfo.metadata.images = [{ url: imageUrl }];
+
+        const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+        session.loadMedia(request).then(
+            () => console.log("Cast media loaded successfully"),
+            (errorCode) => console.error("Error loading cast media", errorCode)
+        );
+    };
+
     if(mediaFile !== null && mediaFile !== undefined) {
+        const hasCastSession = window.cast?.framework
+            ? window.cast.framework.CastContext.getInstance().getCurrentSession()
+            : null;
+
         return (
             <div style={videoPlayerStyle}>
                 <Dialog open={!prompted && canResumePlayback}
@@ -182,12 +224,15 @@ export function VideoPlayer() {
                         </DialogPanel>
                     </div>
                 </Dialog>
-                <ReactPlayer
-                    url={url}
-                    controls={true}
-                    width={'100%'}
-                    height={'100%'}
-                    onProgress={saveProgress}/>
+                {!hasCastSession && (
+                    <ReactPlayer
+                        url={url}
+                        controls
+                        width="100%"
+                        height="100%"
+                        onProgress={saveProgress}
+                    />
+                )}
                 <div style={backgroundTintStyle}/>
             </div>
         )
