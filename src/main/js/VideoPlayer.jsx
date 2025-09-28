@@ -142,7 +142,7 @@ export function VideoPlayer() {
                 );
             }
         }
-    }, [url, mediaFile, castInitialized]);
+    }, [url, mediaFile]);
 
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
