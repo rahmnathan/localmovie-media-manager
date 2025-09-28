@@ -28,7 +28,7 @@ public class MediaStreamingService {
         Path file = Paths.get(mediaFile.getAbsolutePath());
 
         String mediaName = mediaFile.getPath().replaceAll("[/.]", "-");
-        registry.counter("localmovies.streams.requests", "media_name", mediaName).increment();
+        registry.summary("localmovies.streams.requests", "media_name", mediaName).record(1);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
