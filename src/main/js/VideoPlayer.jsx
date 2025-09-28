@@ -127,22 +127,47 @@ export function VideoPlayer() {
             console.log("position: " + position);
         }
 
-        setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4?access_token=" + token + "#t=" + startPosition);
+        setUrl(
+            window.location.origin +
+            videoBaseUri +
+            encodeURIComponent(mediaFile.mediaFileId) +
+            "/stream.mp4?access_token=" +
+            token +
+            "#t=" +
+            startPosition
+        );
     }, [resumePlayback, mediaFile, token]);
 
     useEffect(() => {
-        if (url && mediaFile && window.cast) {
-            const session = cast.framework.CastContext.getInstance().getCurrentSession();
-            if (session) {
-                // Cast if connected
-                playOnCast(
-                    url,
-                    mediaFile.media.title,
-                    buildPosterUri(mediaId) + "?access_token=" + token
-                );
+        if (!window.cast || !mediaFile || !url) return;
+
+        const context = window.cast.framework.CastContext.getInstance();
+
+        const handler = (event) => {
+            if (event.sessionState === window.cast.framework.SessionState.SESSION_STARTED) {
+                const session = context.getCurrentSession();
+                if (session) {
+                    playOnCast(
+                        url,
+                        mediaFile.media.title,
+                        buildPosterUri(mediaId) + "?access_token=" + token
+                    );
+                }
             }
-        }
-    }, [url, mediaFile]);
+        };
+
+        context.addEventListener(
+            window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+            handler
+        );
+
+        return () => {
+            context.removeEventListener(
+                window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+                handler
+            );
+        };
+    }, [url, mediaFile, token, mediaId]);
 
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
