@@ -50,6 +50,9 @@ service:
     updateLimit: 100
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: jdbc:postgresql://postgresql.postgres.svc.cluster.local:5432/localmovies
     username: localmovies
