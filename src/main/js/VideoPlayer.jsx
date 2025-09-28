@@ -117,7 +117,7 @@ export function VideoPlayer() {
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
 
-        let startPosition = 1;
+        let startPosition = 0;
 
         if (canResumePlayback && resumePlayback) {
             let mediaView = mediaFile.mediaViews[0];
@@ -128,7 +128,7 @@ export function VideoPlayer() {
         }
 
         setUrl(videoBaseUri + encodeURIComponent(mediaFile.mediaFileId) + "/stream.mp4?access_token=" + token + "#t=" + startPosition);
-    }, [resumePlayback, mediaFile]);
+    }, [resumePlayback, mediaFile, token]);
 
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
