@@ -206,7 +206,7 @@ export function VideoPlayer() {
             return;
         }
 
-        const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl, "video/mp4");
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl.split('#')[0], "video/mp4");
         mediaInfo.metadata = new window.chrome.cast.media.MovieMediaMetadata();
         mediaInfo.metadata.title = title;
         mediaInfo.metadata.images = [{ url: imageUrl }];

@@ -8,13 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -63,18 +61,17 @@ public class MediaResource {
     }
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
-    public ResponseEntity<Resource> streamVideo(@PathVariable("mediaFileId") String mediaFileId, HttpServletResponse response, HttpServletRequest request) {
-        response.setHeader(HttpHeaders.CONTENT_TYPE, "video/mp4");
+    public ResponseEntity<ResourceRegion> streamVideo(@PathVariable("mediaFileId") String mediaFileId,
+                                                      @RequestHeader HttpHeaders headers) {
         log.info("Received streaming request - {}", mediaFileId);
 
         Optional<MediaFile> mediaFilePath = persistenceService.findByMediaFileId(mediaFileId);
         if(mediaFilePath.isEmpty()){
             log.warn("Media file not found for id.");
-            response.setStatus(HttpStatus.NOT_FOUND.value());
-            return null;
+            return ResponseEntity.notFound().build();
         }
 
-        return mediaStreamingService.streamMediaFile(mediaFilePath.get(), request, response);
+        return mediaStreamingService.streamMediaFile(mediaFilePath.get(), headers);
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")

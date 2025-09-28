@@ -76,7 +76,7 @@ export const buildPosterUri = function (id) {
     if(id === null){
         return 'noPicture.gif';
     } else {
-        return posterBasePath + encodeURIComponent(id) + '/poster';
+        return window.location.origin + posterBasePath + encodeURIComponent(id) + '/poster';
     }
 };
 
