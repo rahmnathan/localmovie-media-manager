@@ -4,6 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
@@ -12,9 +13,10 @@ import java.util.UUID;
 
 @Component
 @Order(1)
-public class CorrelationIdFilter implements Filter {
+public class LoggingFilter implements Filter {
     public static final String X_CORRELATION_ID = "x-correlation-id";
     private static final String CLIENT_ADDRESS = "client-address";
+    private static final String USER_AGENT = "user-agent";
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -24,8 +26,11 @@ public class CorrelationIdFilter implements Filter {
             String correlationId = httpServletRequest.getHeader(X_CORRELATION_ID);
             MDC.put(X_CORRELATION_ID, StringUtils.isEmpty(correlationId) ? UUID.randomUUID().toString() : correlationId);
 
-            String clientAddress = httpServletRequest.getHeader("X-FORWARDED-FOR");
+            String clientAddress = httpServletRequest.getHeader("X-Forwarded-For");
             MDC.put(CLIENT_ADDRESS, clientAddress);
+
+            String userAgent = httpServletRequest.getHeader(HttpHeaders.USER_AGENT);
+            MDC.put(USER_AGENT, userAgent);
 
             filterChain.doFilter(httpServletRequest, servletResponse);
         } finally {

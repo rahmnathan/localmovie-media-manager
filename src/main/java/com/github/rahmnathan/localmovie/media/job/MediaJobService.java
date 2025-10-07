@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
+import static com.github.rahmnathan.localmovie.web.filter.LoggingFilter.X_CORRELATION_ID;
 
 @Slf4j
 @Service

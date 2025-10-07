@@ -3,7 +3,7 @@ logging:
     com.github.rahmnathan: info
     org.apache.http: info
     org.keycloak: info
-  pattern.level: correlation-id=%X{x-correlation-id}
+  pattern.level: correlation-id=%X{x-correlation-id} user-agent=%X{user-agent} client-ip=%X{client-address}
 
 management:
   endpoint:

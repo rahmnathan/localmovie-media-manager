@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
-import static com.github.rahmnathan.localmovie.web.filter.CorrelationIdFilter.X_CORRELATION_ID;
+import static com.github.rahmnathan.localmovie.web.filter.LoggingFilter.X_CORRELATION_ID;
 
 @Slf4j
 @Service
