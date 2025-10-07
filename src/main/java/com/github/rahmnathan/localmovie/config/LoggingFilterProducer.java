@@ -12,7 +12,7 @@ public class LoggingFilterProducer {
     public FilterRegistrationBean<LoggingFilter> loggingFilter(){
         FilterRegistrationBean<LoggingFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new LoggingFilter());
-        registrationBean.addUrlPatterns("/localmovies/*");
+        registrationBean.addUrlPatterns("/localmovie/*");
         return registrationBean;
     }
 }

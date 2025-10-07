@@ -3,16 +3,13 @@ package com.github.rahmnathan.localmovie.web.filter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.MDC;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 import org.thymeleaf.util.StringUtils;
 
 import java.io.IOException;
 import java.util.UUID;
 
-@Component
-@Order(1)
+
 public class LoggingFilter implements Filter {
     public static final String X_CORRELATION_ID = "x-correlation-id";
     private static final String CLIENT_ADDRESS = "client-address";

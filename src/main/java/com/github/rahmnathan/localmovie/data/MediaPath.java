@@ -76,7 +76,11 @@ public class MediaPath {
     }
 
     private static String getConversionOutputPath(String absolutePath) {
-        return absolutePath.substring(0, absolutePath.lastIndexOf('.')) + (absolutePath.endsWith(".mp4") ? ".mkv" : ".mp4");
+        if (absolutePath.length() > 4 && absolutePath.charAt(absolutePath.length() - 4) == '.') {
+            return absolutePath.substring(0, absolutePath.lastIndexOf('.')) + (absolutePath.endsWith(".mp4") ? ".mkv" : ".mp4");
+        }
+
+        return null;
     }
 
     private static String getFileName(String path) {
