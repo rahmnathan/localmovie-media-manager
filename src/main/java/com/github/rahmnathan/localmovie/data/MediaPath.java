@@ -26,6 +26,7 @@ public class MediaPath {
     private final String fileName;
     private final String title;
     private final String absolutePath;
+    private final String destinationPath;
 
     // For series only
     private final MediaPath seriesPath;
@@ -46,11 +47,12 @@ public class MediaPath {
     }
 
     public static MediaPath parse(String path) throws InvalidMediaException {
-        MediaPath.MediaPathBuilder builder = MediaPath.builder();
+        MediaPathBuilder builder = MediaPath.builder();
 
         if (path.contains(MEDIA_ROOT_FOLDER)) {
             builder.absolutePath(path);
             builder.relativePath(path.split(MEDIA_ROOT_FOLDER)[1]);
+            builder.destinationPath(getConversionOutputPath(builder.absolutePath));
         } else {
             builder.relativePath(path);
         }
@@ -73,11 +75,15 @@ public class MediaPath {
         return builder.build();
     }
 
+    private static String getConversionOutputPath(String absolutePath) {
+        return absolutePath.substring(0, absolutePath.lastIndexOf('.')) + (absolutePath.endsWith(".mp4") ? ".mkv" : ".mp4");
+    }
+
     private static String getFileName(String path) {
         return new File(path).getName();
     }
 
-    private static String getTitle(String fileName){
+    private static String getTitle(String fileName) {
         if (fileName.length() > 4 && fileName.charAt(fileName.length() - 4) == '.') {
             return fileName.substring(0, fileName.length() - 4);
         }
@@ -107,19 +113,19 @@ public class MediaPath {
         return isTopLevel(path) && path.startsWith(MOVIES_FOLDER);
     }
 
-    private static boolean isSeries(String path){
+    private static boolean isSeries(String path) {
         return isTopLevel(path) && path.startsWith(SERIES_FOLDER);
     }
 
-    private static boolean isTopLevel(String path){
+    private static boolean isTopLevel(String path) {
         return getPathLength(path) == 2;
     }
 
-    private static boolean isSeason(String path){
+    private static boolean isSeason(String path) {
         return getPathLength(path) == 3;
     }
 
-    private static boolean isEpisode(String path){
+    private static boolean isEpisode(String path) {
         return getPathLength(path) == 4;
     }
 
@@ -172,7 +178,7 @@ public class MediaPath {
             this.patterns = patterns;
         }
 
-        private Set<String> getPatterns(){
+        private Set<String> getPatterns() {
             return Set.of(patterns);
         }
     }

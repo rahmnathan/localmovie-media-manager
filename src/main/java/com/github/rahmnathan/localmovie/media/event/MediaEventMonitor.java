@@ -14,9 +14,8 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -37,7 +36,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     private final LockRegistry lockRegistry;
 
     @Override
-    public void directoryModified(WatchEvent.Kind event, File file) throws InvalidMediaException {
+    public void directoryModified(WatchEvent.Kind event, File file) throws InvalidMediaException, IOException {
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
 
         String absolutePath = file.getAbsolutePath();
@@ -62,6 +61,12 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
             if (event == StandardWatchEventKinds.ENTRY_CREATE) {
                 waitForWriteComplete(file);
                 if (Files.isRegularFile(file.toPath()) && serviceConfig.getConversionService().isEnabled()) {
+                    Path outputPath = Paths.get(path.getDestinationPath());
+                    if (Files.exists(outputPath)) {
+                        log.info("Deleting existing output file: {}", path.getDestinationPath());
+                        Files.delete(outputPath);
+                    }
+
                     queueConversionJob(path);
                 } else {
                     eventService.handleCreateEvent(path);
@@ -77,15 +82,12 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     }
 
     private void queueConversionJob(MediaPath path) {
-        String inputPath = path.getAbsolutePath();
         String jobId = path.asJobId();
-        String outputPath = inputPath.substring(0, inputPath.lastIndexOf('.')) + (inputPath.endsWith(".mp4") ? ".mkv" : ".mp4");
-
         log.info("Queuing video conversion jobId: {}", jobId);
 
         MediaJob mediaJob = MediaJob.builder()
-                .inputFile(inputPath)
-                .outputFile(outputPath)
+                .inputFile(path.getAbsolutePath())
+                .outputFile(path.getDestinationPath())
                 .jobId(jobId)
                 .handbrakePreset(HANDBRAKE_PRESET)
                 .status(MediaJobStatus.QUEUED.name())
