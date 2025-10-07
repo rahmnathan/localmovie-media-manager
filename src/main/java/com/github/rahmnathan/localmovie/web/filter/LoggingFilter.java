@@ -3,9 +3,9 @@ package com.github.rahmnathan.localmovie.web.filter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
-import org.thymeleaf.util.StringUtils;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -22,12 +22,11 @@ public class LoggingFilter implements Filter {
         try {
             final HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
-            httpServletRequest.getHeaderNames().asIterator().forEachRemaining(log::info);
+            httpServletRequest.getHeaderNames().asIterator().forEachRemaining(header -> log.info("{}: {}", header, httpServletRequest.getHeader(header)));
 
-            String correlationId = httpServletRequest.getHeader(X_CORRELATION_ID);
-            MDC.put(X_CORRELATION_ID, StringUtils.isEmpty(correlationId) ? UUID.randomUUID().toString() : correlationId);
+            MDC.put(X_CORRELATION_ID, getxCorrelationId(httpServletRequest));
 
-            String clientAddress = httpServletRequest.getHeader("X-Forwarded-For");
+            String clientAddress = httpServletRequest.getHeader("x-original-forwarded-for");
             MDC.put(CLIENT_ADDRESS, clientAddress);
 
             String userAgent = httpServletRequest.getHeader(HttpHeaders.USER_AGENT);
@@ -37,5 +36,19 @@ public class LoggingFilter implements Filter {
         } finally {
             MDC.clear();
         }
+    }
+
+    private String getxCorrelationId(HttpServletRequest servletRequest) {
+        String correlationId = servletRequest.getHeader(X_CORRELATION_ID);
+
+        if (StringUtils.isBlank(correlationId)) {
+            correlationId = servletRequest.getHeader("x-request-id");;
+        }
+
+        if (StringUtils.isBlank(correlationId)) {
+            correlationId = UUID.randomUUID().toString();
+        }
+
+        return correlationId;
     }
 }
