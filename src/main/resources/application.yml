@@ -30,7 +30,7 @@ service:
 spring:
   threads:
     virtual:
-      enabled: false
+      enabled: true
   application:
     name: localmovie-media-manager
   datasource:
