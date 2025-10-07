@@ -22,7 +22,7 @@ public class LoggingFilter implements Filter {
         try {
             final HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
-            httpServletRequest.getHeaderNames().asIterator().forEachRemaining(header -> log.info("{}: {}", header, httpServletRequest.getHeader(header)));
+            httpServletRequest.getHeaderNames().asIterator().forEachRemaining(header -> log.debug("{}: {}", header, httpServletRequest.getHeader(header)));
 
             MDC.put(X_CORRELATION_ID, getxCorrelationId(httpServletRequest));
 
