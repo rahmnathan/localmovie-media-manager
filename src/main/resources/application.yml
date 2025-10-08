@@ -28,6 +28,9 @@ service:
     enabled: true
 
 spring:
+  output:
+    ansi:
+      enabled: ALWAYS
   threads:
     virtual:
       enabled: true
