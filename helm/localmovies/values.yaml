@@ -1,4 +1,5 @@
 localmovies:
     imageRepository: rahmnathan
     postgresIp: postgres-postgresql.default
-    vaultToken: <vault-token>
+    omdb:
+      apiKey: <api-key>

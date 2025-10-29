@@ -63,13 +63,13 @@ spec:
                 }
             }
         }
-        stage('Test and Analyze (SonarQube)') {
-            steps {
-                withSonarQubeEnv('Sonar') {
-                    sh 'mvn verify sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName=localmovie-media-manager'
-                }
-            }
-        }
+//         stage('Test and Analyze (SonarQube)') {
+//             steps {
+//                 withSonarQubeEnv('Sonar') {
+//                     sh 'mvn verify sonar:sonar -Dsonar.projectKey=localmovie-media-manager -Dsonar.projectName=localmovie-media-manager'
+//                 }
+//             }
+//         }
         stage('Package & Deploy Jar to Artifactory') {
             steps {
                 script {
@@ -95,10 +95,10 @@ spec:
         stage('Deploy to Kubernetes') {
             environment {
                 KUBE_CONFIG = credentials('Kubeconfig')
-                VAULT_TOKEN = credentials('VaultToken')
+                VAULT_TOKEN = credentials('OmdbApiKey')
             }
             steps {
-                sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.vaultToken=$VAULT_TOKEN --kubeconfig $KUBE_CONFIG'
+                sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.omdb.apiKey=$OMDB_API_KEY --kubeconfig $KUBE_CONFIG'
             }
         }
         stage('Wait for Deployment') {

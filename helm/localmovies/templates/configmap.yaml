@@ -3,17 +3,5 @@ kind: ConfigMap
 metadata:
  name: localmovies
 data:
- bootstrap.yml: |
-  spring.application.name: localmovie-media-manager
-  spring.cloud.vault:
-    enabled: true
-    authentication: TOKEN
-    host: vault.vault.svc.cluster.local
-    port: 8200
-    scheme: http
-    kv:
-      enabled: true
-      backend: localmovies
-      default-context: localmovie-media-manager
-      application-name: localmovie-media-manager
-    token: {{ .Values.localmovies.vaultToken }}
+ application.yml: |
+    service.omdb.apiKey: {{ .Values.localmovies.omdb.apiKey }}
