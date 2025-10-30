@@ -70,6 +70,11 @@ spec:
 //                 }
 //             }
 //         }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
         stage('Package & Deploy Jar to Artifactory') {
             steps {
                 script {
