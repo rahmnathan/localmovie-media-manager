@@ -17,7 +17,7 @@ service:
   notificationsEnabled: false
   stream:
     hmac:
-      key: <hmac-key>
+      key: 7658de24455f623682d5c93028d3504927ed265304
   omdb:
     apiKey: ""
     enabled: true

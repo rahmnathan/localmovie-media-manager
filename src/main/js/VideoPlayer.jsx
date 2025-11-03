@@ -6,8 +6,6 @@ import {trackPromise} from "react-promise-tracker";
 import {useParams} from 'react-router-dom';
 import {Description, Dialog, DialogPanel, DialogTitle} from "@headlessui/react";
 
-const videoBaseUri = '/localmovie/v1/media/';
-
 const cookies = new Cookies();
 
 const backgroundTintStyle = {
@@ -127,16 +125,20 @@ export function VideoPlayer() {
             console.log("position: " + position);
         }
 
-        setUrl(
-            window.location.origin +
-            videoBaseUri +
-            encodeURIComponent(mediaFile.mediaFileId) +
-            "/stream.mp4?access_token=" +
-            token +
-            "#t=" +
-            startPosition
-        );
-    }, [resumePlayback, mediaFile, token]);
+        trackPromise(
+            fetch('/localmovie/v1/media/' + mediaId + '/url/signed', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => setUrl(
+                window.location.origin +
+                response.headers.get('Location') +
+                "#t=" +
+                startPosition
+            )
+        ))
+    }, [resumePlayback, mediaFile]);
 
     useEffect(() => {
         if (!window.cast || !mediaFile || !url) return;
