@@ -24,7 +24,7 @@ class SecurityConfig {
         resolver.setAllowFormEncodedBodyParameter(true);
 
         http.authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/media/**/signed/stream**")
+                        authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/signed/media/**")
                                 .permitAll()
 //                                .requestMatchers("/admin/**")
 //                                .hasRole("movie-admin")

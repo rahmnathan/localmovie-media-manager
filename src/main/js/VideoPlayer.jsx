@@ -52,11 +52,11 @@ const dialogStyle = {
 export function VideoPlayer() {
 
     const [mediaFile, setMediaFile] = React.useState(null);
-    const [token, setToken] = React.useState(null);
     const [prompted, setPrompted] = React.useState(false);
     const [resumePlayback, setResumePlayback] = React.useState(false);
     const [canResumePlayback, setCanResumePlayback] = React.useState(false);
     const [url, setUrl] = React.useState('');
+    const [signedUrls, setSignedUrls] = React.useState(null);
     let { mediaId } = useParams();
 
     useEffect(() => {
@@ -93,15 +93,6 @@ export function VideoPlayer() {
 
     useEffect(() => {
         trackPromise(
-            fetch('/localmovie/v1/media/token', {
-                method: 'GET'
-            }).then(response => response.text())
-                .then(token => setToken(token))
-        )
-    }, []);
-
-    useEffect(() => {
-        trackPromise(
             fetch('/localmovie/v1/media/' + mediaId, {
                 method: 'GET',
                 headers: {
@@ -111,6 +102,17 @@ export function VideoPlayer() {
                 .then(media => setMediaFile(media))
         )
     }, []);
+
+    useEffect(() => {
+
+        trackPromise(
+            fetch('/localmovie/v1/media/' + mediaId + '/url/signed', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => response.json()).then(urls => setSignedUrls(urls)))
+    }, [mediaId]);
 
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
@@ -125,18 +127,16 @@ export function VideoPlayer() {
             console.log("position: " + position);
         }
 
+        // setUrl(window.location.origin + signedUrls.stream + "#t=" + startPosition)
+
         trackPromise(
             fetch('/localmovie/v1/media/' + mediaId + '/url/signed', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json'
                 }
-            }).then(response => setUrl(
-                window.location.origin +
-                response.headers.get('Location') +
-                "#t=" +
-                startPosition
-            )
+            }).then(response => response.json())
+                .then(urls => setUrl(window.location.origin + urls.stream + "#t=" + startPosition)
         ))
     }, [resumePlayback, mediaFile]);
 
@@ -169,7 +169,7 @@ export function VideoPlayer() {
                 handler
             );
         };
-    }, [url, mediaFile, token, mediaId]);
+    }, [url, signedUrls, mediaFile]);
 
     useEffect(() => {
         if (mediaFile === null || mediaFile === undefined) return;
@@ -186,7 +186,7 @@ export function VideoPlayer() {
         cookies.set('progress-' + mediaId, content.playedSeconds, {sameSite: 'strict'});
 
         if(content.playedSeconds > 0) {
-            fetch('/localmovie/v1/media/' + mediaId + '/position/' + content.playedSeconds, {
+            fetch(signedUrls.updatePosition.split('?')[0] + '/' + content.playedSeconds + '?' + signedUrls.updatePosition.split('?')[1], {
                 method: 'PATCH',
                 headers: {
                     'Accept': 'application/json',

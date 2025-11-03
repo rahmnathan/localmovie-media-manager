@@ -1,16 +1,16 @@
 package com.github.rahmnathan.localmovie.web.webapp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
+import com.github.rahmnathan.localmovie.data.SignedUrls;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
-import com.google.api.client.http.HttpStatusCodes;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -21,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -79,29 +78,8 @@ public class MediaResource {
         return mediaStreamingService.streamMediaFile(mediaFilePath.get(), headers);
     }
 
-    @GetMapping(value = "/{mediaFileId}/signed/stream.mp4", produces = "video/mp4")
-    public ResponseEntity<ResourceRegion> streamSecureVideo(@PathVariable("mediaFileId") String mediaFileId,
-                                                      @RequestParam(value = "expires", defaultValue = "0") long expires,
-                                                      @RequestParam(value = "sig") String signature,
-                                                      @RequestHeader HttpHeaders headers) {
-        log.info("Received streaming request - {}", mediaFileId);
-
-        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
-            log.warn("Unauthorized stream request for id.");
-            return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
-        }
-
-        Optional<MediaFile> mediaFilePath = persistenceService.findByMediaFileId(mediaFileId);
-        if(mediaFilePath.isEmpty()){
-            log.warn("Media file not found for id.");
-            return ResponseEntity.notFound().build();
-        }
-
-        return mediaStreamingService.streamMediaFile(mediaFilePath.get(), headers);
-    }
-
     @GetMapping(value = "/{mediaFileId}/url/signed")
-    public ResponseEntity<String> streamSecureVideo(@PathVariable("mediaFileId") String mediaFileId) {
+    public ResponseEntity<SignedUrls> getSignedUrls(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received request to generate stream url - {}", mediaFileId);
 
         Optional<MediaFile> mediaFilePath = persistenceService.findByMediaFileId(mediaFileId);
@@ -110,7 +88,12 @@ public class MediaResource {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.created(URI.create(securityService.generateSignedUrl(mediaFileId))).build();
+        try {
+            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to generate signed URLs.", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")
@@ -125,19 +108,6 @@ public class MediaResource {
         log.info("Updating position for MediaFile id: {} position: {}", id, position);
 
         persistenceService.addView(id, position);
-    }
-
-    @GetMapping("/token")
-    public String getToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.getPrincipal() instanceof DefaultOidcUser user) {
-            if (user.getIdToken() != null) {
-                return user.getIdToken().getTokenValue();
-            }
-        }
-
-        return "";
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {
