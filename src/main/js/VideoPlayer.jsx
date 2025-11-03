@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import { buildPosterUri } from "./Media.jsx";
 import ReactPlayer from 'react-player';
 import Cookies from 'universal-cookie';
 import {trackPromise} from "react-promise-tracker";
@@ -127,18 +126,8 @@ export function VideoPlayer() {
             console.log("position: " + position);
         }
 
-        // setUrl(window.location.origin + signedUrls.stream + "#t=" + startPosition)
-
-        trackPromise(
-            fetch('/localmovie/v1/media/' + mediaId + '/url/signed', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            }).then(response => response.json())
-                .then(urls => setUrl(window.location.origin + urls.stream + "#t=" + startPosition)
-        ))
-    }, [resumePlayback, mediaFile]);
+        setUrl(window.location.origin + signedUrls.stream + "#t=" + startPosition)
+    }, [resumePlayback, mediaFile, signedUrls]);
 
     useEffect(() => {
         if (!window.cast || !mediaFile || !url) return;
@@ -152,7 +141,7 @@ export function VideoPlayer() {
                     playOnCast(
                         url,
                         mediaFile.media.title,
-                        buildPosterUri(mediaId) + "?access_token=" + token
+                        window.location.origin + signedUrls.poster
                     );
                 }
             }
@@ -220,7 +209,9 @@ export function VideoPlayer() {
         );
     };
 
-    if(mediaFile !== null && mediaFile !== undefined) {
+    if(mediaFile !== null && mediaFile !== undefined &&
+        signedUrls !== null && signedUrls !== undefined &&
+        url !== null && url !== undefined) {
         const hasCastSession = window.cast?.framework
             ? window.cast.framework.CastContext.getInstance().getCurrentSession()
             : null;
@@ -233,7 +224,7 @@ export function VideoPlayer() {
                     <div>
                         <DialogPanel>
                             <DialogTitle>{mediaFile.media.title}</DialogTitle>
-                            <img src={buildPosterUri(mediaId)} alt=''/>
+                            <img src={window.location.origin + signedUrls.poster} alt=''/>
                             <Description>Pick up from where you left off, or start from the beginning!</Description>
                             <div>
                                 <button onClick={() => {
