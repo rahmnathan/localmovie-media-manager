@@ -6,6 +6,9 @@ server:
   ssl:
     enabled: false
 service:
+  stream:
+    hmac:
+      key: 7658de24455f623682d5c93028d3504927ed265304
   directoryMonitor:
     enabled: false
     concurrentConversionLimit: 3
