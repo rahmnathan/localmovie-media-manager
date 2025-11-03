@@ -3,3 +3,5 @@ localmovies:
     postgresIp: postgres-postgresql.default
     omdb:
       apiKey: <api-key>
+    stream:
+      hmacKey: <hmac-key>

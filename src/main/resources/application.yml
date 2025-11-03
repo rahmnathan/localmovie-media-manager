@@ -15,6 +15,9 @@ service:
     ffprobeLocation: "/usr/bin/ffprobe"
   mediaPaths: "/media/nathan/LocalMedia/"
   notificationsEnabled: false
+  stream:
+    hmac:
+      key: <hmac-key>
   omdb:
     apiKey: ""
     enabled: true

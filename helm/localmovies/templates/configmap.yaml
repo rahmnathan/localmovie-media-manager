@@ -5,3 +5,4 @@ metadata:
 data:
  application.yml: |
     service.omdb.apiKey: {{ .Values.localmovies.omdb.apiKey }}
+    service.stream.hmac.key: {{ .Values.localmovies.stream.hmacKey }}

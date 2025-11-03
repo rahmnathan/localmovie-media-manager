@@ -100,10 +100,11 @@ spec:
         stage('Deploy to Kubernetes') {
             environment {
                 KUBE_CONFIG = credentials('Kubeconfig')
-                VAULT_TOKEN = credentials('OmdbApiKey')
+                OMDB_API_KEY = credentials('OmdbApiKey')
+                STREAM_HMAC_KEY = credentials('LocalMoviesStreamHmacKey')
             }
             steps {
-                sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.omdb.apiKey=$OMDB_API_KEY --kubeconfig $KUBE_CONFIG'
+                sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.stream.hmacKey=$STREAM_HMAC_KEY --set localmovies.omdb.apiKey=$OMDB_API_KEY --kubeconfig $KUBE_CONFIG'
             }
         }
         stage('Wait for Deployment') {
