@@ -18,14 +18,6 @@ const backgroundTintStyle = {
     background: 'rgba(0, 0, 0, 0.7)'
 };
 
-export const viewingVideos = function (path) {
-    if(path === null){
-        return false;
-    }
-
-    return (path.includes("Movies") && path.split("/").length === 2) || path.split("/").length === 4;
-};
-
 const videoPlayerStyle = {
     position: 'absolute',
     width: '80%',

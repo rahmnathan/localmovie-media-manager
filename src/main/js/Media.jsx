@@ -1,6 +1,5 @@
 import React from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-import {viewingVideos} from "./VideoPlayer.jsx";
 
 const movieStyle = {
     borderStyle: 'solid',
@@ -98,7 +97,7 @@ export function Media(props) {
         let genre = media.genre;
 
         let title = mediaFile.fileName.substring(0, mediaFile.fileName.length - 4);
-        if(viewingVideos(mediaFile.path) && media.number != null) {
+        if(mediaFile.streamable && media.number != null) {
             if(media.title !== null && media.mediaType === "EPISODE"){
                 title = "#" + media.number + " - " + media.title;
             } else {

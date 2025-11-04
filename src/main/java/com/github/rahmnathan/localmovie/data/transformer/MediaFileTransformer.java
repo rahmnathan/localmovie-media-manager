@@ -40,6 +40,13 @@ public class MediaFileTransformer {
             MediaFileDto.MediaDto.MediaDtoBuilder mediaDto = MediaFileDto.MediaDto.builder();
             mediaDto.id(media.getId());
             mediaDto.mediaType(media.getMediaType());
+            if (media.getMediaType() != null) {
+                builder.streamable(
+                    switch (media.getMediaType()) {
+                        case MOVIE, EPISODE -> true;
+                        case SERIES, SEASON -> false;
+                    });
+            }
             if(includeImage && media.getImage() != null && media.getImage().getImage() != null) {
                 mediaDto.image(media.getImage().getImage());
             }
