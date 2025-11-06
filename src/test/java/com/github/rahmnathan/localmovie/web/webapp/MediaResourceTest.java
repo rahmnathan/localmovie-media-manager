@@ -7,14 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,52 +45,12 @@ class MediaResourceTest {
         assertTrue(response.getHeaderNames().contains("Count"));
     }
 
-//    @Test
-//    void streamVideoTest() {
-//        MockHttpServletResponse response = new MockHttpServletResponse();
-//        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
-//        mediaResource.streamVideo(mediaFileList.get(0).getMediaFileId(), response, new MockHttpServletRequest());
-//
-//        assertTrue(response.getHeaderNames().contains("Content-Range"));
-//        assertTrue(response.getHeaderNames().contains("Content-Length"));
-//    }
-
     @Test
     void getPosterTest() {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         byte[] poster = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());
         assertNotNull(poster);
-    }
-
-    @Test
-    @Transactional
-    void addViewTest() {
-        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
-
-        double position = 10.0;
-        mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
-
-        Optional<MediaFileDto> mediaOptional = mediaResource.getMedia(mediaFileList.get(0).getMediaFileId());
-
-        assertTrue(mediaOptional.isPresent());
-        assertEquals(position, mediaOptional.get().getMediaViews().iterator().next().getPosition());
-    }
-
-    @Test
-    @Transactional
-    void addMultipleViewsTest() {
-        List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
-
-        double position = 10.0;
-        mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
-        position += 10;
-        mediaResource.updatePosition(mediaFileList.get(0).getMediaFileId(), position);
-
-        Optional<MediaFileDto> mediaOptional = mediaResource.getMedia(mediaFileList.get(0).getMediaFileId());
-
-        assertTrue(mediaOptional.isPresent());
-        assertEquals(position, mediaOptional.get().getMediaViews().iterator().next().getPosition());
     }
 
     private MediaRequest buildRequest() {

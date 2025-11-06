@@ -15,8 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.support.ResourceRegion;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 public class MediaResource {
     private static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
-    private final MediaStreamingService mediaStreamingService;
     private final SecurityService securityService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -64,20 +61,6 @@ public class MediaResource {
         response.setHeader(RESPONSE_HEADER_COUNT, String.valueOf(count));
     }
 
-    @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
-    public ResponseEntity<ResourceRegion> streamVideo(@PathVariable("mediaFileId") String mediaFileId,
-                                                      @RequestHeader HttpHeaders headers) {
-        log.info("Received streaming request - {}", mediaFileId);
-
-        Optional<MediaFile> mediaFilePath = persistenceService.findByMediaFileId(mediaFileId);
-        if(mediaFilePath.isEmpty()){
-            log.warn("Media file not found for id.");
-            return ResponseEntity.notFound().build();
-        }
-
-        return mediaStreamingService.streamMediaFile(mediaFilePath.get(), headers);
-    }
-
     @GetMapping(value = "/{mediaFileId}/url/signed")
     public ResponseEntity<SignedUrls> getSignedUrls(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received request to generate stream url - {}", mediaFileId);
@@ -101,13 +84,6 @@ public class MediaResource {
         log.info("Streaming poster - {}", id);
 
         return persistenceService.getMediaImageById(id);
-    }
-
-    @PatchMapping(path = "/{mediaFileId}/position/{position}")
-    public void updatePosition(@PathVariable("mediaFileId") String id, @PathVariable("position") Double position) {
-        log.info("Updating position for MediaFile id: {} position: {}", id, position);
-
-        persistenceService.addView(id, position);
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {
