@@ -55,9 +55,11 @@ export function VideoPlayer() {
         script.async = true;
         document.body.appendChild(script);
 
-        script.onload = () => {
-            if (window.cast) {
+        window['__onGCastApiAvailable'] = (isAvailable) => {
+            if (isAvailable) {
                 initializeCast();
+            } else {
+                console.warn('Google Cast API not available');
             }
         };
 
@@ -69,7 +71,8 @@ export function VideoPlayer() {
     const initializeCast = () => {
         const context = cast.framework.CastContext.getInstance();
         context.setOptions({
-            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+            autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
         });
 
         context.addEventListener(cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
