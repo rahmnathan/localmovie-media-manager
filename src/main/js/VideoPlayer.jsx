@@ -48,6 +48,12 @@ export function VideoPlayer() {
     const [url, setUrl] = useState('');
     const [signedUrls, setSignedUrls] = useState(null);
     const { mediaId } = useParams();
+    const [isCasting, setIsCasting] = useState(false);
+    const [remotePlayer, setRemotePlayer] = useState(null);
+    const [remotePlayerController, setRemotePlayerController] = useState(null);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -69,19 +75,58 @@ export function VideoPlayer() {
     }, []);
 
     const initializeCast = () => {
+        console.log('Initializing Cast framework...');
         const context = cast.framework.CastContext.getInstance();
+
         context.setOptions({
             receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
             autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
         });
 
-        context.addEventListener(cast.framework.CastContextEventType.SESSION_STATE_CHANGED, (event) => {
-            if (event.sessionState === cast.framework.SessionState.SESSION_STARTED) {
-                console.log('Cast session started');
-            } else if (event.sessionState === cast.framework.SessionState.SESSION_ENDED) {
-                console.log('Cast session ended');
+        // Listen for session state changes
+        context.addEventListener(
+            cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+            (event) => {
+                console.log('Cast session state changed:', event.sessionState);
+                if (event.sessionState === cast.framework.SessionState.SESSION_STARTED ||
+                    event.sessionState === cast.framework.SessionState.SESSION_RESUMED) {
+                    setIsCasting(true);
+
+                    const player = new cast.framework.RemotePlayer();
+                    const controller = new cast.framework.RemotePlayerController(player);
+                    setRemotePlayer(player);
+                    setRemotePlayerController(controller);
+                    remotePlayerController.addEventListener(
+                        cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
+                        () => saveProgress({ playedSeconds: remotePlayer.currentTime })
+                    );
+                    controller.addEventListener(
+                        cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
+                        () => setCurrentTime(player.currentTime)
+                    );
+
+                    controller.addEventListener(
+                        cast.framework.RemotePlayerEventType.DURATION_CHANGED,
+                        () => setDuration(player.duration)
+                    );
+
+
+                    console.log('Remote player ready');
+
+                    // Listen for remote player changes if needed
+                    controller.addEventListener(
+                        cast.framework.RemotePlayerEventType.IS_PAUSED_CHANGED,
+                        () => console.log('Remote paused:', player.isPaused)
+                    );
+                }
+
+                if (event.sessionState === cast.framework.SessionState.SESSION_ENDED) {
+                    setIsCasting(false);
+                    setRemotePlayer(null);
+                    setRemotePlayerController(null);
+                }
             }
-        });
+        );
     };
 
     // Fetch media details
@@ -130,6 +175,10 @@ export function VideoPlayer() {
             if (event.sessionState === window.cast.framework.SessionState.SESSION_STARTED) {
                 const session = context.getCurrentSession();
                 if (session) {
+                    // Pause local playback
+                    const videoElem = document.querySelector('video');
+                    if (videoElem) videoElem.pause();
+
                     playOnCast(
                         url,
                         mediaFile.media.title,
@@ -203,11 +252,23 @@ export function VideoPlayer() {
         );
     };
 
-    if (mediaFile && signedUrls && url) {
-        const hasCastSession = window.cast?.framework
-            ? window.cast.framework.CastContext.getInstance().getCurrentSession()
-            : null;
+    useEffect(() => {
+        if (isCasting && currentTime > 0 && remotePlayer && signedUrls) {
+            const timeout = setTimeout(() => {
+                saveProgress({ playedSeconds: currentTime });
+            }, 10000); // every 10s
+            return () => clearTimeout(timeout);
+        }
+    }, [isCasting, currentTime]);
 
+    const formatTime = (seconds) => {
+        if (!seconds) return '0:00';
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
+    if (mediaFile && signedUrls && url) {
         return (
             <div style={videoPlayerStyle}>
                 <Dialog open={!prompted && canResumePlayback} onClose={() => setPrompted(true)} style={dialogStyle}>
@@ -232,7 +293,7 @@ export function VideoPlayer() {
                     </DialogPanel>
                 </Dialog>
 
-                {!hasCastSession && (
+                {!isCasting && (
                     <ReactPlayer
                         url={url}
                         controls
@@ -241,6 +302,50 @@ export function VideoPlayer() {
                         onProgress={saveProgress}
                     />
                 )}
+
+                {/*{isCasting && (*/}
+                    <Dialog open={isCasting} onClose={() => setPrompted(true)} style={dialogStyle}>
+                        <DialogPanel>
+                            <DialogTitle>{mediaFile.media.title}</DialogTitle>
+                            <p>Playing on {remotePlayer?.displayName || 'Chromecast device'}...</p>
+                            <img src={`${window.location.origin}${signedUrls.poster}`} alt="" />
+                                {/* Seek bar */}
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max={duration || 0}
+                                    value={currentTime || 0}
+                                    step="1"
+                                    style={{ width: '80%', margin: '1rem 0' }}
+                                    onChange={(e) => {
+                                        const seekTo = Number(e.target.value);
+                                        remotePlayer.currentTime = seekTo;
+                                        remotePlayerController.seek();
+                                        setCurrentTime(seekTo);
+                                    }}
+                                />
+
+                                {/* Time display */}
+                                <div>
+                                    {formatTime(currentTime)} / {formatTime(duration)}
+                                </div>
+
+                                {/* Controls */}
+                                <div style={{ marginTop: '0.5rem' }}>
+                                    <button onClick={() => remotePlayerController.playOrPause()}>
+                                        {remotePlayer?.isPaused ? 'Resume' : 'Pause'}
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            window.cast.framework.CastContext.getInstance().endCurrentSession(true)
+                                        }
+                                    >
+                                        Stop Casting
+                                    </button>
+                                </div>
+                        </DialogPanel>
+                    </Dialog>
+                {/*)}*/}
                 <div style={backgroundTintStyle}/>
             </div>
         );
