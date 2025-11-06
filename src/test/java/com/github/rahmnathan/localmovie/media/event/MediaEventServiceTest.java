@@ -38,7 +38,7 @@ class MediaEventServiceTest {
     @Test
     void handleCreateEventTest() throws InvalidMediaException {
         mediaEventService.handleCreateEvent(MediaPath.parse("src/test/resources/LocalMedia/Movies/300.mkv"));
-        assertFalse(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged()).isEmpty());
+        assertFalse(mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minusMinutes(1), Pageable.unpaged()).isEmpty());
     }
 
     @Test

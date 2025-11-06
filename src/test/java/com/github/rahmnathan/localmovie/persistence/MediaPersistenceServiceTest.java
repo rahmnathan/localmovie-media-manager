@@ -64,7 +64,7 @@ class MediaPersistenceServiceTest {
 
         save(mediaFileEvent);
 
-        List<MediaFileEvent> mediaFileEvents = mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minus(1, ChronoUnit.MINUTES), Pageable.unpaged());
+        List<MediaFileEvent> mediaFileEvents = mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minusMinutes(1), Pageable.unpaged());
 
         assertFalse(mediaFileEvents.isEmpty());
     }

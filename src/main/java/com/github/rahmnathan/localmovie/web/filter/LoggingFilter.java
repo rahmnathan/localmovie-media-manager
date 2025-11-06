@@ -42,7 +42,7 @@ public class LoggingFilter implements Filter {
         String correlationId = servletRequest.getHeader(X_CORRELATION_ID);
 
         if (StringUtils.isBlank(correlationId)) {
-            correlationId = servletRequest.getHeader("x-request-id");;
+            correlationId = servletRequest.getHeader("x-request-id");
         }
 
         if (StringUtils.isBlank(correlationId)) {
