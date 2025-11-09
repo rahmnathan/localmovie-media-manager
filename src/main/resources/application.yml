@@ -1,7 +1,7 @@
 logging:
   level:
     com.github.rahmnathan: info
-    org.springframework.cloud: debug
+    org.springframework.cloud: info
 
 server:
   port: 8080
@@ -31,9 +31,9 @@ service:
     enabled: true
 
 spring:
-  output:
-    ansi:
-      enabled: ALWAYS
+#  output:
+#    ansi:
+#      enabled: ALWAYS
   threads:
     virtual:
       enabled: true
