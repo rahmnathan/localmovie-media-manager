@@ -53,6 +53,7 @@ export function VideoPlayer() {
     const [remotePlayerController, setRemotePlayerController] = useState(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [castError, setCastError] = useState(null);
 
 
     useEffect(() => {
@@ -83,6 +84,9 @@ export function VideoPlayer() {
             autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
         });
 
+        // Store event listeners for cleanup
+        let eventListeners = [];
+
         // Listen for session state changes
         context.addEventListener(
             cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
@@ -91,39 +95,56 @@ export function VideoPlayer() {
                 if (event.sessionState === cast.framework.SessionState.SESSION_STARTED ||
                     event.sessionState === cast.framework.SessionState.SESSION_RESUMED) {
                     setIsCasting(true);
+                    setCastError(null);
 
                     const player = new cast.framework.RemotePlayer();
                     const controller = new cast.framework.RemotePlayerController(player);
                     setRemotePlayer(player);
                     setRemotePlayerController(controller);
-                    remotePlayerController.addEventListener(
-                        cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
-                        () => saveProgress({ playedSeconds: remotePlayer.currentTime })
-                    );
+
+                    // Use local variables instead of state to avoid race condition
+                    const timeChangeHandler = () => {
+                        setCurrentTime(player.currentTime);
+                        saveProgress({ playedSeconds: player.currentTime });
+                    };
+
+                    const durationChangeHandler = () => {
+                        setDuration(player.duration);
+                    };
+
                     controller.addEventListener(
                         cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
-                        () => setCurrentTime(player.currentTime)
+                        timeChangeHandler
                     );
 
                     controller.addEventListener(
                         cast.framework.RemotePlayerEventType.DURATION_CHANGED,
-                        () => setDuration(player.duration)
+                        durationChangeHandler
                     );
 
+                    // Store listeners for cleanup
+                    eventListeners = [
+                        { type: cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED, handler: timeChangeHandler },
+                        { type: cast.framework.RemotePlayerEventType.DURATION_CHANGED, handler: durationChangeHandler }
+                    ];
 
                     console.log('Remote player ready');
-
-                    // Listen for remote player changes if needed
-                    controller.addEventListener(
-                        cast.framework.RemotePlayerEventType.IS_PAUSED_CHANGED,
-                        () => console.log('Remote paused:', player.isPaused)
-                    );
                 }
 
                 if (event.sessionState === cast.framework.SessionState.SESSION_ENDED) {
+                    // Clean up event listeners
+                    if (remotePlayerController && eventListeners.length > 0) {
+                        eventListeners.forEach(({ type, handler }) => {
+                            remotePlayerController.removeEventListener(type, handler);
+                        });
+                        eventListeners = [];
+                    }
+
                     setIsCasting(false);
                     setRemotePlayer(null);
                     setRemotePlayerController(null);
+                    setCurrentTime(0);
+                    setDuration(0);
                 }
             }
         );
@@ -166,40 +187,21 @@ export function VideoPlayer() {
         }
     }, [resumePlayback, mediaFile, signedUrls]);
 
+    // Auto-play media when casting session starts
     useEffect(() => {
-        if (!window.cast || !mediaFile || !url) return;
+        if (!isCasting || !mediaFile || !url || !signedUrls) return;
 
-        const context = window.cast.framework.CastContext.getInstance();
+        // Pause local playback
+        const videoElem = document.querySelector('video');
+        if (videoElem) videoElem.pause();
 
-        const handler = (event) => {
-            if (event.sessionState === window.cast.framework.SessionState.SESSION_STARTED) {
-                const session = context.getCurrentSession();
-                if (session) {
-                    // Pause local playback
-                    const videoElem = document.querySelector('video');
-                    if (videoElem) videoElem.pause();
-
-                    playOnCast(
-                        url,
-                        mediaFile.media.title,
-                        `${window.location.origin}${signedUrls.poster}`
-                    );
-                }
-            }
-        };
-
-        context.addEventListener(
-            window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-            handler
+        // Start playing on cast device
+        playOnCast(
+            url,
+            mediaFile.media.title,
+            `${window.location.origin}${signedUrls.poster}`
         );
-
-        return () => {
-            context.removeEventListener(
-                window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-                handler
-            );
-        };
-    }, [url, signedUrls, mediaFile]);
+    }, [isCasting]);
 
     useEffect(() => {
         if (!mediaFile) return;
@@ -230,14 +232,25 @@ export function VideoPlayer() {
 
     const playOnCast = (mediaUrl, title, imageUrl) => {
         if (!window.cast) {
-            console.warn('Cast framework not ready');
+            const error = 'Cast framework not ready';
+            console.warn(error);
+            setCastError(error);
             return;
         }
 
         const session = window.cast.framework.CastContext.getInstance().getCurrentSession();
         if (!session) {
-            console.log('No cast session active.');
+            const error = 'No cast session active';
+            console.log(error);
+            setCastError(error);
             return;
+        }
+
+        // Extract start time from URL fragment if present
+        let startTime = 0;
+        const fragmentMatch = mediaUrl.match(/#t=(\d+)/);
+        if (fragmentMatch) {
+            startTime = parseInt(fragmentMatch[1], 10);
         }
 
         const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl.split('#')[0], 'video/mp4');
@@ -246,9 +259,18 @@ export function VideoPlayer() {
         mediaInfo.metadata.images = [{ url: imageUrl }];
 
         const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+        request.currentTime = startTime;
+
         session.loadMedia(request).then(
-            () => console.log('Cast media loaded successfully'),
-            (errorCode) => console.error('Error loading cast media', errorCode)
+            () => {
+                console.log('Cast media loaded successfully');
+                setCastError(null);
+            },
+            (errorCode) => {
+                const error = `Failed to load media on cast device: ${errorCode}`;
+                console.error(error);
+                setCastError(error);
+            }
         );
     };
 
@@ -303,49 +325,60 @@ export function VideoPlayer() {
                     />
                 )}
 
-                {/*{isCasting && (*/}
-                    <Dialog open={isCasting} onClose={() => setPrompted(true)} style={dialogStyle}>
+                {isCasting && (
+                    <Dialog open={isCasting} onClose={() => {}} style={dialogStyle}>
                         <DialogPanel>
                             <DialogTitle>{mediaFile.media.title}</DialogTitle>
-                            <p>Playing on {remotePlayer?.displayName || 'Chromecast device'}...</p>
+                            {castError && (
+                                <div style={{ color: '#ff6b6b', marginBottom: '1rem' }}>
+                                    Error: {castError}
+                                </div>
+                            )}
+                            <p>Playing on {remotePlayer?.deviceFriendlyName || 'Chromecast device'}...</p>
                             <img src={`${window.location.origin}${signedUrls.poster}`} alt="" />
-                                {/* Seek bar */}
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max={duration || 0}
-                                    value={currentTime || 0}
-                                    step="1"
-                                    style={{ width: '80%', margin: '1rem 0' }}
-                                    onChange={(e) => {
-                                        const seekTo = Number(e.target.value);
+                            {/* Seek bar */}
+                            <input
+                                type="range"
+                                min="0"
+                                max={duration || 0}
+                                value={currentTime || 0}
+                                step="1"
+                                style={{ width: '80%', margin: '1rem 0' }}
+                                onChange={(e) => {
+                                    const seekTo = Number(e.target.value);
+                                    if (remotePlayer && remotePlayerController) {
                                         remotePlayer.currentTime = seekTo;
                                         remotePlayerController.seek();
                                         setCurrentTime(seekTo);
-                                    }}
-                                />
+                                    }
+                                }}
+                            />
 
-                                {/* Time display */}
-                                <div>
-                                    {formatTime(currentTime)} / {formatTime(duration)}
-                                </div>
+                            {/* Time display */}
+                            <div>
+                                {formatTime(currentTime)} / {formatTime(duration)}
+                            </div>
 
-                                {/* Controls */}
-                                <div style={{ marginTop: '0.5rem' }}>
-                                    <button onClick={() => remotePlayerController.playOrPause()}>
-                                        {remotePlayer?.isPaused ? 'Resume' : 'Pause'}
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            window.cast.framework.CastContext.getInstance().endCurrentSession(true)
-                                        }
-                                    >
-                                        Stop Casting
-                                    </button>
-                                </div>
+                            {/* Controls */}
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <button onClick={() => {
+                                    if (remotePlayerController) {
+                                        remotePlayerController.playOrPause();
+                                    }
+                                }}>
+                                    {remotePlayer?.isPaused ? 'Resume' : 'Pause'}
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        window.cast.framework.CastContext.getInstance().endCurrentSession(true)
+                                    }
+                                >
+                                    Stop Casting
+                                </button>
+                            </div>
                         </DialogPanel>
                     </Dialog>
-                {/*)}*/}
+                )}
                 <div style={backgroundTintStyle}/>
             </div>
         );
