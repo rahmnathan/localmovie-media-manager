@@ -48,11 +48,16 @@ public class MediaInitializer {
                         .flatMap(this::streamDirectoryTree)
                         .filter(path -> path.contains(MEDIA_ROOT_FOLDER))
                         .flatMap(this::listValidMediaPaths)
-                        .filter(mediaPath -> !dataService.existsInDatabase(mediaPath.getAbsolutePath()))
+                        .filter(mediaPath -> !dataService.existsInDatabase(mediaPath.getRelativePath()))
                         .filter(mediaPath -> !isActiveConversion(mediaPath))
                         .map(this::buildMediaFile)
                         .filter(Objects::nonNull)
-                        .forEach(mediaFileRepository::save);
+                        .forEach(media -> {
+                            try {
+                                mediaFileRepository.save(media);
+                            } catch (Exception e) {
+                                log.error("Failed to save media.", e);
+                            }});
 
                 log.info("File list initialized.");
 
