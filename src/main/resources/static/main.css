@@ -1,5 +1,35 @@
+:root {
+    /* Colors */
+    --bg-primary: rgb(0, 0, 0);
+    --bg-card: rgb(21, 21, 30);
+    --bg-error: rgb(139, 0, 0);
+    --border-color: #2b2b2b;
+    --text-primary: white;
+
+    /* Spacing */
+    --spacing-xs: 2px;
+    --spacing-sm: 3px;
+    --spacing-md: 8px;
+    --spacing-lg: 10px;
+    --spacing-xl: 15px;
+
+    /* Font sizes */
+    --font-sm: 14px;
+    --font-md: 16px;
+    --font-lg: 18px;
+
+    /* Card dimensions */
+    --card-width: 260px;
+    --card-height: 295px;
+    --card-border-radius: 4px;
+
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+}
+
 body {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--bg-primary);
     font-family: 'Arial', "OpenSans", "Verdana", Georgia, Serif, serif;
     margin: 0;
 }
@@ -21,4 +51,280 @@ body {
 .container::-webkit-scrollbar { /* WebKit */
     width: 0;
     height: 0;
+}
+
+/* Media Card Styles */
+.media-card {
+    position: relative;
+    border-style: solid;
+    border-color: var(--border-color);
+    border-radius: var(--card-border-radius);
+    background-color: var(--bg-card);
+    width: var(--card-width);
+    padding: 0;
+    height: auto;
+    display: inline-block;
+    margin: var(--spacing-md);
+    vertical-align: top;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+.media-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.media-card:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
+.media-card__poster {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    display: block;
+}
+
+.media-card__description {
+    padding: var(--spacing-lg);
+    text-align: left;
+}
+
+.media-card__title {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: var(--font-lg);
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+}
+
+.media-card__year {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--font-sm);
+    margin: 0 0 8px 0;
+}
+
+.media-card__text {
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+    margin: 4px 0;
+    font-weight: bold;
+}
+
+.media-card__rating {
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+    margin: 0;
+    font-weight: bold;
+}
+
+.media-card__plot {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+    margin: 8px 0 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.media-card__imdb-icon {
+    height: 16px;
+    width: 32px;
+    margin-right: 6px;
+}
+
+.media-card__rating-container {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.media-card__favorite-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast), background var(--transition-fast);
+    z-index: 10;
+}
+
+.media-card__favorite-btn:hover {
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.media-card__favorite-btn:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
+.media-card__favorite-icon {
+    font-size: 20px;
+    transition: color var(--transition-fast);
+}
+
+.media-card__favorite-icon--active {
+    color: #e74c3c;
+}
+
+.media-card__favorite-icon--inactive {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Error Message */
+.error-message {
+    color: var(--text-primary);
+    background-color: var(--bg-error);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-lg);
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Empty State */
+.empty-state {
+    color: var(--text-primary);
+    text-align: center;
+    padding: 60px var(--spacing-xl);
+    margin-top: 150px;
+}
+
+.empty-state h2 {
+    font-size: 24px;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.9;
+}
+
+.empty-state p {
+    font-size: var(--font-md);
+    opacity: 0.7;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Skeleton Loaders */
+@keyframes shimmer {
+    0% {
+        background-position: -468px 0;
+    }
+    100% {
+        background-position: 468px 0;
+    }
+}
+
+.skeleton-card {
+    pointer-events: none;
+}
+
+.skeleton-poster {
+    height: 100%;
+    width: 45%;
+    float: left;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0px,
+        rgba(255, 255, 255, 0.15) 40px,
+        rgba(255, 255, 255, 0.05) 80px
+    );
+    background-size: 600px;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+    height: 20px;
+    width: 80%;
+    margin: var(--spacing-xs) 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0px,
+        rgba(255, 255, 255, 0.15) 40px,
+        rgba(255, 255, 255, 0.05) 80px
+    );
+    background-size: 600px;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 60%;
+    margin: var(--spacing-md) 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0px,
+        rgba(255, 255, 255, 0.15) 40px,
+        rgba(255, 255, 255, 0.05) 80px
+    );
+    background-size: 600px;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text--short {
+    width: 40%;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    :root {
+        --card-width: 240px;
+    }
+
+    .media-card__poster {
+        height: 260px;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --card-width: 220px;
+        --font-sm: 12px;
+        --font-lg: 16px;
+    }
+
+    .media-card {
+        margin: 4px;
+    }
+
+    .media-card__poster {
+        height: 240px;
+    }
+
+    .media-card__description {
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --card-width: 95%;
+    }
+
+    .media-card {
+        display: block;
+        margin: var(--spacing-md) auto;
+        max-width: 320px;
+    }
+
+    .media-card__poster {
+        height: 280px;
+    }
+
+    .media-card__description {
+        padding: var(--spacing-md);
+    }
 }

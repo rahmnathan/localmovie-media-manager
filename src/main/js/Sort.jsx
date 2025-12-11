@@ -11,8 +11,12 @@ const sortStyle = {
 export const Sort = ({ selectSort }) => {
     return (
         <div style={sortStyle}>
-            <p style={sortStyle}>Sort: </p>
-            <select onChange={(e) => selectSort(e.target.value)}>
+            <label htmlFor="sort-select" style={sortStyle}>Sort: </label>
+            <select
+                id="sort-select"
+                onChange={(e) => selectSort(e.target.value)}
+                aria-label="Sort media by"
+            >
                 <option value='title'>Title</option>
                 <option value='year'>Year</option>
                 <option value='rating'>Rating</option>

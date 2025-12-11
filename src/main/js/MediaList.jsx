@@ -16,18 +16,18 @@ export const MediaList = ({ media, setPath, playMedia, nextPage, hasMore }) => {
     );
 
     return (
-        <div style={mediaListStyle}>
+        <main style={mediaListStyle} aria-label="Media library">
             <InfiniteScroll
                 dataLength={media.length}
                 next={nextPage}
                 hasMore={hasMore}
-                loader={<p>Loading...</p>}
-                endMessage={<p>No more data to load.</p>}
+                loader={<p role="status" aria-live="polite">Loading more media...</p>}
+                endMessage={<p role="status">No more items to load.</p>}
             >
-                <ul>
+                <div role="list" aria-label="Media items">
                     {mediaList}
-                </ul>
+                </div>
             </InfiniteScroll>
-        </div>
+        </main>
     )
 };

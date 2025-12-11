@@ -1,34 +1,67 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
 import {LoadingIndicator} from "./LoadingIndicator.jsx";
+import {SkeletonLoader} from "./SkeletonCard.jsx";
+import {UserPreferences} from "./userPreferences.js";
 
 const layoutProps = {
     textAlign: 'center'
 };
 
-const navigationState = {
-    path: 'Movies',
-    genre: '',
-    order: 'title',
-    client: 'WEBAPP',
-    q: '',
-    page: 0,
-    pageSize: 50,
-    type: 'movies'
-}
-
 export function MainPage() {
 
-    const [media, setMedia] = React.useState([]);
+    const [media, setMedia] = useState([]);
+    const [totalCount, setTotalCount] = useState(0);
+    const [navigationState, setNavigationState] = useState({
+        path: 'Movies',
+        genre: '',
+        order: UserPreferences.getSortPreference(),
+        client: 'WEBAPP',
+        q: '',
+        page: 0,
+        pageSize: 50,
+        type: 'movies'
+    });
     const [searchParams] = useSearchParams();
+    const [error, setError] = useState(null);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    let totalCount = 0;
+    const fetchMedia = useCallback((append = false, stateToUse = navigationState) => {
+        setError(null);
+        trackPromise(
+            fetch('/localmovie/v1/media', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(stateToUse)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    if(stateToUse.page === 0) {
+                        setTotalCount(parseInt(response.headers.get("Count")))
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setMedia(prev => append ? prev.concat(data) : data);
+                    setIsInitialLoad(false);
+                })
+                .catch(error => {
+                    console.error('Failed to fetch media:', error);
+                    setError('Failed to load media. Please try again.');
+                    setIsInitialLoad(false);
+                })
+        );
+    }, []);
 
     useEffect(() => {
-
         let currentPath = searchParams.get('path');
         let genre = searchParams.get('genre');
         let order = searchParams.get('order');
@@ -39,145 +72,155 @@ export function MainPage() {
             currentPath = 'Movies';
         }
 
-        navigationState.page = 0;
-        navigationState.path = currentPath;
-        navigationState.genre = genre;
-        navigationState.order = order;
-        navigationState.q = q;
-        navigationState.type = type;
+        const newState = {
+            ...navigationState,
+            page: 0,
+            path: currentPath,
+            genre: genre,
+            order: order,
+            q: q,
+            type: type
+        };
 
-        loadMedia();
-    }, [searchParams]);
-
-    function loadMedia() {
-        trackPromise(
-            fetch('/localmovie/v1/media', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(navigationState)
-            }).then(response => {
-                if(navigationState.page === 0) {
-                    totalCount = parseInt(response.headers.get("Count"))
-                }
-                return response.json()
-            })
-                .then(data => {
-                    setMedia(data);
-                })
-        );
-    }
-
-    function loadMoreMedia() {
-        trackPromise(
-            fetch('/localmovie/v1/media', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(navigationState)
-            }).then(response => {
-                if(navigationState.page === 0) {
-                    totalCount = parseInt(response.headers.get("Count"))
-                }
-                return response.json();
-            })
-                .then(data => {
-                    setMedia(media.concat(data));
-                })
-        );
-    }
+        setNavigationState(newState);
+        fetchMedia(false, newState);
+    }, [searchParams, fetchMedia]);
 
     const navigate = useNavigate();
 
-    function hasMore() {
+    // Restore scroll position on mount
+    useEffect(() => {
+        const savedScrollPosition = sessionStorage.getItem('mediaListScrollPosition');
+        if (savedScrollPosition) {
+            window.scrollTo(0, parseInt(savedScrollPosition));
+            sessionStorage.removeItem('mediaListScrollPosition');
+        }
+    }, []);
+
+    const hasMore = useCallback(() => {
         return totalCount !== media.length;
-    }
+    }, [totalCount, media.length]);
 
-    function playMedia(media) {
+    const playMedia = useCallback((media) => {
+        // Save scroll position before navigating
+        sessionStorage.setItem('mediaListScrollPosition', window.scrollY.toString());
         navigate("/play/" + media.mediaFileId);
-    }
+    }, [navigate]);
 
-    function nextPage(){
-        navigationState.page = navigationState.page + 1;
-        loadMoreMedia()
-    }
+    const nextPage = useCallback(() => {
+        setNavigationState(prev => {
+            const newState = {
+                ...prev,
+                page: prev.page + 1
+            };
+            fetchMedia(true, newState);
+            return newState;
+        });
+    }, [fetchMedia]);
 
-    function selectSort(sort) {
-        navigationState.order = sort;
-        search()
-    }
-
-    function selectGenre(genre) {
-        navigationState.genre = genre;
-        search()
-    }
-
-    function resetSearchParams() {
-        navigationState.type = 'movies'
-        navigationState.path = 'Movies'
-        navigationState.q = ''
-    }
-
-    function filterMedia(searchText) {
-        navigationState.page = 0;
-        navigationState.q = searchText;
-        loadMedia()
-    }
-
-    function filterMediaNavigate(searchText) {
-        navigationState.q = searchText;
-        search()
-    }
-
-    function setType(type) {
-        // Change type means a fresh view - reset filters
-        resetSearchParams()
-
-        navigationState.type = type;
-        search()
-    }
-
-    function setPath(path) {
-        // Change path means a fresh view - reset filters
-        resetSearchParams()
-
-        navigationState.path = path;
-        search()
-    }
-
-    function search() {
+    const search = useCallback((order, genre, q, type, path) => {
         let urlSearchParams = createSearchParams();
-        navigationState.page = 0;
 
-        if(navigationState.q !== null && navigationState.q !== undefined && navigationState.q !== '') {
-            urlSearchParams.set('q', navigationState.q);
-        }
-        if(navigationState.path !== null && navigationState.path !== undefined && navigationState.path !== ''){
-            urlSearchParams.set('path', navigationState.path);
-        }
-        if(navigationState.genre !== null && navigationState.genre !== undefined && navigationState.genre !== '' && navigationState.genre !== 'all'){
-            urlSearchParams.set('genre', navigationState.genre);
-        }
-        if(navigationState.order !== null && navigationState.order !== undefined && navigationState.order !== ''){
-            urlSearchParams.set('order', navigationState.order);
-        }
-        if(navigationState.type !== null && navigationState.type !== undefined && navigationState.type !== '' && navigationState.type !== 'movies'){
-            urlSearchParams.set('type', navigationState.type);
-        }
+        const setIfValid = (key, value, excludeValues = ['']) => {
+            if (value && !excludeValues.includes(value)) {
+                urlSearchParams.set(key, value);
+            }
+        };
+
+        setIfValid('q', q);
+        setIfValid('path', path);
+        setIfValid('genre', genre, ['', 'all']);
+        setIfValid('order', order);
+        setIfValid('type', type, ['', 'movies']);
 
         navigate({
             search: urlSearchParams.toString()
         })
-    }
+    }, [navigate]);
+
+    const selectSort = useCallback((sort) => {
+        UserPreferences.setSortPreference(sort);
+        setNavigationState(prev => ({
+            ...prev,
+            order: sort,
+            page: 0
+        }));
+        search(sort, navigationState.genre, navigationState.q, navigationState.type, navigationState.path);
+    }, [search, navigationState.genre, navigationState.q, navigationState.type, navigationState.path]);
+
+    const selectGenre = useCallback((genre) => {
+        setNavigationState(prev => ({
+            ...prev,
+            genre: genre,
+            page: 0
+        }));
+        search(navigationState.order, genre, navigationState.q, navigationState.type, navigationState.path);
+    }, [search, navigationState.order, navigationState.q, navigationState.type, navigationState.path]);
+
+    const filterMedia = useCallback((searchText) => {
+        setNavigationState(prev => ({
+            ...prev,
+            q: searchText,
+            page: 0
+        }));
+    }, []);
+
+    const filterMediaNavigate = useCallback((searchText) => {
+        search(navigationState.order, navigationState.genre, searchText, navigationState.type, navigationState.path);
+    }, [search, navigationState.order, navigationState.genre, navigationState.type, navigationState.path]);
+
+    const setType = useCallback((type) => {
+        // Change type means a fresh view - reset filters
+        setNavigationState(prev => ({
+            ...prev,
+            type: type,
+            path: 'Movies',
+            q: '',
+            page: 0
+        }));
+        search(navigationState.order, navigationState.genre, '', type, 'Movies');
+    }, [search, navigationState.order, navigationState.genre]);
+
+    const setPath = useCallback((path) => {
+        // Change path means a fresh view - reset filters
+        setNavigationState(prev => ({
+            ...prev,
+            path: path,
+            type: 'movies',
+            q: '',
+            page: 0
+        }));
+        search(navigationState.order, navigationState.genre, '', 'movies', path);
+    }, [search, navigationState.order, navigationState.genre]);
+
+    const showEmptyState = !error && !isInitialLoad && media.length === 0 && totalCount === 0;
 
     return (
         <div style={layoutProps}>
             <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
-            <MediaList media={media} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
+            {error && (
+                <div className="error-message">
+                    {error}
+                </div>
+            )}
+            {isInitialLoad ? (
+                <div style={{ margin: 10, paddingTop: 150, textAlign: 'center' }}>
+                    <SkeletonLoader count={6} />
+                </div>
+            ) : showEmptyState ? (
+                <div className="empty-state" role="status">
+                    <h2>No media found</h2>
+                    <p>
+                        {navigationState.q
+                            ? `No results for "${navigationState.q}". Try a different search term.`
+                            : navigationState.genre && navigationState.genre !== 'all'
+                            ? `No ${navigationState.genre} movies or shows found. Try selecting a different genre.`
+                            : 'No media available in this category.'}
+                    </p>
+                </div>
+            ) : (
+                <MediaList media={media} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
+            )}
             <LoadingIndicator/>
         </div>
     )

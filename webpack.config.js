@@ -1,12 +1,15 @@
 const path = require('path');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
     entry: './src/main/js/App.jsx',
     cache: true,
     mode: 'production',
     output: {
-        path: __dirname,
-        filename: './src/main/resources/static/built/bundle.js'
+        path: path.join(__dirname, 'src/main/resources/static/built'),
+        filename: 'bundle.js',
+        chunkFilename: '[name].bundle.js',
+        publicPath: '/built/'
     },
     module: {
         rules: [
@@ -21,5 +24,12 @@ module.exports = {
                 }]
             }
         ]
-    }
+    },
+    plugins: process.env.ANALYZE ? [
+        new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            reportFilename: 'bundle-report.html',
+            openAnalyzer: false
+        })
+    ] : []
 };

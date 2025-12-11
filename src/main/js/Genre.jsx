@@ -11,8 +11,12 @@ const genreStyle = {
 export const Genre = ({ selectGenre }) => {
     return (
         <div style={genreStyle}>
-            <p style={genreStyle}>Genre: </p>
-            <select onChange={(e) => selectGenre(e.target.value)}>
+            <label htmlFor="genre-select" style={genreStyle}>Genre: </label>
+            <select
+                id="genre-select"
+                onChange={(e) => selectGenre(e.target.value)}
+                aria-label="Filter by genre"
+            >
                 <option value='all'>All</option>
                 <option value='action'>Action</option>
                 <option value='comedy'>Comedy</option>
