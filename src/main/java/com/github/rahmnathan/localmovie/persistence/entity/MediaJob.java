@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -42,4 +43,8 @@ public class MediaJob {
         updated = LocalDateTime.now();
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

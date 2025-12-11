@@ -65,6 +65,6 @@ public class MediaFileEvent {
 
     @Override
     public int hashCode() {
-        return 0;
+        return Objects.hash(id);
     }
 }

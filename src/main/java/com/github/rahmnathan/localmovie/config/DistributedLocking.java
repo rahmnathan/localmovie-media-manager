@@ -21,7 +21,7 @@ public class DistributedLocking {
     @Bean
     public LockRepository defaultLockRepository(DataSource dataSource){
         DefaultLockRepository repository = new DefaultLockRepository(dataSource);
-        repository.setTimeToLive(Duration.of(1, ChronoUnit.MINUTES).toMillisPart());
+        repository.setTimeToLive((int) Duration.of(1, ChronoUnit.MINUTES).toMillis());
         return repository;
     }
 

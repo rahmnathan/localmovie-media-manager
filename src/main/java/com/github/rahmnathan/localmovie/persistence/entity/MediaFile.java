@@ -101,21 +101,11 @@ public class MediaFile implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MediaFile mediaFile = (MediaFile) o;
-        return version == mediaFile.version &&
-                Objects.equals(id, mediaFile.id) &&
-                Objects.equals(parentPath, mediaFile.parentPath) &&
-                Objects.equals(path, mediaFile.path) &&
-                Objects.equals(fileName, mediaFile.fileName) &&
-                Objects.equals(created, mediaFile.created) &&
-                Objects.equals(updated, mediaFile.updated) &&
-                Objects.equals(mediaFileId, mediaFile.mediaFileId) &&
-                Objects.equals(absolutePath, mediaFile.absolutePath) &&
-                Objects.equals(mediaViews, mediaFile.mediaViews) &&
-                Objects.equals(media, mediaFile.media);
+        return Objects.equals(id, mediaFile.id);
     }
 
     @Override
     public int hashCode() {
-        return 0;
+        return Objects.hash(id);
     }
 }

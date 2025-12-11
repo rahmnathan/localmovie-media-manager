@@ -61,6 +61,6 @@ public class MediaView implements Serializable {
 
     @Override
     public int hashCode() {
-        return 0;
+        return Objects.hash(id);
     }
 }
