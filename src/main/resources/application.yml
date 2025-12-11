@@ -29,6 +29,12 @@ service:
     updateLimit: 201
   conversion-service:
     enabled: true
+  transcoding:
+    enabled: true
+    ffmpeg-location: "/usr/bin/ffmpeg"
+    max-concurrent-sessions: 3
+    encoding-preset: "veryfast"
+    crf: 23
 
 spring:
 #  output:

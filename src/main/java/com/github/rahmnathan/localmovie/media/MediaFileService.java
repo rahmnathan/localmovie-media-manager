@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.data.MediaPath;
+import com.github.rahmnathan.localmovie.media.ffprobe.VideoMetadataService;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class MediaFileService {
     private final MediaPersistenceService persistenceService;
     private final MediaService mediaService;
+    private final VideoMetadataService videoMetadataService;
 
     @Transactional
     public MediaFile loadMediaFile(MediaPath path) {
@@ -33,8 +36,14 @@ public class MediaFileService {
         MediaFile mediaFile = MediaFile.forPath(path.getAbsolutePath())
                 .media(mediaService.loadMedia(path))
                 .mediaFileId(UUID.randomUUID().toString())
+                .metadataAnalyzed(false)
                 .build();
 
-        return persistenceService.saveMediaFile(mediaFile);
+        MediaFile saved = persistenceService.saveMediaFile(mediaFile);
+
+        // Trigger async metadata analysis
+        CompletableFuture.runAsync(() -> videoMetadataService.analyzeAndUpdate(saved));
+
+        return saved;
     }
 }

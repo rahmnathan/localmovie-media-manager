@@ -5,10 +5,10 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.google.api.client.http.HttpStatusCodes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.Optional;
 
@@ -22,11 +22,11 @@ public class SignedMediaResource {
     private final MediaStreamingService mediaStreamingService;
     private final SecurityService securityService;
 
-    @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
-    public ResponseEntity<ResourceRegion> streamSecureVideo(@PathVariable("mediaFileId") String mediaFileId,
-                                                            @RequestParam(value = "expires", defaultValue = "0") long expires,
-                                                            @RequestParam(value = "sig") String signature,
-                                                            @RequestHeader HttpHeaders headers) {
+    @GetMapping(value = "/{mediaFileId}/stream.mp4")
+    public ResponseEntity<StreamingResponseBody> streamSecureVideo(@PathVariable("mediaFileId") String mediaFileId,
+                                                                    @RequestParam(value = "expires", defaultValue = "0") long expires,
+                                                                    @RequestParam(value = "sig") String signature,
+                                                                    @RequestHeader HttpHeaders headers) {
         log.info("Received streaming request - {}", mediaFileId);
 
         if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {

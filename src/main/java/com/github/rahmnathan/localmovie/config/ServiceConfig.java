@@ -15,6 +15,7 @@ public class ServiceConfig {
     private MediaEventMonitorConfig directoryMonitor;
     private MediaRepositoryMonitorConfig repository;
     private ConversionServiceConfig conversionService;
+    private TranscodingConfig transcoding;
     private boolean notificationsEnabled;
     private Set<String> mediaPaths;
     private String jedisHost;
@@ -42,5 +43,14 @@ public class ServiceConfig {
     public static class OmdbConfig {
         private boolean enabled;
         private String apiKey;
+    }
+
+    @Data
+    public static class TranscodingConfig {
+        private boolean enabled = true;
+        private String ffmpegLocation = "/usr/bin/ffmpeg";
+        private int maxConcurrentSessions = 3;
+        private String encodingPreset = "veryfast";
+        private int crf = 23;
     }
 }

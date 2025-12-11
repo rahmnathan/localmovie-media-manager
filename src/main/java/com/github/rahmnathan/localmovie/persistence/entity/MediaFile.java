@@ -41,6 +41,13 @@ public class MediaFile implements Serializable {
     private LocalDateTime updated;
     private String mediaFileId;
     private String absolutePath;
+    private String videoCodec;
+    private String audioCodec;
+    private String containerFormat;
+    private Long durationSeconds;
+    private Integer bitrateKbps;
+    private String resolution;
+    private Boolean metadataAnalyzed;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
