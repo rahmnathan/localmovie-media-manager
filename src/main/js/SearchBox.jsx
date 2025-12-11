@@ -1,13 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const searchBoxStyle = {
-    color: 'white',
-    fontSize: 14,
-    margin: 'auto',
-    textAlign: 'center',
-    paddingTop: 10
-};
-
 export const SearchBox = ({ filterMedia, filterMediaNavigate }) => {
     const [searchValue, setSearchValue] = useState('');
     const debounceTimerRef = useRef(null);
@@ -48,8 +40,7 @@ export const SearchBox = ({ filterMedia, filterMediaNavigate }) => {
     };
 
     return (
-        <p style={searchBoxStyle}>
-            <label htmlFor="media-search">Search</label><br/>
+        <div className="control-bar__search">
             <input
                 id="media-search"
                 value={searchValue}
@@ -57,8 +48,8 @@ export const SearchBox = ({ filterMedia, filterMediaNavigate }) => {
                 onKeyDown={handleKeyDown}
                 type='text'
                 aria-label="Search for movies and TV shows"
-                placeholder="Search..."
+                placeholder="Search for movies and TV shows..."
             />
-        </p>
+        </div>
     );
 };

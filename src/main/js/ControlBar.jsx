@@ -5,7 +5,6 @@ import { Genre } from "./Genre.jsx";
 import { Sort } from './Sort.jsx';
 
 const controlBarStyle = {
-    textAlign: 'center',
     position: 'fixed',
     top: 0,
     left: 0,
@@ -18,10 +17,14 @@ const controlBarStyle = {
 export const ControlBar = ({ filterMedia, setPath, selectGenre, selectSort, filterMediaNavigate, setType }) => {
     return (
         <nav style={controlBarStyle} aria-label="Media filters and controls">
-            <SearchBox filterMedia={filterMedia} filterMediaNavigate={filterMediaNavigate}/>
-            <Category setPath={setPath} setType={setType}/>
-            <Genre selectGenre={selectGenre}/>
-            <Sort selectSort={selectSort}/>
+            <div className="control-bar">
+                <SearchBox filterMedia={filterMedia} filterMediaNavigate={filterMediaNavigate}/>
+                <div className="control-bar__filters">
+                    <Category setPath={setPath} setType={setType}/>
+                    <Genre selectGenre={selectGenre}/>
+                    <Sort selectSort={selectSort}/>
+                </div>
+            </div>
         </nav>
     );
 };

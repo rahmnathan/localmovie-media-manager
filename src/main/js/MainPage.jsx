@@ -195,6 +195,13 @@ export function MainPage() {
 
     const showEmptyState = !error && !isInitialLoad && media.length === 0 && totalCount === 0;
 
+    // Filter media for favorites view
+    const displayMedia = navigationState.type === 'favorites'
+        ? media.filter(item => UserPreferences.isFavorite(item.mediaFileId))
+        : media;
+
+    const showFavoritesEmpty = navigationState.type === 'favorites' && displayMedia.length === 0 && media.length > 0;
+
     return (
         <div style={layoutProps}>
             <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
@@ -206,6 +213,11 @@ export function MainPage() {
             {isInitialLoad ? (
                 <div style={{ margin: 10, paddingTop: 150, textAlign: 'center' }}>
                     <SkeletonLoader count={6} />
+                </div>
+            ) : showFavoritesEmpty ? (
+                <div className="empty-state" role="status">
+                    <h2>No favorites yet</h2>
+                    <p>Click the heart icon on any media card to add it to your favorites!</p>
                 </div>
             ) : showEmptyState ? (
                 <div className="empty-state" role="status">
@@ -219,7 +231,7 @@ export function MainPage() {
                     </p>
                 </div>
             ) : (
-                <MediaList media={media} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
+                <MediaList media={displayMedia} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             )}
             <LoadingIndicator/>
         </div>

@@ -1,19 +1,12 @@
 import React from 'react';
 
-const genreStyle = {
-    align: 'center',
-    marginTop: 10,
-    color: 'white',
-    marginRight: 10,
-    display: 'inline-block'
-};
-
 export const Genre = ({ selectGenre }) => {
     return (
-        <div style={genreStyle}>
-            <label htmlFor="genre-select" style={genreStyle}>Genre: </label>
+        <div className="control-bar__group">
+            <label htmlFor="genre-select" className="control-bar__label">Genre</label>
             <select
                 id="genre-select"
+                className="control-bar__select"
                 onChange={(e) => selectGenre(e.target.value)}
                 aria-label="Filter by genre"
             >

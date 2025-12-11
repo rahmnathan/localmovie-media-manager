@@ -1,19 +1,11 @@
 import React from 'react';
 
-const categoryStyle = {
-    align: 'center',
-    marginTop: 10,
-    color: 'white',
-    display: 'inline-block',
-    marginRight: 10
-};
-
 export const Category = ({setPath, setType}) => {
     return (
-        <div style={categoryStyle} role="group" aria-label="Category selection">
-            <p style={categoryStyle}>Category: </p>
+        <div className="control-bar__group" role="group" aria-label="Category selection">
+            <span className="control-bar__label">Category</span>
             <button
-                style={{marginRight: 5}}
+                className="control-bar__button"
                 onClick={(e) => setPath(e.target.value)}
                 value='Movies'
                 aria-label="Show movies"
@@ -21,7 +13,7 @@ export const Category = ({setPath, setType}) => {
                 Movies
             </button>
             <button
-                style={{marginRight: 5}}
+                className="control-bar__button"
                 onClick={(e) => setPath(e.target.value)}
                 value='Series'
                 aria-label="Show TV series"
@@ -29,6 +21,15 @@ export const Category = ({setPath, setType}) => {
                 Series
             </button>
             <button
+                className="control-bar__button"
+                onClick={(e) => setType('favorites')}
+                value='favorites'
+                aria-label="Show favorites"
+            >
+                Favorites
+            </button>
+            <button
+                className="control-bar__button"
                 onClick={(e) => setType('history')}
                 value='history'
                 aria-label="Show viewing history"
