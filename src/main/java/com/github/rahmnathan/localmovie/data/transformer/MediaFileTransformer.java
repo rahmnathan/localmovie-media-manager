@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.data.transformer;
 
-import com.github.rahmnathan.localmovie.data.MediaEventDto;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import lombok.experimental.UtilityClass;
@@ -10,21 +9,7 @@ import java.util.Set;
 @UtilityClass
 public class MediaFileTransformer {
 
-    public static MediaEventDto toMediaEventDto(MediaFileEvent mediaFileEvent) {
-        MediaEventDto.MediaEventDtoBuilder builder = MediaEventDto.builder()
-                .id(mediaFileEvent.getId())
-                .event(mediaFileEvent.getEvent())
-                .timestamp(mediaFileEvent.getTimestamp())
-                .relativePath(mediaFileEvent.getRelativePath());
-
-        if(mediaFileEvent.getMediaFile() != null) {
-            builder.mediaFile(toMediaFileDto(mediaFileEvent.getMediaFile(), true));
-        }
-
-        return builder.build();
-    }
-
-    public static MediaFileDto toMediaFileDto(MediaFile mediaFile, boolean includeImage) {
+    public static MediaFileDto toMediaFileDto(MediaFile mediaFile) {
         MediaFileDto.MediaFileDtoBuilder builder = MediaFileDto.builder();
 
         builder.id(mediaFile.getId());
@@ -46,9 +31,6 @@ public class MediaFileTransformer {
                         case MOVIE, EPISODE -> true;
                         case SERIES, SEASON -> false;
                     });
-            }
-            if(includeImage && media.getImage() != null && media.getImage().getImage() != null) {
-                mediaDto.image(media.getImage().getImage());
             }
             mediaDto.genre(media.getGenre());
             mediaDto.title(media.getTitle());

@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.web.webapp;
+package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;

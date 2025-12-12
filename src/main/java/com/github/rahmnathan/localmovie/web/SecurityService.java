@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.web.webapp;
+package com.github.rahmnathan.localmovie.web;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;

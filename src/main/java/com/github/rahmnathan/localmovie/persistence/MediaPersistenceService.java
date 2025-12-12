@@ -80,12 +80,6 @@ public class MediaPersistenceService {
         return fileRepository.existsByPath(path);
     }
 
-    public List<MediaFileDto> getMediaHistory(MediaRequest request, boolean includePoster) {
-        return getHistory(request).stream()
-                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, includePoster))
-                .toList();
-    }
-
     public long countHistory() {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
@@ -128,9 +122,9 @@ public class MediaPersistenceService {
                 .fetchCount();
     }
 
-    public List<MediaFileDto> getMediaFiles(MediaRequest request, boolean includePoster) {
+    public List<MediaFileDto> getMediaFileDtos(MediaRequest request) {
         return getMediaFiles(request).stream()
-                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, includePoster))
+                .map(MediaFileTransformer::toMediaFileDto)
                 .toList();
     }
 

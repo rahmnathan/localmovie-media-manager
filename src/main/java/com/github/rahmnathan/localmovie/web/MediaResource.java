@@ -1,4 +1,4 @@
-package com.github.rahmnathan.localmovie.web.webapp;
+package com.github.rahmnathan.localmovie.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
@@ -39,7 +39,7 @@ public class MediaResource {
             getMediaCount(mediaRequest, response);
 
         log.info("Loading media files for webapp.");
-        List<MediaFileDto> mediaFiles = persistenceService.getMediaFiles(mediaRequest, false);
+        List<MediaFileDto> mediaFiles = persistenceService.getMediaFileDtos(mediaRequest);
         mediaFiles.forEach(mediaFileDto -> mediaFileDto.setSignedUrls(securityService.generateSignedPosterUrl(mediaFileDto.getMediaFileId())));
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
@@ -49,7 +49,7 @@ public class MediaResource {
     public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) throws JsonProcessingException {
         log.info("Received media request for id - {}", mediaFileId);
         return persistenceService.getMediaFileByIdWithViews(mediaFileId)
-                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, false))
+                .map(MediaFileTransformer::toMediaFileDto)
                 .map(mediaFileDto -> {
                     mediaFileDto.setSignedUrls(securityService.generateSignedPosterUrl(mediaFileDto.getMediaFileId()));
                     return mediaFileDto;
