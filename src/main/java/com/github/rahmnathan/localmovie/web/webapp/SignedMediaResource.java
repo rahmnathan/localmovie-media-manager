@@ -49,7 +49,7 @@ public class SignedMediaResource {
                             @RequestParam(value = "sig") String signature) {
         log.info("Streaming poster - {}", mediaFileId);
 
-        if (!securityService.authorizedRequest(expires, signature)) {
+        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
             log.warn("Unauthorized poster request for id.");
             return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
         }

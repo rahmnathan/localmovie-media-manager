@@ -48,20 +48,6 @@ public class SecurityService {
         }
     }
 
-    public boolean authorizedRequest(long expires, String signature) {
-        SignedRequest signedRequest = SignedRequest.builder()
-                .expires(expires)
-                .build();
-
-        try {
-            String generatedSignature = generateSignature(signedRequest);
-            return generatedSignature.equals(signature) && ZonedDateTime.now().toEpochSecond() < expires;
-        } catch (JsonProcessingException e) {
-            log.error("Failed generating hmac signature.", e);
-            return false;
-        }
-    }
-
     public SignedUrls generateSignedPosterUrl(String mediaFileId) {
         SignedRequest signedRequest = SignedRequest.builder()
                 .mediaFileId(mediaFileId)
@@ -81,19 +67,12 @@ public class SecurityService {
 
     public SignedUrls generateSignedUrls(String mediaFileId) throws JsonProcessingException {
         SignedRequest signedRequest = generateSignedRequest(mediaFileId);
-        SignedRequest signedPosterRequest = generateSignedPosterRequest();
 
         return SignedUrls.builder()
                 .stream(formatUrl(URL_PATTERN_STREAM, signedRequest))
-                .poster(formatUrl(URL_PATTERN_POSTER, signedPosterRequest))
+                .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
                 .updatePosition(formatUrl(URL_PATTERN_UPDATE_POSITION, signedRequest))
                 .build();
-    }
-
-    private SignedRequest generateSignedPosterRequest() throws JsonProcessingException {
-        // If you can access one poster, we'll allow you to access them all
-        // So don't tie the signature to a mediaFileId
-        return generateSignedRequest(null);
     }
 
     private SignedRequest generateSignedRequest(String mediaFileId) throws JsonProcessingException {
