@@ -40,8 +40,7 @@ public class MediaResource {
 
         log.info("Loading media files for webapp.");
         List<MediaFileDto> mediaFiles = persistenceService.getMediaFiles(mediaRequest, false);
-        SignedUrls signedUrls = securityService.generateSignedPosterUrl();
-        mediaFiles.forEach(mediaFileDto -> mediaFileDto.setSignedUrls(signedUrls));
+        mediaFiles.forEach(mediaFileDto -> mediaFileDto.setSignedUrls(securityService.generateSignedPosterUrl(mediaFileDto.getMediaFileId())));
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }
@@ -49,11 +48,10 @@ public class MediaResource {
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) throws JsonProcessingException {
         log.info("Received media request for id - {}", mediaFileId);
-        SignedUrls signedUrls = securityService.generateSignedPosterUrl();
         return persistenceService.getMediaFileByIdWithViews(mediaFileId)
                 .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, false))
                 .map(mediaFileDto -> {
-                    mediaFileDto.setSignedUrls(signedUrls);
+                    mediaFileDto.setSignedUrls(securityService.generateSignedPosterUrl(mediaFileDto.getMediaFileId()));
                     return mediaFileDto;
                 });
     }

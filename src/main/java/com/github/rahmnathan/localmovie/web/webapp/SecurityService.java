@@ -62,12 +62,17 @@ public class SecurityService {
         }
     }
 
-    public SignedUrls generateSignedPosterUrl() throws JsonProcessingException {
+    public SignedUrls generateSignedPosterUrl(String mediaFileId) {
         SignedRequest signedRequest = SignedRequest.builder()
+                .mediaFileId(mediaFileId)
                 .expires(ZonedDateTime.now().plusDays(1L).toEpochSecond())
                 .build();
 
-        signedRequest.setSignature(generateSignature(signedRequest));
+        try {
+            signedRequest.setSignature(generateSignature(signedRequest));
+        } catch (JsonProcessingException e) {
+            log.error("Failure generating signed poster urls.", e);
+        }
 
         return SignedUrls.builder()
                 .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
