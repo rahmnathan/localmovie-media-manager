@@ -31,7 +31,7 @@ public class MediaResource {
     private final SecurityService securityService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) {
+    public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) throws JsonProcessingException {
         log.info("Received request: {}", mediaRequest.toString());
         handleDemoUser(mediaRequest);
 
@@ -40,15 +40,22 @@ public class MediaResource {
 
         log.info("Loading media files for webapp.");
         List<MediaFileDto> mediaFiles = persistenceService.getMediaFiles(mediaRequest, false);
+        SignedUrls signedUrls = securityService.generateSignedPosterUrl();
+        mediaFiles.forEach(mediaFileDto -> mediaFileDto.setSignedUrls(signedUrls));
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }
 
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
-    public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
+    public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) throws JsonProcessingException {
         log.info("Received media request for id - {}", mediaFileId);
+        SignedUrls signedUrls = securityService.generateSignedPosterUrl();
         return persistenceService.getMediaFileByIdWithViews(mediaFileId)
-                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, false));
+                .map(mediaFile -> MediaFileTransformer.toMediaFileDto(mediaFile, false))
+                .map(mediaFileDto -> {
+                    mediaFileDto.setSignedUrls(signedUrls);
+                    return mediaFileDto;
+                });
     }
 
     @PostMapping(value = "/count")

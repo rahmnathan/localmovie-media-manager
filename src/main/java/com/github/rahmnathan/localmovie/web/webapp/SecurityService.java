@@ -24,7 +24,9 @@ public class SecurityService {
     private static final String URL_PATTERN_POSTER = "/localmovie/v1/signed/media/%s/poster?expires=%s&sig=%s";
     private static final String URL_PATTERN_UPDATE_POSITION = "/localmovie/v1/signed/media/%s/position?expires=%s&sig=%s";
 
-    private final ObjectMapper objectMapper = new ObjectMapper().configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+
     private final byte[] key;
 
     public SecurityService(@Value("${service.stream.hmac.key}") String hmacKey) {
@@ -46,7 +48,50 @@ public class SecurityService {
         }
     }
 
+    public boolean authorizedRequest(long expires, String signature) {
+        SignedRequest signedRequest = SignedRequest.builder()
+                .expires(expires)
+                .build();
+
+        try {
+            String generatedSignature = generateSignature(signedRequest);
+            return generatedSignature.equals(signature) && ZonedDateTime.now().toEpochSecond() < expires;
+        } catch (JsonProcessingException e) {
+            log.error("Failed generating hmac signature.", e);
+            return false;
+        }
+    }
+
+    public SignedUrls generateSignedPosterUrl() throws JsonProcessingException {
+        SignedRequest signedRequest = SignedRequest.builder()
+                .expires(ZonedDateTime.now().plusDays(1L).toEpochSecond())
+                .build();
+
+        signedRequest.setSignature(generateSignature(signedRequest));
+
+        return SignedUrls.builder()
+                .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
+                .build();
+    }
+
     public SignedUrls generateSignedUrls(String mediaFileId) throws JsonProcessingException {
+        SignedRequest signedRequest = generateSignedRequest(mediaFileId);
+        SignedRequest signedPosterRequest = generateSignedPosterRequest();
+
+        return SignedUrls.builder()
+                .stream(formatUrl(URL_PATTERN_STREAM, signedRequest))
+                .poster(formatUrl(URL_PATTERN_POSTER, signedPosterRequest))
+                .updatePosition(formatUrl(URL_PATTERN_UPDATE_POSITION, signedRequest))
+                .build();
+    }
+
+    private SignedRequest generateSignedPosterRequest() throws JsonProcessingException {
+        // If you can access one poster, we'll allow you to access them all
+        // So don't tie the signature to a mediaFileId
+        return generateSignedRequest(null);
+    }
+
+    private SignedRequest generateSignedRequest(String mediaFileId) throws JsonProcessingException {
         SignedRequest signedRequest = SignedRequest.builder()
                 .mediaFileId(mediaFileId)
                 .expires(ZonedDateTime.now().plusDays(1L).toEpochSecond())
@@ -54,11 +99,7 @@ public class SecurityService {
 
         signedRequest.setSignature(generateSignature(signedRequest));
 
-        return SignedUrls.builder()
-                .stream(formatUrl(URL_PATTERN_STREAM, signedRequest))
-                .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
-                .updatePosition(formatUrl(URL_PATTERN_UPDATE_POSITION, signedRequest))
-                .build();
+        return signedRequest;
     }
 
     private String generateSignature(SignedRequest signedRequest) throws JsonProcessingException {

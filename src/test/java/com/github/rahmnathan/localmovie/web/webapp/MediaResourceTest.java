@@ -32,7 +32,7 @@ class MediaResourceTest {
     }
 
     @Test
-    void getMediaTest() {
+    void getMediaTest() throws Exception {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertTrue(mediaFileList.size() > 0);
     }
@@ -46,7 +46,7 @@ class MediaResourceTest {
     }
 
     @Test
-    void getPosterTest() {
+    void getPosterTest() throws Exception {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
         byte[] poster = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());

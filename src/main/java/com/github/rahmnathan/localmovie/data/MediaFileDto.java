@@ -20,6 +20,7 @@ public class MediaFileDto {
     private String mediaFileId;
     private String absolutePath;
     private Set<MediaViewDto> mediaViews;
+    private SignedUrls signedUrls;
     private boolean streamable;
     private MediaDto media;
 
