@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { UserPreferences } from './userPreferences.js';
+import { DetailedMediaView } from './DetailedMediaView.jsx';
 
 const posterBasePath = '/localmovie/v1/media/';
 
@@ -25,6 +26,7 @@ const MediaComponent = (props) => {
     const [isFavorite, setIsFavorite] = useState(() =>
         UserPreferences.isFavorite(mediaFile.mediaFileId)
     );
+    const [isDetailedViewOpen, setIsDetailedViewOpen] = useState(false);
 
     const selectMedia = (mediaFile) => {
         const path = mediaFile.path;
@@ -33,7 +35,7 @@ const MediaComponent = (props) => {
                           pathDepth === SERIES_EPISODE_DEPTH;
 
         if(isPlayable) {
-            props.playMedia(mediaFile, true);
+            props.playMedia(mediaFile, false);
         } else {
             props.setPath(mediaFile.path);
         }
@@ -48,6 +50,11 @@ const MediaComponent = (props) => {
             UserPreferences.addFavorite(mediaFile.mediaFileId);
             setIsFavorite(true);
         }
+    };
+
+    const openDetailedView = (event) => {
+        event.stopPropagation();
+        setIsDetailedViewOpen(true);
     };
 
     const handleKeyPress = (event) => {
@@ -102,6 +109,14 @@ const MediaComponent = (props) => {
                     ♥
                 </span>
             </button>
+            <button
+                className="media-card__info-btn"
+                onClick={openDetailedView}
+                aria-label="View details"
+                title="View details"
+            >
+                <span className="media-card__info-icon">ⓘ</span>
+            </button>
             <LazyLoadImage
                 onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
                 src={buildPosterUri(mediaFile.mediaFileId)}
@@ -126,6 +141,12 @@ const MediaComponent = (props) => {
                 <p className="media-card__text">{genre}</p>
                 <p className="media-card__plot">{plot}</p>
             </div>
+            <DetailedMediaView
+                mediaFile={mediaFile}
+                isOpen={isDetailedViewOpen}
+                onClose={() => setIsDetailedViewOpen(false)}
+                playMedia={props.playMedia}
+            />
         </div>
     );
 };

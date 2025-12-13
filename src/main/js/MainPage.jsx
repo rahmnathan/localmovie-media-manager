@@ -101,10 +101,10 @@ export function MainPage() {
         return totalCount !== media.length;
     }, [totalCount, media.length]);
 
-    const playMedia = useCallback((media) => {
+    const playMedia = useCallback((media, shouldResume = false) => {
         // Save scroll position before navigating
         sessionStorage.setItem('mediaListScrollPosition', window.scrollY.toString());
-        navigate("/play/" + media.mediaFileId);
+        navigate("/play/" + media.mediaFileId + (shouldResume ? "?resume=true" : ""));
     }, [navigate]);
 
     const nextPage = useCallback(() => {

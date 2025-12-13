@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import ReactPlayer from 'react-player';
 import Cookies from 'universal-cookie';
 import { trackPromise } from 'react-promise-tracker';
-import { useParams } from 'react-router-dom';
-import { Description, Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 const cookies = new Cookies();
 
@@ -20,8 +20,10 @@ const backgroundTintStyle = {
 
 const videoPlayerStyle = {
     position: 'absolute',
-    width: '80%',
-    height: '80%',
+    width: '95%',
+    height: '95%',
+    maxWidth: '1200px',
+    maxHeight: '90vh',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
@@ -30,24 +32,28 @@ const videoPlayerStyle = {
 
 const dialogStyle = {
     position: 'absolute',
-    width: '80%',
-    height: '80%',
+    width: '90%',
+    height: 'auto',
+    maxWidth: '600px',
+    maxHeight: '90vh',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
     textAlign: 'center',
     background: 'rgba(0, 0, 0, 0.7)',
-    color: 'rgb(220,220,220)'
+    color: 'rgb(220,220,220)',
+    padding: '1rem',
+    borderRadius: '8px',
+    overflow: 'auto'
 };
 
 export function VideoPlayer() {
     const [mediaFile, setMediaFile] = useState(null);
-    const [prompted, setPrompted] = useState(false);
-    const [resumePlayback, setResumePlayback] = useState(false);
-    const [canResumePlayback, setCanResumePlayback] = useState(false);
     const [url, setUrl] = useState('');
     const [signedUrls, setSignedUrls] = useState(null);
     const { mediaId } = useParams();
+    const [searchParams] = useSearchParams();
+    const shouldResume = searchParams.get('resume') === 'true';
     const [isCasting, setIsCasting] = useState(false);
     const [remotePlayer, setRemotePlayer] = useState(null);
     const [remotePlayerController, setRemotePlayerController] = useState(null);
@@ -177,7 +183,7 @@ export function VideoPlayer() {
         if (mediaFile && signedUrls) {
             let startPosition = 0;
 
-            if (canResumePlayback && resumePlayback) {
+            if (shouldResume) {
                 const mediaView = mediaFile.mediaViews?.[0];
                 startPosition = mediaView?.position || 0;
             }
@@ -185,7 +191,7 @@ export function VideoPlayer() {
             const newUrl = `${window.location.origin}${signedUrls.stream}#t=${startPosition}`;
             setUrl(newUrl);
         }
-    }, [resumePlayback, mediaFile, signedUrls]);
+    }, [shouldResume, mediaFile, signedUrls]);
 
     // Auto-play media when casting session starts
     useEffect(() => {
@@ -203,15 +209,6 @@ export function VideoPlayer() {
         );
     }, [isCasting]);
 
-    useEffect(() => {
-        if (!mediaFile) return;
-
-        const mediaViews = mediaFile.mediaViews;
-        if (mediaViews?.length > 0) {
-            const position = mediaViews[0]?.position || 0;
-            setCanResumePlayback(position > 0);
-        }
-    }, [mediaFile]);
 
     const saveProgress = (content) => {
         cookies.set(`progress-${mediaId}`, content.playedSeconds, { sameSite: 'strict' });
@@ -293,28 +290,6 @@ export function VideoPlayer() {
     if (mediaFile && signedUrls && url) {
         return (
             <div style={videoPlayerStyle}>
-                <Dialog open={!prompted && canResumePlayback} onClose={() => setPrompted(true)} style={dialogStyle}>
-                    <DialogPanel>
-                        <DialogTitle>{mediaFile.media.title}</DialogTitle>
-                        <img src={`${window.location.origin}${signedUrls.poster}`} alt="" />
-                        <Description>Pick up from where you left off, or start from the beginning!</Description>
-                        <div>
-                            <button onClick={() => {
-                                setResumePlayback(false);
-                                setPrompted(true);
-                            }} style={{ marginRight: 5 }}>
-                                Play
-                            </button>
-                            <button onClick={() => {
-                                setResumePlayback(true);
-                                setPrompted(true);
-                            }}>
-                                Resume
-                            </button>
-                        </div>
-                    </DialogPanel>
-                </Dialog>
-
                 {!isCasting && (
                     <ReactPlayer
                         url={url}
@@ -335,7 +310,7 @@ export function VideoPlayer() {
                                 </div>
                             )}
                             <p>Playing on {remotePlayer?.deviceFriendlyName || 'Chromecast device'}...</p>
-                            <img src={`${window.location.origin}${signedUrls.poster}`} alt="" />
+                            <img src={`${window.location.origin}${signedUrls.poster}`} alt="" style={{ maxWidth: '100%', height: 'auto' }} />
                             {/* Seek bar */}
                             <input
                                 type="range"
