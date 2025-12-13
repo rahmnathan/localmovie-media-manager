@@ -9,6 +9,10 @@ import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,12 +30,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping(value = "/localmovie/v1/media")
 public class MediaResource {
+    private final ForkJoinPool customThreadPool = new ForkJoinPool(4);
     private static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
     private final SecurityService securityService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) throws JsonProcessingException {
+    public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) throws ExecutionException, InterruptedException {
         log.info("Received request: {}", mediaRequest.toString());
         handleDemoUser(mediaRequest);
 
@@ -40,7 +45,7 @@ public class MediaResource {
 
         log.info("Loading media files for webapp.");
         List<MediaFileDto> mediaFiles = persistenceService.getMediaFileDtos(mediaRequest);
-        mediaFiles.forEach(mediaFileDto -> mediaFileDto.setSignedUrls(securityService.generateSignedPosterUrl(mediaFileDto.getMediaFileId())));
+        customThreadPool.submit(() -> mediaFiles.parallelStream().forEach(mediaFileDto -> mediaFileDto.setSignedUrls(securityService.generateSignedPosterUrl(mediaFileDto.getMediaFileId())))).get();
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }
