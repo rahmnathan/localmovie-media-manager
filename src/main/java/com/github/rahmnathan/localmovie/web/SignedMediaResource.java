@@ -23,7 +23,7 @@ public class SignedMediaResource {
     private final SecurityService securityService;
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
-    public ResponseEntity<ResourceRegion> streamSecureVideo(@PathVariable("mediaFileId") String mediaFileId,
+    public ResponseEntity<ResourceRegion> streamSecureVideo(@PathVariable String mediaFileId,
                                                             @RequestParam(value = "expires", defaultValue = "0") long expires,
                                                             @RequestParam(value = "sig") String signature,
                                                             @RequestHeader HttpHeaders headers) {
@@ -44,22 +44,14 @@ public class SignedMediaResource {
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")
-    public ResponseEntity<byte[]> getPoster(@PathVariable("mediaFileId") String mediaFileId,
-                            @RequestParam(value = "expires", defaultValue = "0") long expires,
-                            @RequestParam(value = "sig") String signature) {
+    public ResponseEntity<byte[]> getPoster(@PathVariable String mediaFileId) {
         log.info("Streaming poster - {}", mediaFileId);
-
-        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
-            log.warn("Unauthorized poster request for id.");
-            return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
-        }
-
         return ResponseEntity.ok(persistenceService.getMediaImageById(mediaFileId));
     }
 
     @PatchMapping(path = "/{mediaFileId}/position/{position}")
-    public ResponseEntity<Void> updatePosition(@PathVariable("mediaFileId") String mediaFileId,
-                                               @PathVariable("position") Double position,
+    public ResponseEntity<Void> updatePosition(@PathVariable String mediaFileId,
+                                               @PathVariable Double position,
                                                @RequestParam(value = "expires", defaultValue = "0") long expires,
                                                @RequestParam(value = "sig") String signature) {
         log.info("Updating position for MediaFile id: {} position: {}", mediaFileId, position);
