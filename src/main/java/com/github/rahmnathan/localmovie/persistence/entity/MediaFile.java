@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
+import com.github.rahmnathan.localmovie.data.MediaPath;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -41,10 +42,19 @@ public class MediaFile implements Serializable {
     private LocalDateTime updated;
     private String mediaFileId;
     private String absolutePath;
+    private Boolean streamable;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
     private Set<MediaView> mediaViews;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private Set<MediaFile> children;
+
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ToString.Exclude
+    private MediaFile parent;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn
@@ -76,15 +86,15 @@ public class MediaFile implements Serializable {
         this.mediaViews.add(mediaView);
     }
 
-    public static MediaFileBuilder forPath(String path){
-        String relativePath = path.split(MEDIA_ROOT_FOLDER)[1];
-        File file = new File(relativePath);
+    public static MediaFileBuilder forPath(MediaPath path){
+        File file = new File(path.getRelativePath());
         return builder()
                 .fileName(file.getName())
                 .parentPath(file.getParent())
                 .mediaFileId(UUID.randomUUID().toString())
-                .absolutePath(path)
-                .path(relativePath);
+                .absolutePath(path.getAbsolutePath())
+                .streamable(path.isStreamable())
+                .path(path.getRelativePath());
     }
 
     @Override

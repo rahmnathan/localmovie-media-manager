@@ -58,9 +58,9 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
             MediaPath path = MediaPath.parse(file);
 
-            if (event == StandardWatchEventKinds.ENTRY_CREATE) {
+            if (event == StandardWatchEventKinds.ENTRY_CREATE && !path.isIgnore()) {
                 waitForWriteComplete(file);
-                if (Files.isRegularFile(file.toPath()) && serviceConfig.getConversionService().isEnabled()) {
+                if (path.isStreamable() && serviceConfig.getConversionService().isEnabled()) {
                     Path outputPath = Paths.get(path.getDestinationPath());
                     if (Files.exists(outputPath)) {
                         log.info("Deleting existing output file: {}", path.getDestinationPath());

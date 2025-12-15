@@ -34,7 +34,7 @@ class MediaResourceTest {
     @Test
     void getMediaTest() throws Exception {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
-        assertTrue(mediaFileList.size() > 0);
+        assertFalse(mediaFileList.isEmpty());
     }
 
     @Test
@@ -54,6 +54,6 @@ class MediaResourceTest {
     }
 
     private MediaRequest buildRequest() {
-        return new MediaRequest("Movies", 0, 100, null, null, null, "movies");
+        return new MediaRequest("Movies", "", "", 0, 100, null, null, null, "movies");
     }
 }

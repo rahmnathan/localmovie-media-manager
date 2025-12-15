@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.media;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -28,6 +30,8 @@ import static com.github.rahmnathan.localmovie.media.event.MediaEventMonitor.ACT
 @Service
 @RequiredArgsConstructor
 public class MediaInitializer {
+    private final MediaFileService mediaFileService;
+    private final MediaPersistenceService persistenceService;
     private final MediaFileRepository mediaFileRepository;
     private final MediaJobRepository jobRepository;
     private final ServiceConfig serviceConfig;
@@ -48,6 +52,7 @@ public class MediaInitializer {
                         .flatMap(this::streamDirectoryTree)
                         .filter(path -> path.contains(MEDIA_ROOT_FOLDER))
                         .flatMap(this::listValidMediaPaths)
+                        .filter(mediaPath -> !mediaPath.isIgnore())
                         .filter(mediaPath -> !dataService.existsInDatabase(mediaPath.getRelativePath()))
                         .filter(mediaPath -> !isActiveConversion(mediaPath))
                         .map(this::buildMediaFile)
@@ -67,24 +72,31 @@ public class MediaInitializer {
     }
 
     private MediaFile buildMediaFile(MediaPath path) {
-        try {
-            return MediaFile.forPath(path.getAbsolutePath())
-                    .media(dataService.loadMedia(MediaPath.parse(path.getAbsolutePath())))
-                    .mediaFileId(UUID.randomUUID().toString())
-                    .absolutePath(path.getAbsolutePath())
-                    .build();
-        } catch (InvalidMediaException e) {
-            log.error("Invalid media {}", path, e);
-            return null;
+        MediaFile mediaFile = MediaFile.forPath(path)
+                .media(dataService.loadMedia(path))
+                .mediaFileId(UUID.randomUUID().toString())
+                .build();
+
+        MediaPath parentPath = path.getParentPath();
+        if (parentPath != null) {
+            MediaFile parent = mediaFileService.loadMediaFile(parentPath);
+            mediaFile.setParent(parent);
+            Set<MediaFile> children = parent.getChildren() == null ? new HashSet<>() : parent.getChildren();
+            children.add(mediaFile);
+            parent.setChildren(children);
+            persistenceService.saveMediaFile(parent);
         }
+
+        return mediaFile;
     }
 
     private Stream<String> streamDirectoryTree(String path) {
         Set<String> paths = new HashSet<>();
         try {
             Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<>() {
+                @NonNull
                 @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) {
                     log.info("Found media directory: {}", dir);
                     paths.add(dir.toString());
                     return FileVisitResult.CONTINUE;

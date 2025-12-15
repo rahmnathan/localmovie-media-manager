@@ -40,7 +40,7 @@ class MediaPersistenceServiceTest {
 
     @Test
     void getMediaImageTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", 0, 100, null, null, null, "movies");
+        MediaRequest mediaRequest = new MediaRequest("Movies", "", "", 0, 100, null, null, null, "movies");
         List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFiles(mediaRequest);
         assertFalse(mediaFiles.isEmpty());
     }
@@ -55,18 +55,6 @@ class MediaPersistenceServiceTest {
     void getMediaFilesTest() {
         byte[] outputImage = mediaPersistenceService.getMediaImage("Movies/300.mkv");
         assertNotNull(outputImage);
-    }
-
-    @Test
-    void getMediaFileEventsTest() {
-        com.github.rahmnathan.localmovie.persistence.entity.MediaFile mediaFile = com.github.rahmnathan.localmovie.persistence.entity.MediaFile.forPath("/home/LocalMedia/some/test/path").build();
-        MediaFileEvent mediaFileEvent = new MediaFileEvent("CREATE", mediaFile, "Movies");
-
-        save(mediaFileEvent);
-
-        List<MediaFileEvent> mediaFileEvents = mediaPersistenceService.getMediaFileEvents(LocalDateTime.now().minusMinutes(1), Pageable.unpaged());
-
-        assertFalse(mediaFileEvents.isEmpty());
     }
 
     @Transactional

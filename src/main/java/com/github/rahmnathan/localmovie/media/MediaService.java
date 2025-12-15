@@ -35,6 +35,10 @@ public class MediaService {
     private com.github.rahmnathan.omdb.data.Media loadMediaFromProvider(MediaPath path) throws InvalidMediaException, MediaProviderException {
         log.info("Loading media for path: {}", path);
 
+        if (path.getMediaType() == null) {
+            throw new InvalidMediaException("Media can't be loaded for path: " + path);
+        }
+
         return switch (path.getMediaType()) {
             case MOVIE -> mediaProvider.getMovie(path.getTitle());
             case SERIES -> mediaProvider.getSeries(path.getTitle());

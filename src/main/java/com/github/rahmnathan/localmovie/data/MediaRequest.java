@@ -11,6 +11,10 @@ import lombok.Data;
 public class MediaRequest {
     @Size(max = 100)
     private final String path;
+    @Size(max = 50)
+    private String mediaType;
+    @Size(max = 100)
+    private String mediaId;
     @Max(100)
     private int page;
     @Min(1)

@@ -19,19 +19,13 @@ public class MediaFileTransformer {
         builder.created(mediaFile.getCreated());
         builder.updated(mediaFile.getUpdated());
         builder.path(mediaFile.getPath());
+        builder.streamable(mediaFile.getStreamable());
 
         Media media = mediaFile.getMedia();
         if(media != null) {
             MediaFileDto.MediaDto.MediaDtoBuilder mediaDto = MediaFileDto.MediaDto.builder();
             mediaDto.id(media.getId());
             mediaDto.mediaType(media.getMediaType());
-            if (media.getMediaType() != null) {
-                builder.streamable(
-                    switch (media.getMediaType()) {
-                        case MOVIE, EPISODE -> true;
-                        case SERIES, SEASON -> false;
-                    });
-            }
             mediaDto.genre(media.getGenre());
             mediaDto.title(media.getTitle());
             mediaDto.actors(media.getActors());

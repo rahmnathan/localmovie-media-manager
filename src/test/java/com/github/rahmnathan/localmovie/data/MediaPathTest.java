@@ -100,6 +100,14 @@ public class MediaPathTest {
     }
 
     @Test
+    void getMediaType_Movie_Nested() throws InvalidMediaException {
+        String testPath = "Movies/John Wick/John Wick.mp4";
+        MediaPath mediaPath = MediaPath.parse(testPath);
+
+        assertEquals(MediaType.MOVIE, mediaPath.getMediaType());
+    }
+
+    @Test
     void getMediaType_Series() throws InvalidMediaException {
         String testPath = "Series/Breaking Bad";
         MediaPath mediaPath = MediaPath.parse(testPath);
@@ -118,6 +126,14 @@ public class MediaPathTest {
     @Test
     void getMediaType_Episode() throws InvalidMediaException {
         String testPath = "Series/Breaking Bad/Season 1/Episode 1.mkv";
+        MediaPath mediaPath = MediaPath.parse(testPath);
+
+        assertEquals(MediaType.EPISODE, mediaPath.getMediaType());
+    }
+
+    @Test
+    void getMediaType_Episode_Nested() throws InvalidMediaException {
+        String testPath = "Series/Breaking Bad/Season 1/Episode 1/Episode 1.mkv";
         MediaPath mediaPath = MediaPath.parse(testPath);
 
         assertEquals(MediaType.EPISODE, mediaPath.getMediaType());
