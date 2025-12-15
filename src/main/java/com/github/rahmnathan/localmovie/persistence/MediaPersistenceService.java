@@ -107,7 +107,7 @@ public class MediaPersistenceService {
     }
 
     public long countMediaFiles(MediaRequest request) {
-        MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(MediaRequestType.MOVIES);
+        MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(null);
         if (mediaRequestType == MediaRequestType.HISTORY) {
             return countHistory();
         }

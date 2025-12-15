@@ -20,6 +20,7 @@ public class MediaFileTransformer {
         builder.updated(mediaFile.getUpdated());
         builder.path(mediaFile.getPath());
         builder.streamable(mediaFile.getStreamable());
+        builder.mediaFileType(mediaFile.getMediaFileType());
 
         Media media = mediaFile.getMedia();
         if(media != null) {

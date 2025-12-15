@@ -13,6 +13,22 @@ export const buildPosterUri = function (id) {
     }
 };
 
+// Map mediaFileType to the request type for navigation
+const getRequestType = (mediaFileType) => {
+    switch(mediaFileType) {
+        case 'SERIES':
+            return 'SEASONS';
+        case 'SEASON':
+            return 'EPISODES';
+        case 'MOVIE_FOLDER':
+            return 'MOVIES';
+        case 'EPISODE_FOLDER':
+            return 'EPISODES';
+        default:
+            return null;
+    }
+};
+
 const MediaComponent = (props) => {
     const mediaFile = props.media;
     const media = mediaFile.media;
@@ -29,8 +45,9 @@ const MediaComponent = (props) => {
         if(mediaFile.streamable) {
             props.playMedia(mediaFile, false);
         } else {
-            // Otherwise navigate using parentId - backend will determine the type
-            props.navigateTo(null, mediaFile.mediaFileId);
+            // Otherwise navigate using parentId with the correct type
+            const requestType = getRequestType(mediaFile.mediaFileType);
+            props.navigateTo(requestType, mediaFile.mediaFileId);
         }
     };
 
