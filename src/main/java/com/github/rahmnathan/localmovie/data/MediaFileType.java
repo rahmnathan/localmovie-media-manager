@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.data;
 
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.omdb.data.MediaType;
 import lombok.Getter;
 
@@ -10,12 +11,16 @@ import java.util.regex.Pattern;
 @Getter
 public enum MediaFileType {
     MOVIE(MediaType.MOVIE, false, true,
-            Pattern.compile("^Movies/.*\\.[A-Za-z0-9]+$"),
+            Pattern.compile("^Movies/.*\\.(mkv|mp4|avi)$"),
             MediaPathElement.MOVIE_NAME,
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     MOVIE_FOLDER(null, true, false,
             Pattern.compile("^Movies/(?!.*\\.[A-Za-z0-9]+$)[^/]+$"),
+            MediaPathElement.FILE_WITH_EXTENSION
+    ),
+    EPISODE_FOLDER(null, true, false,
+            Pattern.compile("^Series/[^/]+/Season [0-9]+/(?!.*\\.[A-Za-z0-9]+$)[^/]+$"),
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     SERIES(MediaType.SERIES, false, false,
@@ -32,7 +37,7 @@ public enum MediaFileType {
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     EPISODE(MediaType.EPISODE, false, true,
-            Pattern.compile("^Series/[^/]+/Season [0-9]+/[^/]+\\.[A-Za-z0-9]+$"),
+            Pattern.compile("^Series/[^/]+/Season [0-9]+/.*\\.(mkv|mp4|avi)$"),
             MediaPathElement.EPISODE_NAME,
             MediaPathElement.SERIES_PATH,
             MediaPathElement.SEASON_PATH_PARENT,
@@ -61,10 +66,12 @@ public enum MediaFileType {
                 .findFirst();
     }
 
-    public void extractPathElements(String path, MediaPath.MediaPathBuilder builder) {
+    public void extractPathElements(String path, MediaPath.MediaPathBuilder builder) throws InvalidMediaException {
         builder.mediaType(mediaType);
         builder.streamable(streamable);
         builder.ignore(ignore);
-        Arrays.stream(pathElements).forEach(extractor -> extractor.apply(path, builder));
+        for (MediaPathElement pathElement : pathElements) {
+            pathElement.apply(path, builder);
+        }
     }
 }

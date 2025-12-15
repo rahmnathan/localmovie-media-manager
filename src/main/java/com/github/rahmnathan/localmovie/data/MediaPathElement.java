@@ -1,5 +1,7 @@
 package com.github.rahmnathan.localmovie.data;
 
+import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
+
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -25,7 +27,7 @@ public enum MediaPathElement {
     SEASON_PATH_PARENT(
             MediaPath::safeParse,
             MediaPath.MediaPathBuilder::parentPath,
-            Pattern.compile(".*Series/[^/]+/[^/]+(?=/[^/]+\\.[A-Za-z0-9]+$)")
+            Pattern.compile(".*Series/[^/]+/[^/]+(?=/.*\\.[A-Za-z0-9]+$)")
     ),
     MOVIE_NAME(
             String::valueOf,
@@ -46,7 +48,7 @@ public enum MediaPathElement {
     EPISODE_NAME(
             String::valueOf,
             MediaPath.MediaPathBuilder::title,
-            Pattern.compile("(?<=Season \\d{1,2}/)[^/]+(?=\\.[A-Za-z0-9]+$)")
+            Pattern.compile("[^/]+(?=\\.[^/.]+$)")
     ),
     EPISODE_NUMBER(
             Integer::valueOf,
@@ -57,7 +59,7 @@ public enum MediaPathElement {
     FILE_WITH_EXTENSION(
             String::valueOf,
             MediaPath.MediaPathBuilder::fileName,
-            Pattern.compile("(?<=/)[^/]+\\.[A-Za-z0-9]+$")
+            Pattern.compile("(?<=/)[^/]+$")
     );
 
     private final Function<String, ?> parser;
@@ -71,13 +73,15 @@ public enum MediaPathElement {
     }
 
     @SuppressWarnings("unchecked")
-    public void apply(String path, MediaPath.MediaPathBuilder builder) {
-        Arrays.stream(patterns)
+    public void apply(String path, MediaPath.MediaPathBuilder builder) throws InvalidMediaException {
+        Object value = Arrays.stream(patterns)
                 .map(pattern -> pattern.matcher(path))
                 .filter(Matcher::find)
                 .map(matcher -> parser.apply(matcher.group()))
                 .findFirst()
-                .ifPresent(value -> ((BiConsumer<MediaPath.MediaPathBuilder, Object>) setter).accept(builder, value));
+                .orElseThrow(() -> new InvalidMediaException("Failed to extract " + this.name() + " from path: " + path));
+
+        ((BiConsumer<MediaPath.MediaPathBuilder, Object>) setter).accept(builder, value);
 
     }
 }
