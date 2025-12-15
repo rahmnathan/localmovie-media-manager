@@ -54,6 +54,6 @@ class MediaResourceTest {
     }
 
     private MediaRequest buildRequest() {
-        return new MediaRequest("Movies", "", "", 0, 100, null, null, null, "movies");
+        return new MediaRequest("Movies", "", 0, 100, null, null, null, "movies");
     }
 }

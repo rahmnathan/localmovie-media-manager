@@ -115,7 +115,7 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<Predicate> predicates = extractPredicates(request, qMediaFile);
+        List<Predicate> predicates = extractPredicates(request, qMediaFile, mediaRequestType);
 
         return jpaQuery.from(qMediaFile)
                 .where(predicates.toArray(new Predicate[0]))
@@ -130,7 +130,7 @@ public class MediaPersistenceService {
 
     @VisibleForTesting
     List<MediaFile> getMediaFiles(MediaRequest request) {
-        MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(MediaRequestType.MOVIES);
+        MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(null);
         if (mediaRequestType == MediaRequestType.HISTORY) {
             return getHistory(request);
         }
@@ -138,10 +138,12 @@ public class MediaPersistenceService {
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
 
-        List<Predicate> predicates = extractPredicates(request, qMediaFile);
+        List<Predicate> predicates = extractPredicates(request, qMediaFile, mediaRequestType);
 
         OrderSpecifier<?> orderSpecifier;
-        if (request.getPath().split(File.separator).length > 1) {
+        if ((request.getPath() != null && request.getPath().split(File.separator).length > 1)
+                || mediaRequestType == MediaRequestType.SEASONS
+                || mediaRequestType == MediaRequestType.EPISODES) {
             orderSpecifier = SEASONS_EPISODES.getOrderSpecifier();
         } else if (StringUtils.hasText(request.getOrder())) {
             orderSpecifier = MediaOrder.lookup(request.getOrder()).getOrderSpecifier();
@@ -176,18 +178,22 @@ public class MediaPersistenceService {
         fileRepository.save(mediaFile);
     }
 
-    public Long getMediaFileEventCount(LocalDateTime localDateTime) {
-        return eventRepository.countAllByTimestampAfter(localDateTime);
-    }
-
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {
         return eventRepository.findAllByTimestampAfterOrderByTimestampAsc(localDateTime, pageable);
     }
 
-    private List<Predicate> extractPredicates(MediaRequest request, QMediaFile qMediaFile) {
+    private List<Predicate> extractPredicates(MediaRequest request, QMediaFile qMediaFile, MediaRequestType mediaRequestType) {
         List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(qMediaFile.parentPath.eq(request.getPath()));
+        if (mediaRequestType != null && mediaRequestType.getType() != null) {
+            predicates.add(qMediaFile.mediaFileType.eq(mediaRequestType.getType()));
+        }
+
+        if (StringUtils.hasText(request.getParentId())) {
+            predicates.add(qMediaFile.parent.mediaFileId.eq(request.getParentId()));
+        } else if (StringUtils.hasText(request.getPath())) {
+            predicates.add(qMediaFile.parentPath.eq(request.getPath()));
+        }
 
         if(StringUtils.hasText(request.getGenre())){
             predicates.add(qMediaFile.media.genre.containsIgnoreCase(request.getGenre()));

@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
+import com.github.rahmnathan.localmovie.data.MediaFileType;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import lombok.*;
 
@@ -11,8 +12,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
-import static com.github.rahmnathan.localmovie.data.MediaPath.MEDIA_ROOT_FOLDER;
 
 @Builder
 @Getter
@@ -43,16 +42,19 @@ public class MediaFile implements Serializable {
     private String mediaFileId;
     private String absolutePath;
     private Boolean streamable;
+    @Enumerated(value = EnumType.STRING)
+    private MediaFileType mediaFileType;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
     private Set<MediaView> mediaViews;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @ToString.Exclude
     private Set<MediaFile> children;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name = "parent_id")
     @ToString.Exclude
     private MediaFile parent;
 
@@ -90,6 +92,7 @@ public class MediaFile implements Serializable {
         File file = new File(path.getRelativePath());
         return builder()
                 .fileName(file.getName())
+                .mediaFileType(path.getMediaFileType())
                 .parentPath(file.getParent())
                 .mediaFileId(UUID.randomUUID().toString())
                 .absolutePath(path.getAbsolutePath())

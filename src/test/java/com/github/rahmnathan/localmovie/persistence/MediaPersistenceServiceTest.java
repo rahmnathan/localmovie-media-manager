@@ -40,7 +40,7 @@ class MediaPersistenceServiceTest {
 
     @Test
     void getMediaImageTest() {
-        MediaRequest mediaRequest = new MediaRequest("Movies", "", "", 0, 100, null, null, null, "movies");
+        MediaRequest mediaRequest = new MediaRequest("Movies", "", 0, 100, null, null, null, "movies");
         List<MediaFile> mediaFiles = mediaPersistenceService.getMediaFiles(mediaRequest);
         assertFalse(mediaFiles.isEmpty());
     }

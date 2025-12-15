@@ -28,6 +28,7 @@ public class MediaPath {
     private final boolean streamable;
     private final MediaPath seriesPath;
     private final MediaPath parentPath;
+    private final MediaFileType mediaFileType;
 
     // For series only
     private final Integer seasonNumber;
@@ -68,6 +69,7 @@ public class MediaPath {
 
         MediaFileType mediaFileType = MediaFileType.parse(builder.relativePath).orElseThrow(() -> new InvalidMediaException("Invalid media path: " + path));
         mediaFileType.extractPathElements(path, builder);
+        builder.mediaFileType(mediaFileType);
 
         return builder.build();
     }

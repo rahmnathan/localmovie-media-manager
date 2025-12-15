@@ -14,13 +14,13 @@ const controlBarStyle = {
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.5)'
 };
 
-export const ControlBar = ({ filterMedia, setPath, selectGenre, selectSort, filterMediaNavigate, setType }) => {
+export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNavigate, setType }) => {
     return (
         <nav style={controlBarStyle} aria-label="Media filters and controls">
             <div className="control-bar">
                 <SearchBox filterMedia={filterMedia} filterMediaNavigate={filterMediaNavigate}/>
                 <div className="control-bar__filters">
-                    <Category setPath={setPath} setType={setType}/>
+                    <Category setType={setType}/>
                     <Genre selectGenre={selectGenre}/>
                     <Sort selectSort={selectSort}/>
                 </div>

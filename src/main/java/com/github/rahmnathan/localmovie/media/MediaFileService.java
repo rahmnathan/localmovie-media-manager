@@ -8,9 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -42,10 +40,6 @@ public class MediaFileService {
             if (parentPath != null) {
                 MediaFile parent = loadMediaFile(parentPath);
                 mediaFile.setParent(parent);
-                Set<MediaFile> children = parent.getChildren() == null ? new HashSet<>() : parent.getChildren();
-                children.add(mediaFile);
-                parent.setChildren(children);
-                persistenceService.saveMediaFile(parent);
             }
 
             return persistenceService.saveMediaFile(mediaFile);

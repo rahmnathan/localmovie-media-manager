@@ -10,9 +10,9 @@ const mediaListStyle = {
     textAlign: 'center'
 };
 
-export const MediaList = ({ media, setPath, playMedia, nextPage, hasMore }) => {
+export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore }) => {
     const mediaList = media.map(media =>
-        <Media key={media.path} media={media} setPath={setPath} playMedia={playMedia}/>
+        <Media key={media.mediaFileId} media={media} navigateTo={navigateTo} playMedia={playMedia}/>
     );
 
     return (

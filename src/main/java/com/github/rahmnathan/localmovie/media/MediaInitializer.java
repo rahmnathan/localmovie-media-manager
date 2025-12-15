@@ -81,10 +81,6 @@ public class MediaInitializer {
         if (parentPath != null) {
             MediaFile parent = mediaFileService.loadMediaFile(parentPath);
             mediaFile.setParent(parent);
-            Set<MediaFile> children = parent.getChildren() == null ? new HashSet<>() : parent.getChildren();
-            children.add(mediaFile);
-            parent.setChildren(children);
-            persistenceService.saveMediaFile(parent);
         }
 
         return mediaFile;

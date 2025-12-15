@@ -13,10 +13,6 @@ export const buildPosterUri = function (id) {
     }
 };
 
-// Path depth constants for determining if media is playable
-const MOVIE_DIRECTORY_DEPTH = 2;
-const SERIES_EPISODE_DEPTH = 4;
-
 const MediaComponent = (props) => {
     const mediaFile = props.media;
     const media = mediaFile.media;
@@ -29,15 +25,12 @@ const MediaComponent = (props) => {
     const [isDetailedViewOpen, setIsDetailedViewOpen] = useState(false);
 
     const selectMedia = (mediaFile) => {
-        const path = mediaFile.path;
-        const pathDepth = path.split("/").length;
-        const isPlayable = (path.includes("Movies") && pathDepth === MOVIE_DIRECTORY_DEPTH) ||
-                          pathDepth === SERIES_EPISODE_DEPTH;
-
-        if(isPlayable) {
+        // If the media is streamable, it should be played
+        if(mediaFile.streamable) {
             props.playMedia(mediaFile, false);
         } else {
-            props.setPath(mediaFile.path);
+            // Otherwise navigate using parentId - backend will determine the type
+            props.navigateTo(null, mediaFile.mediaFileId);
         }
     };
 
@@ -78,10 +71,7 @@ const MediaComponent = (props) => {
     const year = media.releaseYear || 0;
     const rating = media.imdbRating || '';
 
-    const path = mediaFile.path;
-    const pathDepth = path.split("/").length;
-    const isPlayable = (path.includes("Movies") && pathDepth === MOVIE_DIRECTORY_DEPTH) ||
-                      pathDepth === SERIES_EPISODE_DEPTH;
+    const isPlayable = mediaFile.streamable;
     const ariaLabel = isPlayable
         ? `Play ${title} from ${year}. Rating: ${rating || 'not rated'}`
         : `Open folder ${title}`;

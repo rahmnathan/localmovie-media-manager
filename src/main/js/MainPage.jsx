@@ -16,14 +16,14 @@ export function MainPage() {
     const [media, setMedia] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [navigationState, setNavigationState] = useState({
-        path: 'Movies',
+        type: 'MOVIES',
+        parentId: null,
         genre: '',
         order: UserPreferences.getSortPreference(),
         client: 'WEBAPP',
         q: '',
         page: 0,
-        pageSize: 50,
-        type: 'movies'
+        pageSize: 50
     });
     const [searchParams] = useSearchParams();
     const [error, setError] = useState(null);
@@ -62,24 +62,26 @@ export function MainPage() {
     }, []);
 
     useEffect(() => {
-        let currentPath = searchParams.get('path');
+        let type = searchParams.get('type');
+        let parentId = searchParams.get('parentId');
         let genre = searchParams.get('genre');
         let order = searchParams.get('order');
         let q = searchParams.get('q');
-        let type = searchParams.get('type')
 
-        if(currentPath === null || currentPath === undefined || currentPath === ''){
-            currentPath = 'Movies';
+        // Default to MOVIES if no type is specified
+        if(type === null || type === undefined || type === ''){
+            type = 'MOVIES';
         }
 
         const newState = {
-            ...navigationState,
-            page: 0,
-            path: currentPath,
+            type: type,
+            parentId: parentId,
             genre: genre,
             order: order,
             q: q,
-            type: type
+            page: 0,
+            pageSize: 50,
+            client: 'WEBAPP'
         };
 
         setNavigationState(newState);
@@ -118,7 +120,7 @@ export function MainPage() {
         });
     }, [fetchMedia]);
 
-    const search = useCallback((order, genre, q, type, path) => {
+    const search = useCallback((order, genre, q, type, parentId) => {
         let urlSearchParams = createSearchParams();
 
         const setIfValid = (key, value, excludeValues = ['']) => {
@@ -128,34 +130,32 @@ export function MainPage() {
         };
 
         setIfValid('q', q);
-        setIfValid('path', path);
+        setIfValid('parentId', parentId);
         setIfValid('genre', genre, ['', 'all']);
         setIfValid('order', order);
-        setIfValid('type', type, ['', 'movies']);
+        setIfValid('type', type, ['', 'MOVIES']);
+
+        // Check if we're navigating to the same URL to avoid duplicate history entries
+        const newSearch = urlSearchParams.toString();
+        const currentSearch = window.location.search.substring(1); // Remove leading '?'
 
         navigate({
-            search: urlSearchParams.toString()
+            search: newSearch
+        }, {
+            replace: newSearch === currentSearch
         })
     }, [navigate]);
 
     const selectSort = useCallback((sort) => {
         UserPreferences.setSortPreference(sort);
-        setNavigationState(prev => ({
-            ...prev,
-            order: sort,
-            page: 0
-        }));
-        search(sort, navigationState.genre, navigationState.q, navigationState.type, navigationState.path);
-    }, [search, navigationState.genre, navigationState.q, navigationState.type, navigationState.path]);
+        // Just navigate - the useEffect will update state
+        search(sort, navigationState.genre, navigationState.q, navigationState.type, navigationState.parentId);
+    }, [search, navigationState.genre, navigationState.q, navigationState.type, navigationState.parentId]);
 
     const selectGenre = useCallback((genre) => {
-        setNavigationState(prev => ({
-            ...prev,
-            genre: genre,
-            page: 0
-        }));
-        search(navigationState.order, genre, navigationState.q, navigationState.type, navigationState.path);
-    }, [search, navigationState.order, navigationState.q, navigationState.type, navigationState.path]);
+        // Just navigate - the useEffect will update state
+        search(navigationState.order, genre, navigationState.q, navigationState.type, navigationState.parentId);
+    }, [search, navigationState.order, navigationState.q, navigationState.type, navigationState.parentId]);
 
     const filterMedia = useCallback((searchText) => {
         setNavigationState(prev => ({
@@ -166,31 +166,19 @@ export function MainPage() {
     }, []);
 
     const filterMediaNavigate = useCallback((searchText) => {
-        search(navigationState.order, navigationState.genre, searchText, navigationState.type, navigationState.path);
-    }, [search, navigationState.order, navigationState.genre, navigationState.type, navigationState.path]);
+        search(navigationState.order, navigationState.genre, searchText, navigationState.type, navigationState.parentId);
+    }, [search, navigationState.order, navigationState.genre, navigationState.type, navigationState.parentId]);
 
     const setType = useCallback((type) => {
         // Change type means a fresh view - reset filters
-        setNavigationState(prev => ({
-            ...prev,
-            type: type,
-            path: 'Movies',
-            q: '',
-            page: 0
-        }));
-        search(navigationState.order, navigationState.genre, '', type, 'Movies');
+        // Just navigate - the useEffect will update state
+        search(navigationState.order, navigationState.genre, '', type, null);
     }, [search, navigationState.order, navigationState.genre]);
 
-    const setPath = useCallback((path) => {
-        // Change path means a fresh view - reset filters
-        setNavigationState(prev => ({
-            ...prev,
-            path: path,
-            type: 'movies',
-            q: '',
-            page: 0
-        }));
-        search(navigationState.order, navigationState.genre, '', 'movies', path);
+    const navigateTo = useCallback((type, parentId) => {
+        // Navigation means a fresh view - reset filters
+        // Just navigate - the useEffect will update state
+        search(navigationState.order, navigationState.genre, '', type, parentId);
     }, [search, navigationState.order, navigationState.genre]);
 
     const showEmptyState = !error && !isInitialLoad && media.length === 0 && totalCount === 0;
@@ -204,7 +192,7 @@ export function MainPage() {
 
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} setPath={setPath} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
+            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} navigateTo={navigateTo} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
             {error && (
                 <div className="error-message">
                     {error}
@@ -231,7 +219,7 @@ export function MainPage() {
                     </p>
                 </div>
             ) : (
-                <MediaList media={displayMedia} setPath={setPath} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
+                <MediaList media={displayMedia} navigateTo={navigateTo} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             )}
             <LoadingIndicator/>
         </div>
