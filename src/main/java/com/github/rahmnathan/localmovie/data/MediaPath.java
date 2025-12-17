@@ -29,6 +29,7 @@ public class MediaPath {
     private final MediaPath seriesPath;
     private final MediaPath parentPath;
     private final MediaFileType mediaFileType;
+    private final String releaseYear;
 
     // For series only
     private final Integer seasonNumber;

@@ -40,8 +40,8 @@ public class MediaService {
         }
 
         return switch (path.getMediaType()) {
-            case MOVIE -> mediaProvider.getMovie(path.getTitle());
-            case SERIES -> mediaProvider.getSeries(path.getTitle());
+            case MOVIE -> mediaProvider.getMovie(path.getTitle(), path.getReleaseYear());
+            case SERIES -> mediaProvider.getSeries(path.getTitle(), path.getReleaseYear());
             case SEASON -> loadSeriesParentInfo(path);
             case EPISODE -> {
                 try {
