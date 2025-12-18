@@ -49,6 +49,13 @@ public enum MediaPathElement {
             Pattern.compile("(?<=Movies/)[^/]+(?=/.*)"),
             Pattern.compile("(?<=Movies/)[^/]+(?=\\.[A-Za-z0-9]+$)")
     ),
+    MOVIE_SUBTITLE_NAME(
+            false,
+            String::valueOf,
+            MediaPath.MediaPathBuilder::title,
+            Pattern.compile("(?<=Movies/)[^/]+(?=/.*)"),
+            Pattern.compile("(?<=Movies/)[^/]+(?=\\.[A-Za-z0-9]+$)")
+    ),
     SEASON_NAME(
             false,
             String::valueOf,
@@ -62,6 +69,12 @@ public enum MediaPathElement {
             Pattern.compile("(?<=Season )\\d+")
     ),
     EPISODE_NAME(
+            false,
+            String::valueOf,
+            MediaPath.MediaPathBuilder::title,
+            Pattern.compile("[^/]+(?=\\.[^/.]+$)")
+    ),
+    EPISODE_SUBTITLE_NAME(
             false,
             String::valueOf,
             MediaPath.MediaPathBuilder::title,
@@ -105,7 +118,6 @@ public enum MediaPathElement {
             throw new InvalidMediaException("Failed to extract " + this.name() + " from path: " + path);
         }
 
-        ((BiConsumer<MediaPath.MediaPathBuilder, Object>) setter).accept(builder, value.get());
-
+        value.ifPresent(o -> ((BiConsumer<MediaPath.MediaPathBuilder, Object>) setter).accept(builder, o));
     }
 }

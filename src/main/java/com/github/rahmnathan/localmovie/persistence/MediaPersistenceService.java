@@ -72,6 +72,15 @@ public class MediaPersistenceService {
         return mediaImageRepository.getImageByPath(path);
     }
 
+    public MediaFile getSubtitle(String id) {
+        Optional<MediaFile> mediaFile = fileRepository.findByMediaFileId(id);
+        if (mediaFile.isPresent()) {
+
+        }
+
+        return null;
+    }
+
     public byte[] getMediaImageById(String id){
         return mediaImageRepository.getImageById(id);
     }
