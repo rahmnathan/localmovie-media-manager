@@ -54,7 +54,7 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:postgresql://postgresql.postgres.svc.cluster.local:5432/localmovies
+    url: jdbc:postgresql://postgres-rw.postgres-18.svc.cluster.local:5432/localmovies
     username: localmovies
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
