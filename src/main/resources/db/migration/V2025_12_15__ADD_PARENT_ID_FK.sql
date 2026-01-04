@@ -3,7 +3,7 @@
 -- Step 1: Add parent_id column as nullable
 ALTER TABLE media_file ADD COLUMN parent_id BIGINT;
 ALTER TABLE media_file ADD COLUMN streamable BOOLEAN;
-ALTER TABLE media_file ADD COLUMN media_file_type VARCHAR(255) check (media_file_type in ('MOVIE', 'SERIES', 'EPISODE', 'SEASON', 'MOVIE_SUBTITLE', 'EPISODE_SUBTITLE'));
+ALTER TABLE media_file ADD COLUMN media_file_type VARCHAR(255) check (media_file_type in ('MOVIE', 'SERIES', 'EPISODE', 'SEASON'));
 
 -- Step 2: Populate parent_id from existing parent_path data
 UPDATE media_file child

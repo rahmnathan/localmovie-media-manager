@@ -49,12 +49,6 @@ public class SignedMediaResource {
         return ResponseEntity.ok(persistenceService.getMediaImageById(mediaFileId));
     }
 
-    @GetMapping(path = "/{mediaFileId}/subtitle")
-    public ResponseEntity<byte[]> getSubtitle(@PathVariable String mediaFileId) {
-        log.info("Streaming subtitle - {}", mediaFileId);
-        return ResponseEntity.ok(persistenceService.getMediaImageById(mediaFileId));
-    }
-
     @PatchMapping(path = "/{mediaFileId}/position/{position}")
     public ResponseEntity<Void> updatePosition(@PathVariable String mediaFileId,
                                                @PathVariable Double position,

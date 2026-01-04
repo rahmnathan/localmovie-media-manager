@@ -13,36 +13,20 @@ public enum MediaFileType {
     MOVIE(MediaType.MOVIE, false, true,
             Pattern.compile("^Movies/.*\\.(mkv|mp4|avi)$"),
             MediaPathElement.MOVIE_NAME,
-            MediaPathElement.FILE_WITH_EXTENSION,
-            MediaPathElement.RELEASE_YEAR
-    ),
-    MOVIE_SUBTITLE(null, false, false,
-            Pattern.compile("^Movies/.*\\.(srt|vtt)$"),
-            MediaPathElement.MOVIE_SUBTITLE_NAME,
-            MediaPathElement.FILE_WITH_EXTENSION
-    ),
-    EPISODE_SUBTITLE(null, false, false,
-            Pattern.compile("^Series/[^/]+/Season [0-9]+/.*\\.(srt|vtt)$"),
-            MediaPathElement.EPISODE_SUBTITLE_NAME,
-            MediaPathElement.SERIES_PATH,
-            MediaPathElement.SEASON_PATH_PARENT,
-            MediaPathElement.SEASON_NUMBER,
-            MediaPathElement.EPISODE_NUMBER,
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     MOVIE_FOLDER(null, true, false,
-            Pattern.compile("^Movies/(?!.*\\.(mkv|mp4|avi)+$)[^/]+$"),
+            Pattern.compile("^Movies/(?!.*\\.[A-Za-z0-9]+$)[^/]+$"),
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     EPISODE_FOLDER(null, true, false,
-            Pattern.compile("^Series/[^/]+/Season [0-9]+/(?!.*\\.(mkv|mp4|avi)+$)[^/]+$"),
+            Pattern.compile("^Series/[^/]+/Season [0-9]+/(?!.*\\.[A-Za-z0-9]+$)[^/]+$"),
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     SERIES(MediaType.SERIES, false, false,
             Pattern.compile("^Series/[^/]+$"),
             MediaPathElement.SERIES_NAME,
-            MediaPathElement.FILE_WITH_EXTENSION,
-            MediaPathElement.RELEASE_YEAR
+            MediaPathElement.FILE_WITH_EXTENSION
     ),
     SEASON(MediaType.SEASON, false, false,
             Pattern.compile("^Series/[^/]+/Season [0-9]+$"),

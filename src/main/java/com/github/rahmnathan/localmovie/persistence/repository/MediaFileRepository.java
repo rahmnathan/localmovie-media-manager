@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.persistence.repository;
 
-import com.github.rahmnathan.localmovie.data.MediaFileType;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -15,7 +14,6 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     boolean existsByPath(String path);
     void deleteByPath(String path);
     Optional<MediaFile> findByMediaFileId(String id);
-    Optional<MediaFile> findByPathAndMediaFileType(String id, MediaFileType mediaFileType);
 
     @Query(value = "select m1 from MediaFile m1 " +
             "left join m1.mediaViews mv " +
