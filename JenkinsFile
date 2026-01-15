@@ -17,6 +17,11 @@ spec:
     securityContext:
       runAsGroup: 998 # docker group on K8s node
       runAsUser: 1000 # jenkins user in container
+    env:
+      - name: TESTCONTAINERS_HOST_OVERRIDE
+        valueFrom:
+          fieldRef:
+            fieldPath: status.hostIP
   volumes:
     - name: docker
       hostPath:
