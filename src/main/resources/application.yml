@@ -85,9 +85,9 @@ spring:
 management:
   endpoint:
     metrics:
-      enabled: true
+      access: read_only
     prometheus:
-      enabled: true
+      access: read_only
   endpoints:
     web:
       exposure:

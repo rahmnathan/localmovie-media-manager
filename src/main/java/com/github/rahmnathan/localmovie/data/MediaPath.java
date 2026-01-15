@@ -1,7 +1,7 @@
 package com.github.rahmnathan.localmovie.data;
 
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
-import com.github.rahmnathan.omdb.data.MediaType;
+import com.github.rahmnathan.localmovie.media.omdb.MediaType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

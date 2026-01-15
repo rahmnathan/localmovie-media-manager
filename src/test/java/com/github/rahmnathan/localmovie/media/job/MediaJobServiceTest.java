@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media.job;
 
+import com.github.rahmnathan.localmovie.TestContainersConfiguration;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
@@ -9,7 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
@@ -23,12 +25,13 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
+@Import(TestContainersConfiguration.class)
 class MediaJobServiceTest {
 
-    @MockBean
+    @MockitoBean
     KubernetesService kubernetesService;
 
-    @MockBean
+    @MockitoBean
     MediaEventService mediaEventService;
 
     private final MediaJobService mediaJobService;

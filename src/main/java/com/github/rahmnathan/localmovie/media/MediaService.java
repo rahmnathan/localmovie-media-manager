@@ -2,11 +2,11 @@ package com.github.rahmnathan.localmovie.media;
 
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.omdb.MediaProvider;
+import com.github.rahmnathan.localmovie.media.omdb.MediaProviderException;
+import com.github.rahmnathan.localmovie.media.omdb.MediaType;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
-import com.github.rahmnathan.omdb.boundary.MediaProvider;
-import com.github.rahmnathan.omdb.data.MediaType;
-import com.github.rahmnathan.omdb.exception.MediaProviderException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class MediaService {
     @Transactional
     public Media loadMedia(MediaPath path) {
         try {
-            return Media.fromOmdbMedia(loadMediaFromProvider(path));
+            return loadMediaFromProvider(path);
         } catch (MediaProviderException | InvalidMediaException e){
             return new Media(path.getTitle());
         }
@@ -32,7 +32,7 @@ public class MediaService {
         return persistenceService.existsByPath(path);
     }
 
-    private com.github.rahmnathan.omdb.data.Media loadMediaFromProvider(MediaPath path) throws InvalidMediaException, MediaProviderException {
+    private Media loadMediaFromProvider(MediaPath path) throws InvalidMediaException, MediaProviderException {
         log.info("Loading media for path: {}", path);
 
         if (path.getMediaType() == null) {
@@ -54,12 +54,15 @@ public class MediaService {
         };
     }
 
-    private com.github.rahmnathan.omdb.data.Media loadSeriesParentInfo(MediaPath path) {
+    private Media loadSeriesParentInfo(MediaPath path) {
         log.info("Getting info from parent - {}", path);
 
-        Media parentInfo = loadMedia(path.getSeriesPath());
+        Media parentInfoClone = loadMedia(path.getSeriesPath()).cloneToPojo();
 
-        Integer number = path.getMediaType() == MediaType.EPISODE ? path.getEpisodeNumber() : path.getSeasonNumber();
-        return com.github.rahmnathan.omdb.data.Media.copyWithNewTitleNumberAndType(parentInfo.toOmdbMedia(), path.getTitle(), number, path.getMediaType());
+        parentInfoClone.setNumber(path.getMediaType() == MediaType.EPISODE ? path.getEpisodeNumber() : path.getSeasonNumber());
+        parentInfoClone.setTitle(parentInfoClone.getTitle());
+        parentInfoClone.setMediaType(path.getMediaType());
+
+        return parentInfoClone;
     }
 }

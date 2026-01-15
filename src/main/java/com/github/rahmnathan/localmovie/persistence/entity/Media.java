@@ -1,20 +1,20 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
-import com.github.rahmnathan.omdb.data.MediaType;
+import com.github.rahmnathan.localmovie.media.omdb.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcTypeCode;
 
 import java.io.Serializable;
 import java.sql.Types;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.Objects;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Media implements Serializable {
 
@@ -80,37 +80,6 @@ public class Media implements Serializable {
                 '}';
     }
 
-    public static Media fromOmdbMedia(com.github.rahmnathan.omdb.data.Media inputMedia){
-        Media resultMedia = new Media();
-        resultMedia.actors = inputMedia.getActors();
-        resultMedia.genre = inputMedia.getGenre();
-        String inputImage = inputMedia.getImage();
-        resultMedia.image = new MediaImage(StringUtils.isBlank(inputImage) ? new byte[0] : Base64.getDecoder().decode(inputImage), resultMedia);
-        resultMedia.imdbRating = inputMedia.getImdbRating();
-        resultMedia.metaRating = inputMedia.getMetaRating();
-        resultMedia.mediaType = inputMedia.getMediaType();
-        resultMedia.number = inputMedia.getNumber();
-        resultMedia.plot = inputMedia.getPlot();
-        resultMedia.releaseYear = inputMedia.getReleaseYear();
-        resultMedia.title = inputMedia.getTitle();
-        return resultMedia;
-    }
-
-    public com.github.rahmnathan.omdb.data.Media toOmdbMedia(){
-        return com.github.rahmnathan.omdb.data.Media.builder()
-                .title(this.title)
-                .releaseYear(this.releaseYear)
-                .plot(this.plot)
-                .number(this.number)
-                .mediaType(this.mediaType)
-                .metaRating(this.metaRating)
-                .imdbRating(this.imdbRating)
-                .image(Objects.isNull(this.image) || Objects.isNull(this.image.getImage()) ? null : Base64.getEncoder().encodeToString(this.image.getImage()))
-                .genre(this.genre)
-                .actors(this.actors)
-                .build();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -122,5 +91,24 @@ public class Media implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public Media cloneToPojo() {
+        Media result = Media.builder()
+                .actors(actors)
+                .genre(genre)
+                .imdbRating(imdbRating)
+                .metaRating(metaRating)
+                .releaseYear(releaseYear)
+                .mediaType(mediaType)
+                .plot(plot)
+                .title(title)
+                .build();
+
+        if (image != null) {
+            result.setImage(new MediaImage(image.getImage(), result));
+        }
+
+        return result;
     }
 }

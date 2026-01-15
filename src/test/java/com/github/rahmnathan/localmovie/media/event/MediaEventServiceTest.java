@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media.event;
 
+import com.github.rahmnathan.localmovie.TestContainersConfiguration;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
@@ -8,17 +9,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
+@Import(TestContainersConfiguration.class)
 class MediaEventServiceTest {
     private final MediaPersistenceService mediaPersistenceService;
     private final MediaEventService mediaEventService;

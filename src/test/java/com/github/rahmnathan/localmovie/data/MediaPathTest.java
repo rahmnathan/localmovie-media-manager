@@ -1,7 +1,7 @@
 package com.github.rahmnathan.localmovie.data;
 
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
-import com.github.rahmnathan.omdb.data.MediaType;
+import com.github.rahmnathan.localmovie.media.omdb.MediaType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

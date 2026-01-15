@@ -11,9 +11,9 @@ management:
       probes:
         enabled: true
     metrics:
-      enabled: true
+      access: read_only
     prometheus:
-      enabled: true
+      access: read_only
   endpoints:
     web:
       exposure:
@@ -66,3 +66,18 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
+
+resilience4j:
+  retry:
+    instances:
+      omdb:
+        max-attempts: 3
+        wait-duration: 300ms
+        exponential-backoff-multiplier: 2
+
+  circuitbreaker:
+    instances:
+      omdb:
+        failure-rate-threshold: 90
+        sliding-window-size: 100
+        wait-duration-in-open-state: 5s
