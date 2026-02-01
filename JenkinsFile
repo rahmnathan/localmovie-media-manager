@@ -22,6 +22,8 @@ spec:
         valueFrom:
           fieldRef:
             fieldPath: status.hostIP
+      - name: JAVA_HOME
+        value: /home/jenkins/agent/tools/hudson.model.JDK/Java_21
   volumes:
     - name: docker
       hostPath:
