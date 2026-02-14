@@ -9,8 +9,10 @@ data:
         hmac:
           key: {{ .Values.service.stream.hmac.key | quote }}
       omdb:
+        enabled: true
         apiKey: {{ .Values.service.omdb.apiKey | quote }}
       opensubtitles:
+        enabled: true
         apiKey: {{ .Values.service.opensubtitles.apiKey | quote }}
         username: {{ .Values.service.opensubtitles.username | quote }}
         password: {{ .Values.service.opensubtitles.password | quote }}
