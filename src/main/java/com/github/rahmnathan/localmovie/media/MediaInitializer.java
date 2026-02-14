@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.media;
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.subtitle.SubtitleJobService;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
@@ -19,7 +20,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -37,6 +43,7 @@ public class MediaInitializer {
     private final ServiceConfig serviceConfig;
     private final MeterRegistry meterRegistry;
     private final MediaService dataService;
+    private final SubtitleJobService subtitleJobService;
 
     // Hold onto this for testing
     private ForkJoinTask<?> fileInitializationTask;
@@ -67,8 +74,34 @@ public class MediaInitializer {
                 log.info("File list initialized.");
 
                 meterRegistry.timer("localmovies.file-list-initialization").record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+
+                queueSubtitlesForExistingMedia();
             });
         }
+    }
+
+    private void queueSubtitlesForExistingMedia() {
+        if (!serviceConfig.getOpensubtitles().isEnabled()) {
+            return;
+        }
+
+        long startTime = System.currentTimeMillis();
+        List<MediaFile> mediaFilesNeedingSubtitles = mediaFileRepository.findMediaFilesNeedingSubtitles();
+
+        if (mediaFilesNeedingSubtitles.isEmpty()) {
+            log.info("No existing media files need subtitles");
+            return;
+        }
+
+        log.info("Found {} existing media files needing subtitles", mediaFilesNeedingSubtitles.size());
+
+        for (MediaFile mediaFile : mediaFilesNeedingSubtitles) {
+            String imdbId = mediaFile.getMedia().getImdbId();
+            subtitleJobService.queueSubtitleFetch(mediaFile, imdbId);
+        }
+
+        log.info("Queued subtitle jobs for {} existing media files", mediaFilesNeedingSubtitles.size());
+        meterRegistry.timer("localmovies.subtitle-initialization").record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
     }
 
     private MediaFile buildMediaFile(MediaPath path) {

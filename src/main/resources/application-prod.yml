@@ -40,7 +40,10 @@ service:
     - "/opt/localmovie/4/LocalMedia"
     - "/opt/localmovie/5/LocalMedia"
   notificationsEnabled: false
+  # Secrets (stream.hmac.key, omdb.apiKey, opensubtitles.*) are provided via configmap from SOPS-encrypted secrets.yaml
   omdb:
+    enabled: true
+  opensubtitles:
     enabled: true
   repository:
     enabled: true
@@ -56,6 +59,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres-rw.postgres-18.svc.cluster.local:5432/localmovies
     username: localmovies
+    # password provided via configmap from SOPS-encrypted secrets.yaml
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

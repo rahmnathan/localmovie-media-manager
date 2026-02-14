@@ -105,11 +105,17 @@ spec:
         stage('Deploy to Kubernetes') {
             environment {
                 KUBE_CONFIG = credentials('Kubeconfig')
-                OMDB_API_KEY = credentials('OmdbApiKey')
-                STREAM_HMAC_KEY = credentials('LocalMoviesStreamHmacKey')
+                SOPS_AGE_KEY = credentials('SopsAgeKey')
             }
             steps {
-                sh 'helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ --set localmovies.stream.hmacKey=$STREAM_HMAC_KEY --set localmovies.omdb.apiKey=$OMDB_API_KEY --kubeconfig $KUBE_CONFIG'
+                sh '''
+                    export SOPS_AGE_KEY
+                    sops decrypt ./target/classes/localmovies/secrets.yaml > ./target/classes/localmovies/secrets-decrypted.yaml
+                    helm upgrade --install -n localmovies localmovies ./target/classes/localmovies/ \
+                        -f ./target/classes/localmovies/secrets-decrypted.yaml \
+                        --kubeconfig $KUBE_CONFIG
+                    rm -f ./target/classes/localmovies/secrets-decrypted.yaml
+                '''
             }
         }
         stage('Wait for Deployment') {

@@ -2,3 +2,10 @@
 *.idea/
 **/target
 src/main/resources/static/built
+node_modules/
+package-lock.json
+bundle-report.html
+
+# SOPS - never commit decrypted secrets
+secrets-decrypted.yaml
+*.dec.yaml

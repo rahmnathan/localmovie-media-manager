@@ -23,6 +23,7 @@ public class SecurityService {
     private static final String URL_PATTERN_STREAM = "/localmovie/v1/signed/media/%s/stream.mp4?expires=%s&sig=%s";
     private static final String URL_PATTERN_POSTER = "/localmovie/v1/signed/media/%s/poster?expires=%s&sig=%s";
     private static final String URL_PATTERN_UPDATE_POSITION = "/localmovie/v1/signed/media/%s/position?expires=%s&sig=%s";
+    private static final String URL_PATTERN_SUBTITLE = "/localmovie/v1/signed/media/%s/subtitle.vtt?expires=%s&sig=%s";
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
@@ -66,13 +67,22 @@ public class SecurityService {
     }
 
     public SignedUrls generateSignedUrls(String mediaFileId) throws JsonProcessingException {
+        return generateSignedUrls(mediaFileId, false);
+    }
+
+    public SignedUrls generateSignedUrls(String mediaFileId, boolean hasSubtitle) throws JsonProcessingException {
         SignedRequest signedRequest = generateSignedRequest(mediaFileId);
 
-        return SignedUrls.builder()
+        SignedUrls.SignedUrlsBuilder builder = SignedUrls.builder()
                 .stream(formatUrl(URL_PATTERN_STREAM, signedRequest))
                 .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
-                .updatePosition(formatUrl(URL_PATTERN_UPDATE_POSITION, signedRequest))
-                .build();
+                .updatePosition(formatUrl(URL_PATTERN_UPDATE_POSITION, signedRequest));
+
+        if (hasSubtitle) {
+            builder.subtitle(formatUrl(URL_PATTERN_SUBTITLE, signedRequest));
+        }
+
+        return builder.build();
     }
 
     private SignedRequest generateSignedRequest(String mediaFileId) throws JsonProcessingException {

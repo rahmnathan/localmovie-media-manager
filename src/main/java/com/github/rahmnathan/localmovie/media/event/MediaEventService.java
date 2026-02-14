@@ -3,6 +3,7 @@ package com.github.rahmnathan.localmovie.media.event;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaFileService;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.subtitle.SubtitleJobService;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
@@ -19,6 +20,7 @@ public class MediaEventService {
     private final PushNotificationService notificationHandler;
     private final MediaPersistenceService persistenceService;
     private final MediaFileService mediaFileService;
+    private final SubtitleJobService subtitleJobService;
 
     public void handleCreateEvent(MediaPath path) throws InvalidMediaException {
         log.info("Adding CREATE event to repository.");
@@ -29,6 +31,15 @@ public class MediaEventService {
         MediaFile mediaFile = mediaFileService.loadMediaFile(path);
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_CREATE.getMovieEventString(), mediaFile, path.getRelativePath());
         persistenceService.saveEvent(event);
+
+        // Queue subtitle fetch for streamable media with IMDB ID
+        // This is separate from the regular media job processing because the subtitle API has limits
+        if (Boolean.TRUE.equals(mediaFile.getStreamable()) && mediaFile.getMedia() != null) {
+            String imdbId = mediaFile.getMedia().getImdbId();
+            if (imdbId != null && !imdbId.isBlank()) {
+                subtitleJobService.queueSubtitleFetch(mediaFile, imdbId);
+            }
+        }
 
         notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
     }

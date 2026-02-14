@@ -1,7 +1,18 @@
 localmovies:
     imageRepository: rahmnathan
     postgresIp: postgres-postgresql.default
-    omdb:
-      apiKey: <api-key>
-    stream:
-      hmacKey: <hmac-key>
+
+# These values are populated from secrets.yaml (decrypted via SOPS at deploy time)
+service:
+  stream:
+    hmac:
+      key: ""
+  omdb:
+    apiKey: ""
+  opensubtitles:
+    apiKey: ""
+    username: ""
+    password: ""
+spring:
+  datasource:
+    password: ""

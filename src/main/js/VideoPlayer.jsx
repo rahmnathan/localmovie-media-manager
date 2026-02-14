@@ -255,6 +255,17 @@ export function VideoPlayer() {
         mediaInfo.metadata.title = title;
         mediaInfo.metadata.images = [{ url: imageUrl }];
 
+        // Add subtitle track if available
+        if (signedUrls?.subtitle) {
+            const track = new window.chrome.cast.media.Track(1, window.chrome.cast.media.TrackType.TEXT);
+            track.trackContentId = `${window.location.origin}${signedUrls.subtitle}`;
+            track.trackContentType = 'text/vtt';
+            track.subtype = window.chrome.cast.media.TextTrackType.SUBTITLES;
+            track.name = 'English';
+            track.language = 'en-US';
+            mediaInfo.tracks = [track];
+        }
+
         const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
         request.currentTime = startTime;
 
@@ -297,6 +308,19 @@ export function VideoPlayer() {
                         width="100%"
                         height="100%"
                         onProgress={saveProgress}
+                        config={{
+                            file: {
+                                tracks: signedUrls?.subtitle ? [
+                                    {
+                                        kind: 'subtitles',
+                                        src: `${window.location.origin}${signedUrls.subtitle}`,
+                                        srcLang: 'en',
+                                        label: 'English',
+                                        default: false
+                                    }
+                                ] : []
+                            }
+                        }}
                     />
                 )}
 

@@ -32,6 +32,9 @@ public class OmdbResponse {
     @JsonProperty("Poster")
     private String poster;
 
+    @JsonProperty("imdbID")
+    private String imdbId;
+
     @JsonProperty("Response")
     private String response;
 

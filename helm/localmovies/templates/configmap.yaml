@@ -4,5 +4,16 @@ metadata:
  name: localmovies
 data:
  application.yml: |
-    service.omdb.apiKey: {{ .Values.localmovies.omdb.apiKey }}
-    service.stream.hmac.key: {{ .Values.localmovies.stream.hmacKey }}
+    service:
+      stream:
+        hmac:
+          key: {{ .Values.service.stream.hmac.key | quote }}
+      omdb:
+        apiKey: {{ .Values.service.omdb.apiKey | quote }}
+      opensubtitles:
+        apiKey: {{ .Values.service.opensubtitles.apiKey | quote }}
+        username: {{ .Values.service.opensubtitles.username | quote }}
+        password: {{ .Values.service.opensubtitles.password | quote }}
+    spring:
+      datasource:
+        password: {{ .Values.spring.datasource.password | quote }}

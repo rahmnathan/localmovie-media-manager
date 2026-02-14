@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.web;
 
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaSubtitleRepository;
 import com.google.api.client.http.HttpStatusCodes;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class SignedMediaResource {
     private final MediaPersistenceService persistenceService;
     private final MediaStreamingService mediaStreamingService;
     private final SecurityService securityService;
+    private final MediaSubtitleRepository subtitleRepository;
 
     @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
     public ResponseEntity<ResourceRegion> streamSecureVideo(@PathVariable String mediaFileId,
@@ -63,5 +65,29 @@ public class SignedMediaResource {
 
         persistenceService.addView(mediaFileId, position);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/{mediaFileId}/subtitle.vtt", produces = "text/vtt")
+    public ResponseEntity<String> getSubtitle(@PathVariable String mediaFileId,
+                                              @RequestParam(value = "expires", defaultValue = "0") long expires,
+                                              @RequestParam(value = "sig") String signature) {
+        log.info("Received subtitle request - {}", mediaFileId);
+
+        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
+            log.warn("Unauthorized subtitle request for id.");
+            return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
+        }
+
+        Optional<String> subtitleContent = subtitleRepository
+                .findSubtitleContentByMediaFileIdAndLanguage(mediaFileId, "en");
+
+        if (subtitleContent.isEmpty()) {
+            log.info("No subtitle found for MediaFile: {}", mediaFileId);
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/vtt; charset=utf-8")
+                .body(subtitleContent.get());
     }
 }

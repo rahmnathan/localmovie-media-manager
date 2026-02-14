@@ -37,6 +37,8 @@ public class Media implements Serializable {
     private String plot;
     private String genre;
     private Integer number;
+    @Column(name = "imdb_id", length = 20)
+    private String imdbId;
     private LocalDateTime created;
     private LocalDateTime updated;
 

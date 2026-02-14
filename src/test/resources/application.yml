@@ -19,6 +19,11 @@ service:
   omdb:
     apiKey: "a825746e"
     enabled: false
+  opensubtitles:
+    enabled: false
+    apiKey: ""
+    username: ""
+    password: ""
   repository:
     enabled: true
     updateFrequencyDays: 4
@@ -56,3 +61,8 @@ spring:
             user-name-attribute: preferred_username
 keycloak:
   enabled: false
+
+# Disable Jasypt encryption for tests
+jasypt:
+  encryptor:
+    password: test-password-not-used

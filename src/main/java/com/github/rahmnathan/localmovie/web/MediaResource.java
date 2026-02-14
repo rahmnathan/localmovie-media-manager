@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaSubtitleRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class MediaResource {
     private static final String RESPONSE_HEADER_COUNT = "Count";
     private final MediaPersistenceService persistenceService;
     private final SecurityService securityService;
+    private final MediaSubtitleRepository subtitleRepository;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) {
@@ -71,8 +73,10 @@ public class MediaResource {
             return ResponseEntity.notFound().build();
         }
 
+        boolean hasSubtitle = subtitleRepository.existsByMediaFileUuid(mediaFileId);
+
         try {
-            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId));
+            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId, hasSubtitle));
         } catch (JsonProcessingException e) {
             log.error("Failed to generate signed URLs.", e);
             return ResponseEntity.internalServerError().build();

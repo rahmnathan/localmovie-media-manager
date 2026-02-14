@@ -72,7 +72,8 @@ public class MediaProvider implements Closeable {
                 .releaseYear(response.getYear())
                 .genre(response.getGenre())
                 .plot(response.getPlot())
-                .actors(response.getActors());
+                .actors(response.getActors())
+                .imdbId(response.getImdbId());
 
         if (mediaType == MediaType.EPISODE || mediaType == MediaType.SERIES) {
             mediaBuilder.number(number);

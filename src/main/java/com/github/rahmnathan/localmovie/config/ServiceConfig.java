@@ -19,6 +19,7 @@ public class ServiceConfig {
     private Set<String> mediaPaths;
     private String jedisHost;
     private OmdbConfig omdb;
+    private OpenSubtitlesConfig opensubtitles;
     private boolean forceConvert;
 
     @Data
@@ -42,5 +43,13 @@ public class ServiceConfig {
     public static class OmdbConfig {
         private boolean enabled;
         private String apiKey;
+    }
+
+    @Data
+    public static class OpenSubtitlesConfig {
+        private boolean enabled;
+        private String apiKey;
+        private String username;
+        private String password;
     }
 }
