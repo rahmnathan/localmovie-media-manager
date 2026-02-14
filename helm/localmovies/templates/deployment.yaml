@@ -31,6 +31,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: prod
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:file:/workspace/config/application.yml
             - name: LANG
               value: en_US.UTF-8
             - name: LC_ALL
