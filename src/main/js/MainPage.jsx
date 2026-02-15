@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import { MediaList } from './MediaList.jsx';
+import { HistoryList } from './HistoryList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
@@ -8,6 +9,7 @@ import {SkeletonLoader} from "./SkeletonCard.jsx";
 import {UserPreferences} from "./userPreferences.js";
 
 const FAVORITES_TYPE = 'FAVORITES';
+const HISTORY_TYPE = 'HISTORY';
 
 const layoutProps = {
     textAlign: 'center'
@@ -189,6 +191,7 @@ export function MainPage() {
     const displayMedia = media;
 
     const showFavoritesEmpty = navigationState.type?.toUpperCase() === FAVORITES_TYPE && displayMedia.length === 0 && !isInitialLoad;
+    const isHistoryView = navigationState.type?.toUpperCase() === HISTORY_TYPE;
 
     return (
         <div style={layoutProps}>
@@ -218,6 +221,8 @@ export function MainPage() {
                             : 'No media available in this category.'}
                     </p>
                 </div>
+            ) : isHistoryView ? (
+                <HistoryList media={displayMedia} playMedia={playMedia} />
             ) : (
                 <MediaList media={displayMedia} navigateTo={navigateTo} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             )}

@@ -25,6 +25,7 @@ public class MediaFileDto {
     private boolean favorite;
     private MediaFileType mediaFileType;
     private MediaDto media;
+    private ParentMediaDto parent;
 
     @Data
     @Builder
@@ -62,5 +63,21 @@ public class MediaFileDto {
         private String userId;
         private LocalDateTime created;
         private LocalDateTime updated;
+    }
+
+    /**
+     * Lightweight parent reference for episode context (season/series info).
+     * Recursive structure: episode.parent = season, season.parent = series.
+     */
+    @Data
+    @Builder
+    public static class ParentMediaDto {
+        private String mediaFileId;
+        private MediaFileType mediaFileType;
+        private String title;
+        private Integer number;
+        @ToString.Exclude
+        private byte[] image;
+        private ParentMediaDto parent;
     }
 }

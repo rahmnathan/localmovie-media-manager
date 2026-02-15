@@ -572,6 +572,174 @@ body {
     margin: 0 auto;
 }
 
+/* History List Styles */
+.history-list {
+    padding: 150px 24px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.history-list__heading {
+    color: var(--text-primary);
+    font-size: 24px;
+    margin: 0 0 24px 0;
+    text-align: left;
+}
+
+.history-list__items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform var(--transition-fast),
+                box-shadow var(--transition-fast),
+                background var(--transition-fast);
+}
+
+.history-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    background: rgba(40, 40, 50, 1);
+}
+
+.history-card:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
+.history-card__poster {
+    flex-shrink: 0;
+    width: 80px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.history-card__poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.history-card__content {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.history-card__title {
+    color: var(--text-primary);
+    font-size: var(--font-lg);
+    font-weight: bold;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-card__episode {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--font-sm);
+    margin: 0 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-card__resume {
+    color: #667eea;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    margin: 0;
+}
+
+.history-card__play-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+.history-card__play-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.history-card__play-btn:active {
+    transform: scale(1.05);
+}
+
+.history-card__play-icon {
+    color: white;
+    font-size: 18px;
+    margin-left: 2px; /* Optical centering for play icon */
+}
+
+/* History List Responsive */
+@media (max-width: 768px) {
+    .history-list {
+        padding: 150px 16px 16px;
+    }
+
+    .history-list__heading {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .history-card {
+        padding: 10px;
+        gap: 12px;
+    }
+
+    .history-card__poster {
+        width: 60px;
+        height: 90px;
+    }
+
+    .history-card__title {
+        font-size: var(--font-md);
+    }
+
+    .history-card__play-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .history-card__play-icon {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .history-list {
+        padding: 150px 12px 12px;
+    }
+
+    .history-card__poster {
+        width: 50px;
+        height: 75px;
+    }
+}
+
 /* Skeleton Loaders */
 @keyframes shimmer {
     0% {

@@ -65,6 +65,38 @@ public class MediaFileTransformer {
             builder.mediaViews(Set.of(mediaViewDto.build()));
         }
 
+        // Build parent chain for episode context (episode -> season -> series)
+        MediaFile parent = mediaFile.getParent();
+        if (parent != null) {
+            builder.parent(toParentMediaDto(parent));
+        }
+
+        return builder.build();
+    }
+
+    private static MediaFileDto.ParentMediaDto toParentMediaDto(MediaFile mediaFile) {
+        if (mediaFile == null) {
+            return null;
+        }
+
+        Media media = mediaFile.getMedia();
+        MediaFileDto.ParentMediaDto.ParentMediaDtoBuilder builder = MediaFileDto.ParentMediaDto.builder()
+                .mediaFileId(mediaFile.getMediaFileId())
+                .mediaFileType(mediaFile.getMediaFileType());
+
+        if (media != null) {
+            builder.title(media.getTitle())
+                    .number(media.getNumber());
+
+            if (media.getImage() != null) {
+                builder.image(media.getImage().getImage());
+            }
+        }
+
+        // Recursively build parent chain (season -> series)
+        if (mediaFile.getParent() != null) {
+            builder.parent(toParentMediaDto(mediaFile.getParent()));
+        }
 
         return builder.build();
     }
