@@ -72,10 +72,7 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
                     <div className="detailed-media-info">
                         <div className="detailed-media-title-row">
                             <DialogTitle className="detailed-media-title">
-                                {title}
-                                {episodeNumber && mediaType === 'EPISODE' && (
-                                    <span className="detailed-media-episode"> (Episode {episodeNumber})</span>
-                                )}
+                                {episodeNumber && mediaType === 'EPISODE' ? `E${episodeNumber} - ${title}` : title}
                             </DialogTitle>
                             {onToggleFavorite && (
                                 <button

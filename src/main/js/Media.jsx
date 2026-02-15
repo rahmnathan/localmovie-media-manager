@@ -45,7 +45,8 @@ const MediaComponent = (props) => {
         } else {
             // Otherwise navigate using parentId with the correct type
             const requestType = getRequestType(mediaFile.mediaFileType);
-            props.navigateTo(requestType, mediaFile.mediaFileId);
+            const name = mediaFile.media?.title || mediaFile.fileName;
+            props.navigateTo(requestType, mediaFile.mediaFileId, name);
         }
     };
 
@@ -76,11 +77,12 @@ const MediaComponent = (props) => {
     };
 
     let title = mediaFile.fileName.substring(0, mediaFile.fileName.length - 4);
-    if(mediaFile.streamable && media.number != null) {
-        if(media.title !== null && media.mediaType === "EPISODE"){
-            title = "#" + media.number + " - " + media.title;
+    if(media.number != null && media.mediaType === "EPISODE") {
+        // Always show episode number for episodes
+        if(media.title !== null){
+            title = "E" + media.number + " - " + media.title;
         } else {
-            title = "#" + media.number;
+            title = "E" + media.number;
         }
     } else if(media.title != null){
         title = media.title;

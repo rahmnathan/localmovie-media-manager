@@ -15,10 +15,31 @@ const layoutProps = {
     textAlign: 'center'
 };
 
+// Breadcrumb component for showing navigation path
+const Breadcrumb = ({ path, onNavigateBack }) => {
+    if (path.length <= 1) return null;
+
+    // Show path without root (e.g., "Breaking Bad → Season 1")
+    const displayPath = path.slice(1);
+
+    return (
+        <div className="breadcrumb-bar" onClick={onNavigateBack}>
+            <span className="breadcrumb-back">←</span>
+            {displayPath.map((segment, index) => (
+                <span key={index}>
+                    {index > 0 && <span className="breadcrumb-separator">→</span>}
+                    <span className="breadcrumb-segment">{segment.name}</span>
+                </span>
+            ))}
+        </div>
+    );
+};
+
 export function MainPage() {
 
     const [media, setMedia] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
+    const [navigationPath, setNavigationPath] = useState([{ name: 'Movies', parentId: null }]);
     const [navigationState, setNavigationState] = useState({
         type: 'MOVIES',
         parentId: null,
@@ -174,16 +195,47 @@ export function MainPage() {
     }, [search, navigationState.order, navigationState.genre, navigationState.type, navigationState.parentId]);
 
     const setType = useCallback((type) => {
-        // Change type means a fresh view - reset filters
-        // Just navigate - the useEffect will update state
+        // Change type means a fresh view - reset filters and path
+        const rootName = type === 'SERIES' ? 'Series' : 'Movies';
+        setNavigationPath([{ name: rootName, parentId: null }]);
         search(navigationState.order, navigationState.genre, '', type, null);
     }, [search, navigationState.order, navigationState.genre]);
 
-    const navigateTo = useCallback((type, parentId) => {
+    const navigateTo = useCallback((type, parentId, name = '') => {
+        // Add to navigation path
+        if (parentId) {
+            setNavigationPath(prev => [...prev, { name: name || 'Unknown', parentId }]);
+        }
         // Navigation means a fresh view - reset filters
         // Just navigate - the useEffect will update state
         search(navigationState.order, navigationState.genre, '', type, parentId);
     }, [search, navigationState.order, navigationState.genre]);
+
+    const navigateBack = useCallback(() => {
+        if (navigationPath.length <= 1) return;
+
+        // Go back one level
+        const newPath = navigationPath.slice(0, -1);
+        setNavigationPath(newPath);
+
+        // Navigate to the parent
+        const parent = newPath[newPath.length - 1];
+
+        // Determine the type based on path depth
+        let type;
+        if (newPath.length === 1) {
+            // Root level
+            type = parent.name === 'Series' ? 'SERIES' : 'MOVIES';
+        } else if (newPath.length === 2) {
+            // Series level - show seasons
+            type = 'SEASONS';
+        } else {
+            // Season level - show episodes
+            type = 'EPISODES';
+        }
+
+        search(navigationState.order, navigationState.genre, '', type, parent.parentId);
+    }, [navigationPath, search, navigationState.order, navigationState.genre]);
 
     const showEmptyState = !error && !isInitialLoad && media.length === 0 && totalCount === 0;
 
@@ -193,9 +245,17 @@ export function MainPage() {
     const showFavoritesEmpty = navigationState.type?.toUpperCase() === FAVORITES_TYPE && displayMedia.length === 0 && !isInitialLoad;
     const isHistoryView = navigationState.type?.toUpperCase() === HISTORY_TYPE;
 
+    // Show breadcrumb only when navigating into series/seasons (not for special views)
+    const showBreadcrumb = navigationPath.length > 1 &&
+        !isHistoryView &&
+        navigationState.type?.toUpperCase() !== FAVORITES_TYPE;
+
     return (
         <div style={layoutProps}>
             <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} navigateTo={navigateTo} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
+            {showBreadcrumb && (
+                <Breadcrumb path={navigationPath} onNavigateBack={navigateBack} />
+            )}
             {error && (
                 <div className="error-message">
                     {error}

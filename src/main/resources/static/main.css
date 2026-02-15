@@ -34,6 +34,39 @@ body {
     margin: 0;
 }
 
+/* Breadcrumb navigation bar */
+.breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 0 10px 10px 10px;
+    border-radius: 8px;
+}
+
+.breadcrumb-bar:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.breadcrumb-back {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 8px;
+}
+
+.breadcrumb-separator {
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0 4px;
+}
+
+.breadcrumb-segment {
+    color: var(--text-primary);
+    font-size: 15px;
+}
+
 .fadein-appear {
     opacity: 0.01;
 }
