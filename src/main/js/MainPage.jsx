@@ -7,6 +7,8 @@ import {LoadingIndicator} from "./LoadingIndicator.jsx";
 import {SkeletonLoader} from "./SkeletonCard.jsx";
 import {UserPreferences} from "./userPreferences.js";
 
+const FAVORITES_TYPE = 'FAVORITES';
+
 const layoutProps = {
     textAlign: 'center'
 };
@@ -183,12 +185,10 @@ export function MainPage() {
 
     const showEmptyState = !error && !isInitialLoad && media.length === 0 && totalCount === 0;
 
-    // Filter media for favorites view
-    const displayMedia = navigationState.type === 'favorites'
-        ? media.filter(item => UserPreferences.isFavorite(item.mediaFileId))
-        : media;
+    // Favorites are now filtered server-side
+    const displayMedia = media;
 
-    const showFavoritesEmpty = navigationState.type === 'favorites' && displayMedia.length === 0 && media.length > 0;
+    const showFavoritesEmpty = navigationState.type?.toUpperCase() === FAVORITES_TYPE && displayMedia.length === 0 && !isInitialLoad;
 
     return (
         <div style={layoutProps}>

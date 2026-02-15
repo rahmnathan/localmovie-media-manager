@@ -90,6 +90,20 @@ public class MediaResource {
         return persistenceService.getMediaImageById(id);
     }
 
+    @PostMapping(path = "/{mediaFileId}/favorite")
+    public ResponseEntity<Void> addFavorite(@PathVariable("mediaFileId") String mediaFileId) {
+        log.info("Adding favorite - {}", mediaFileId);
+        persistenceService.addFavorite(mediaFileId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping(path = "/{mediaFileId}/favorite")
+    public ResponseEntity<Void> removeFavorite(@PathVariable("mediaFileId") String mediaFileId) {
+        log.info("Removing favorite - {}", mediaFileId);
+        persistenceService.removeFavorite(mediaFileId);
+        return ResponseEntity.ok().build();
+    }
+
     private void handleDemoUser(MediaRequest mediaRequest) {
         if("demouser".equalsIgnoreCase(getUsername()) || "def8e370-c7e6-4fc8-9301-7a40765927db".equalsIgnoreCase(getUsername())) {
             mediaRequest.setQ("Big Buck Bunny");

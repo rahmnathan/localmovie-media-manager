@@ -22,6 +22,7 @@ public class MediaFileDto {
     private Set<MediaViewDto> mediaViews;
     private SignedUrls signedUrls;
     private boolean streamable;
+    private boolean favorite;
     private MediaFileType mediaFileType;
     private MediaDto media;
 

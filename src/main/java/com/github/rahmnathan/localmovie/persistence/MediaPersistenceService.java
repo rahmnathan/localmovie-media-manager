@@ -4,6 +4,7 @@ import com.github.rahmnathan.localmovie.data.*;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.persistence.entity.*;
 import com.github.rahmnathan.localmovie.persistence.entity.QMediaFile;
+import com.github.rahmnathan.localmovie.persistence.entity.QMediaFavorite;
 import com.github.rahmnathan.localmovie.persistence.repository.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.querydsl.core.types.OrderSpecifier;
@@ -33,6 +34,7 @@ import static com.github.rahmnathan.localmovie.data.MediaOrder.SEASONS_EPISODES;
 public class MediaPersistenceService {
     private final MediaFileEventRepository eventRepository;
     private final MediaViewRepository mediaViewRepository;
+    private final MediaFavoriteRepository mediaFavoriteRepository;
     private final MediaFileRepository fileRepository;
     private final MediaUserRepository userRepository;
     private final MediaImageRepository mediaImageRepository;
@@ -111,6 +113,9 @@ public class MediaPersistenceService {
         if (mediaRequestType == MediaRequestType.HISTORY) {
             return countHistory();
         }
+        if (mediaRequestType == MediaRequestType.FAVORITES) {
+            return countFavorites();
+        }
 
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
         QMediaFile qMediaFile = QMediaFile.mediaFile;
@@ -123,8 +128,14 @@ public class MediaPersistenceService {
     }
 
     public List<MediaFileDto> getMediaFileDtos(MediaRequest request) {
+        String username = getUsername();
         return getMediaFiles(request).stream()
-                .map(MediaFileTransformer::toMediaFileDto)
+                .map(mediaFile -> {
+                    MediaFileDto dto = MediaFileTransformer.toMediaFileDto(mediaFile);
+                    dto.setFavorite(mediaFavoriteRepository.existsByMediaFileMediaFileIdAndMediaUserUserId(
+                            mediaFile.getMediaFileId(), username));
+                    return dto;
+                })
                 .toList();
     }
 
@@ -133,6 +144,9 @@ public class MediaPersistenceService {
         MediaRequestType mediaRequestType = MediaRequestType.lookup(request.getType()).orElse(null);
         if (mediaRequestType == MediaRequestType.HISTORY) {
             return getHistory(request);
+        }
+        if (mediaRequestType == MediaRequestType.FAVORITES) {
+            return getFavorites(request);
         }
 
         JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
@@ -176,6 +190,77 @@ public class MediaPersistenceService {
         }
 
         fileRepository.save(mediaFile);
+    }
+
+    @Transactional
+    public void addFavorite(String id) {
+        Optional<MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
+        if (mediaFileOptional.isEmpty()) return;
+
+        MediaFile mediaFile = mediaFileOptional.get();
+        String userName = getUsername();
+        log.info("Adding favorite for User: {} MediaFileId: {}", userName, id);
+
+        if (!mediaFavoriteRepository.existsByMediaFileMediaFileIdAndMediaUserUserId(id, userName)) {
+            MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
+            userRepository.save(mediaUser);
+            MediaFavorite mediaFavorite = new MediaFavorite(mediaFile, mediaUser);
+            mediaFavoriteRepository.save(mediaFavorite);
+        }
+    }
+
+    @Transactional
+    public void removeFavorite(String id) {
+        String userName = getUsername();
+        log.info("Removing favorite for User: {} MediaFileId: {}", userName, id);
+        mediaFavoriteRepository.deleteByMediaFileMediaFileIdAndMediaUserUserId(id, userName);
+    }
+
+    public boolean isFavorite(String id) {
+        return mediaFavoriteRepository.existsByMediaFileMediaFileIdAndMediaUserUserId(id, getUsername());
+    }
+
+    public long countFavorites() {
+        JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
+        QMediaFile qMediaFile = QMediaFile.mediaFile;
+        QMediaFavorite qMediaFavorite = QMediaFavorite.mediaFavorite;
+
+        return jpaQuery.from(qMediaFile)
+                .innerJoin(qMediaFavorite).on(qMediaFavorite.mediaFile.eq(qMediaFile))
+                .where(qMediaFavorite.mediaUser.userId.eq(getUsername()))
+                .fetchCount();
+    }
+
+    public List<MediaFile> getFavorites(MediaRequest request) {
+        JPAQuery<MediaFile> jpaQuery = new JPAQuery<>(entityManager);
+        QMediaFile qMediaFile = QMediaFile.mediaFile;
+        QMediaFavorite qMediaFavorite = QMediaFavorite.mediaFavorite;
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(qMediaFavorite.mediaUser.userId.eq(getUsername()));
+
+        OrderSpecifier<LocalDateTime> orderSpecifier = qMediaFavorite.created.desc();
+
+        List<String> ids = jpaQuery.from(qMediaFile)
+                .innerJoin(qMediaFavorite).on(qMediaFavorite.mediaFile.eq(qMediaFile))
+                .select(qMediaFile.mediaFileId)
+                .orderBy(orderSpecifier)
+                .where(predicates.toArray(new Predicate[0]))
+                .offset((long) request.getPage() * request.getPageSize())
+                .limit(request.getPageSize())
+                .fetch();
+
+        log.info("Found {} favorite ids", ids.size());
+
+        jpaQuery = new JPAQuery<>(entityManager);
+        qMediaFile = QMediaFile.mediaFile;
+
+        return jpaQuery.from(qMediaFile)
+                .where(qMediaFile.mediaFileId.in(ids))
+                .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
+                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
+                .orderBy(qMediaFile.fileName.asc())
+                .fetch();
     }
 
     public List<MediaFileEvent> getMediaFileEvents(LocalDateTime localDateTime, Pageable pageable) {

@@ -14,7 +14,8 @@ public enum MediaRequestType {
     SERIES(MediaFileType.SERIES),
     SEASONS(MediaFileType.SEASON),
     EPISODES(MediaFileType.EPISODE),
-    HISTORY(null);
+    HISTORY(null),
+    FAVORITES(null);
 
     private final MediaFileType type;
 

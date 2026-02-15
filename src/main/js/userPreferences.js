@@ -1,39 +1,34 @@
 // LocalStorage utility for user preferences
 
 const STORAGE_KEYS = {
-    FAVORITES: 'media_favorites',
     SORT_PREFERENCE: 'media_sort_preference',
     WATCH_PROGRESS: 'media_watch_progress'
 };
 
 export const UserPreferences = {
-    // Favorites/Watchlist
-    getFavorites: () => {
+    // Favorites/Watchlist - backed by database
+    addFavorite: async (mediaId) => {
         try {
-            const favorites = localStorage.getItem(STORAGE_KEYS.FAVORITES);
-            return favorites ? JSON.parse(favorites) : [];
+            const response = await fetch(`/localmovie/v1/media/${encodeURIComponent(mediaId)}/favorite`, {
+                method: 'POST'
+            });
+            return response.ok;
         } catch (e) {
-            console.error('Error reading favorites:', e);
-            return [];
+            console.error('Error adding favorite:', e);
+            return false;
         }
     },
 
-    addFavorite: (mediaId) => {
-        const favorites = UserPreferences.getFavorites();
-        if (!favorites.includes(mediaId)) {
-            favorites.push(mediaId);
-            localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    removeFavorite: async (mediaId) => {
+        try {
+            const response = await fetch(`/localmovie/v1/media/${encodeURIComponent(mediaId)}/favorite`, {
+                method: 'DELETE'
+            });
+            return response.ok;
+        } catch (e) {
+            console.error('Error removing favorite:', e);
+            return false;
         }
-    },
-
-    removeFavorite: (mediaId) => {
-        const favorites = UserPreferences.getFavorites();
-        const updated = favorites.filter(id => id !== mediaId);
-        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(updated));
-    },
-
-    isFavorite: (mediaId) => {
-        return UserPreferences.getFavorites().includes(mediaId);
     },
 
     // Sort Preference

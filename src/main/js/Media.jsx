@@ -35,9 +35,7 @@ const MediaComponent = (props) => {
     const plot = media.plot;
     const genre = media.genre;
 
-    const [isFavorite, setIsFavorite] = useState(() =>
-        UserPreferences.isFavorite(mediaFile.mediaFileId)
-    );
+    const [isFavorite, setIsFavorite] = useState(mediaFile.favorite || false);
     const [isDetailedViewOpen, setIsDetailedViewOpen] = useState(false);
 
     const selectMedia = (mediaFile) => {
@@ -51,14 +49,17 @@ const MediaComponent = (props) => {
         }
     };
 
-    const toggleFavorite = (event) => {
+    const toggleFavorite = async (event) => {
         event.stopPropagation();
-        if (isFavorite) {
-            UserPreferences.removeFavorite(mediaFile.mediaFileId);
-            setIsFavorite(false);
-        } else {
-            UserPreferences.addFavorite(mediaFile.mediaFileId);
-            setIsFavorite(true);
+        const newFavoriteState = !isFavorite;
+        setIsFavorite(newFavoriteState); // Optimistic update
+
+        const success = newFavoriteState
+            ? await UserPreferences.addFavorite(mediaFile.mediaFileId)
+            : await UserPreferences.removeFavorite(mediaFile.mediaFileId);
+
+        if (!success) {
+            setIsFavorite(!newFavoriteState); // Revert on failure
         }
     };
 
