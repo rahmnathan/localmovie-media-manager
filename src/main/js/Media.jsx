@@ -96,6 +96,17 @@ const MediaComponent = (props) => {
         ? `Play ${title} from ${year}. Rating: ${rating || 'not rated'}`
         : `Open folder ${title}`;
 
+    // Calculate watch progress (0-100%)
+    const getWatchProgress = () => {
+        const views = mediaFile.mediaViews;
+        if (!views || views.length === 0) return null;
+        const view = views[0]; // Most recent view
+        if (!view.position || !view.duration || view.duration <= 0) return null;
+        const progress = (view.position / view.duration) * 100;
+        return progress > 1 ? Math.min(progress, 100) : null; // Only show if > 1%
+    };
+    const watchProgress = isPlayable ? getWatchProgress() : null;
+
     return (
         <div
             className="media-card"
@@ -113,20 +124,30 @@ const MediaComponent = (props) => {
             >
                 <span className="media-card__info-icon">ⓘ</span>
             </button>
-            <LazyLoadImage
-                onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
-                src={buildPosterUri(mediaFile.mediaFileId)}
-                alt={`${title} (${year}) poster`}
-                className="media-card__poster"
-                scrollPosition={props.scrollPosition}
-                effect="opacity"
-                threshold={100}
-                placeholder={
-                    <div className="media-card__poster" style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                    }} />
-                }
-            />
+            <div className="media-card__poster-container">
+                <LazyLoadImage
+                    onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
+                    src={buildPosterUri(mediaFile.mediaFileId)}
+                    alt={`${title} (${year}) poster`}
+                    className="media-card__poster"
+                    scrollPosition={props.scrollPosition}
+                    effect="opacity"
+                    threshold={100}
+                    placeholder={
+                        <div className="media-card__poster" style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                        }} />
+                    }
+                />
+                {watchProgress && (
+                    <div className="media-card__progress-bar">
+                        <div
+                            className="media-card__progress-fill"
+                            style={{ width: `${watchProgress}%` }}
+                        />
+                    </div>
+                )}
+            </div>
             <div className="media-card__description">
                 <h3 className="media-card__title">{title}</h3>
                 <p className="media-card__year">{year}</p>

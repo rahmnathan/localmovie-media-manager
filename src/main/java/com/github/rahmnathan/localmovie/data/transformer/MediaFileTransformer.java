@@ -48,6 +48,7 @@ public class MediaFileTransformer {
 
             mediaViewDto.id(mediaView.getId());
             mediaViewDto.position(mediaView.getPosition());
+            mediaViewDto.duration(mediaView.getDuration());
             mediaViewDto.created(mediaView.getCreated());
             mediaViewDto.updated(mediaView.getUpdated());
 

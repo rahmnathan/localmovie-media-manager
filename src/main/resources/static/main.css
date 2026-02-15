@@ -28,6 +28,85 @@
     --transition-normal: 0.3s ease;
 }
 
+/* Next Episode Overlay */
+.next-episode-overlay {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.next-episode-card {
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-width: 280px;
+    max-width: 350px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.next-episode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.next-episode-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.next-episode-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.next-episode-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.next-episode-title {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.next-episode-countdown {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.next-episode-play-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.next-episode-play-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.02);
+}
+
 body {
     background-color: var(--bg-primary);
     font-family: 'Arial', "OpenSans", "Verdana", Georgia, Serif, serif;
@@ -115,11 +194,31 @@ body {
     outline-offset: 2px;
 }
 
+.media-card__poster-container {
+    position: relative;
+    width: 100%;
+}
+
 .media-card__poster {
     width: 100%;
     height: 280px;
     object-fit: cover;
     display: block;
+}
+
+.media-card__progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.media-card__progress-fill {
+    height: 100%;
+    background: #e50914; /* Netflix-style red */
+    transition: width 0.3s ease;
 }
 
 .media-card__description {

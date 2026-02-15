@@ -169,17 +169,17 @@ public class MediaPersistenceService {
     }
 
     @Transactional
-    public void addView(String id, Double position) {
+    public void addView(String id, Double position, Double duration) {
 
         Optional<MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
         if(mediaFileOptional.isEmpty()) return;
 
         MediaFile mediaFile = mediaFileOptional.get();
         String userName = getUsername();
-        log.info("Adding view for User: {} Path: {} Position: {}", userName, mediaFile.getPath(), position);
+        log.info("Adding view for User: {} Path: {} Position: {} Duration: {}", userName, mediaFile.getPath(), position, duration);
         if(mediaFile.getMediaViews().isEmpty()){
             MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
-            MediaView mediaView = new MediaView(mediaFile, mediaUser, position);
+            MediaView mediaView = new MediaView(mediaFile, mediaUser, position, duration);
             mediaFile.addMediaView(mediaView);
             mediaUser.addMediaView(mediaView);
             userRepository.save(mediaUser);
@@ -187,6 +187,9 @@ public class MediaPersistenceService {
         } else {
             MediaView mediaView = mediaFile.getMediaViews().iterator().next();
             mediaView.setPosition(position);
+            if (duration != null && duration > 0) {
+                mediaView.setDuration(duration);
+            }
         }
 
         fileRepository.save(mediaFile);

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import ReactPlayer from 'react-player';
 import Cookies from 'universal-cookie';
 import { trackPromise } from 'react-promise-tracker';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 const cookies = new Cookies();
@@ -60,6 +60,14 @@ export function VideoPlayer() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [castError, setCastError] = useState(null);
+    const navigate = useNavigate();
+
+    // Next episode auto-play state
+    const [nextEpisode, setNextEpisode] = useState(null);
+    const [showNextEpisodeOverlay, setShowNextEpisodeOverlay] = useState(false);
+    const [countdown, setCountdown] = useState(10);
+    const countdownRef = useRef(null);
+    const playerRef = useRef(null);
 
 
     useEffect(() => {
@@ -193,6 +201,54 @@ export function VideoPlayer() {
         }
     }, [shouldResume, mediaFile, signedUrls]);
 
+    // Fetch next episode if current media is an episode
+    useEffect(() => {
+        if (!mediaFile) return;
+
+        const mediaType = mediaFile.media?.mediaType;
+        const episodeNumber = mediaFile.media?.number;
+
+        // Only fetch next episode if this is an episode
+        if (mediaType !== 'EPISODE' || !episodeNumber) {
+            setNextEpisode(null);
+            return;
+        }
+
+        // Get the parent (season) to find the next episode
+        const parentId = mediaFile.parent?.mediaFileId;
+        if (!parentId) return;
+
+        // Fetch episodes in this season
+        fetch('/localmovie/v1/media', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                parentId: parentId,
+                page: 0,
+                pageSize: 100,
+                order: 'title',
+                client: 'WEBAPP'
+            })
+        })
+        .then(response => response.json())
+        .then(episodes => {
+            // Find the current episode index and get the next one
+            const currentIndex = episodes.findIndex(ep => ep.mediaFileId === mediaId);
+            if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
+                setNextEpisode(episodes[currentIndex + 1]);
+            } else {
+                setNextEpisode(null);
+            }
+        })
+        .catch(err => {
+            console.error('Failed to fetch next episode:', err);
+            setNextEpisode(null);
+        });
+    }, [mediaFile, mediaId]);
+
     // Auto-play media when casting session starts
     useEffect(() => {
         if (!isCasting || !mediaFile || !url || !signedUrls) return;
@@ -214,9 +270,13 @@ export function VideoPlayer() {
         cookies.set(`progress-${mediaId}`, content.playedSeconds, { sameSite: 'strict' });
 
         if (content.playedSeconds > 0) {
-            fetch(
-                `${signedUrls.updatePosition.split('?')[0]}/${content.playedSeconds}?${signedUrls.updatePosition.split('?')[1]}`,
-                {
+            // Build URL with duration parameter if available
+            const baseUrl = signedUrls.updatePosition.split('?')[0];
+            const queryParams = signedUrls.updatePosition.split('?')[1] || '';
+            const durationParam = duration > 0 ? `&duration=${Math.round(duration * 1000)}` : '';
+            const url = `${baseUrl}/${content.playedSeconds}?${queryParams}${durationParam}`;
+
+            fetch(url, {
                     method: 'PATCH',
                     headers: {
                         'Accept': 'application/json',
@@ -298,16 +358,72 @@ export function VideoPlayer() {
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
+    // Start countdown when video ends and there's a next episode
+    const onVideoEnded = useCallback(() => {
+        if (!nextEpisode) return;
+
+        setShowNextEpisodeOverlay(true);
+        setCountdown(10);
+
+        // Clear any existing countdown
+        if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+        }
+
+        countdownRef.current = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    clearInterval(countdownRef.current);
+                    playNextEpisode();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    }, [nextEpisode]);
+
+    const playNextEpisode = useCallback(() => {
+        if (!nextEpisode) return;
+
+        // Clear countdown
+        if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+        }
+        setShowNextEpisodeOverlay(false);
+
+        // Navigate to next episode
+        navigate(`/play/${nextEpisode.mediaFileId}`);
+    }, [nextEpisode, navigate]);
+
+    const cancelNextEpisode = useCallback(() => {
+        if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+        }
+        setShowNextEpisodeOverlay(false);
+    }, []);
+
+    // Cleanup countdown on unmount
+    useEffect(() => {
+        return () => {
+            if (countdownRef.current) {
+                clearInterval(countdownRef.current);
+            }
+        };
+    }, []);
+
     if (mediaFile && signedUrls && url) {
         return (
             <div style={videoPlayerStyle}>
                 {!isCasting && (
                     <ReactPlayer
+                        ref={playerRef}
                         url={url}
                         controls
                         width="100%"
                         height="100%"
                         onProgress={saveProgress}
+                        onEnded={onVideoEnded}
+                        onDuration={(d) => setDuration(d)}
                         config={{
                             file: {
                                 tracks: signedUrls?.subtitle ? [
@@ -322,6 +438,28 @@ export function VideoPlayer() {
                             }
                         }}
                     />
+                )}
+
+                {/* Next Episode Overlay */}
+                {showNextEpisodeOverlay && nextEpisode && (
+                    <div className="next-episode-overlay">
+                        <div className="next-episode-card">
+                            <div className="next-episode-header">
+                                <span className="next-episode-label">Up Next</span>
+                                <button className="next-episode-close" onClick={cancelNextEpisode}>✕</button>
+                            </div>
+                            <div className="next-episode-title">
+                                {nextEpisode.media?.number ? `E${nextEpisode.media.number} - ` : ''}
+                                {nextEpisode.media?.title || nextEpisode.fileName}
+                            </div>
+                            <div className="next-episode-countdown">
+                                Playing in {countdown}...
+                            </div>
+                            <button className="next-episode-play-btn" onClick={playNextEpisode}>
+                                Play Now
+                            </button>
+                        </div>
+                    </div>
                 )}
 
                 {isCasting && (

@@ -22,6 +22,7 @@ public class MediaView implements Serializable {
     private Long id;
 
     private Double position;
+    private Double duration;
 
     @ManyToOne(fetch = FetchType.EAGER)
     private MediaFile mediaFile;
@@ -34,10 +35,11 @@ public class MediaView implements Serializable {
     @Version
     private Long version;
 
-    public MediaView(MediaFile mediaFile, MediaUser mediaUser, Double position) {
+    public MediaView(MediaFile mediaFile, MediaUser mediaUser, Double position, Double duration) {
         this.mediaFile = mediaFile;
         this.mediaUser = mediaUser;
         this.position = position;
+        this.duration = duration;
     }
 
     @PrePersist

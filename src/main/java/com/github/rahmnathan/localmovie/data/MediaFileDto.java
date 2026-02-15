@@ -51,6 +51,7 @@ public class MediaFileDto {
     public static class MediaViewDto {
         private Long id;
         private Double position;
+        private Double duration;
         private MediaUserDto mediaUser;
         private LocalDateTime created;
         private LocalDateTime updated;
