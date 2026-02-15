@@ -4,7 +4,9 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +17,11 @@ public class OpenSubtitlesConfig {
 
     @Bean
     public Client jaxrsClient() {
-        return ClientBuilder.newBuilder()
+        ApacheHttpClient43Engine engine = new ApacheHttpClient43Engine();
+        engine.setFollowRedirects(true);
+
+        return ((ResteasyClientBuilder) ClientBuilder.newBuilder())
+                .httpEngine(engine)
                 .register(new UserAgentFilter())
                 .build();
     }
