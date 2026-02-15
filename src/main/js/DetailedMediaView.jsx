@@ -6,7 +6,7 @@ import { buildPosterUri } from './Media.jsx';
 const MOVIE_DIRECTORY_DEPTH = 2;
 const SERIES_EPISODE_DEPTH = 4;
 
-export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia }) => {
+export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite }) => {
     if (!mediaFile) return null;
 
     const media = mediaFile.media;
@@ -70,12 +70,26 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia }) => 
                     </div>
 
                     <div className="detailed-media-info">
-                        <DialogTitle className="detailed-media-title">
-                            {title}
-                            {episodeNumber && mediaType === 'EPISODE' && (
-                                <span className="detailed-media-episode"> (Episode {episodeNumber})</span>
+                        <div className="detailed-media-title-row">
+                            <DialogTitle className="detailed-media-title">
+                                {title}
+                                {episodeNumber && mediaType === 'EPISODE' && (
+                                    <span className="detailed-media-episode"> (Episode {episodeNumber})</span>
+                                )}
+                            </DialogTitle>
+                            {onToggleFavorite && (
+                                <button
+                                    className="detailed-media-favorite-btn"
+                                    onClick={onToggleFavorite}
+                                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                    title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                >
+                                    <span className={`detailed-media-favorite-icon ${isFavorite ? 'detailed-media-favorite-icon--active' : ''}`}>
+                                        ♥
+                                    </span>
+                                </button>
                             )}
-                        </DialogTitle>
+                        </div>
 
                         <div className="detailed-media-metadata">
                             {year && (

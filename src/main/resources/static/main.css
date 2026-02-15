@@ -299,12 +299,45 @@ body {
     min-width: 0;
 }
 
+.detailed-media-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .detailed-media-title {
     font-size: 32px;
     font-weight: bold;
     color: var(--text-primary);
     margin: 0 0 8px 0;
     line-height: 1.2;
+    flex: 1;
+}
+
+.detailed-media-favorite-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s, transform 0.2s;
+    flex-shrink: 0;
+}
+
+.detailed-media-favorite-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.detailed-media-favorite-icon {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.2s;
+}
+
+.detailed-media-favorite-icon--active {
+    color: #e91e63;
 }
 
 .detailed-media-episode {

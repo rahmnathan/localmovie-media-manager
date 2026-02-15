@@ -104,20 +104,6 @@ const MediaComponent = (props) => {
             aria-label={ariaLabel}
         >
             <button
-                className="media-card__favorite-btn"
-                onClick={toggleFavorite}
-                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-                <span
-                    className={`media-card__favorite-icon ${
-                        isFavorite ? 'media-card__favorite-icon--active' : 'media-card__favorite-icon--inactive'
-                    }`}
-                >
-                    ♥
-                </span>
-            </button>
-            <button
                 className="media-card__info-btn"
                 onClick={openDetailedView}
                 aria-label="View details"
@@ -154,6 +140,8 @@ const MediaComponent = (props) => {
                 isOpen={isDetailedViewOpen}
                 onClose={() => setIsDetailedViewOpen(false)}
                 playMedia={props.playMedia}
+                isFavorite={isFavorite}
+                onToggleFavorite={toggleFavorite}
             />
         </div>
     );
