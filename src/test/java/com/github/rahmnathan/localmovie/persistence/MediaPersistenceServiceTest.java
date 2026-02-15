@@ -112,7 +112,7 @@ class MediaPersistenceServiceTest {
         String mediaFileId = mediaFileOpt.get().getMediaFileId();
 
         // Add view with position
-        mediaPersistenceService.addView(mediaFileId, 45.5);
+        mediaPersistenceService.addView(mediaFileId, 45.5, 1000.0);
 
         // Verify view was added (would need to query to verify, but we test it doesn't throw)
         assertNotNull(mediaFileId);
@@ -121,7 +121,7 @@ class MediaPersistenceServiceTest {
     @Test
     void testAddViewWithNonExistentMediaDoesNotThrow() {
         // Should not throw exception
-        mediaPersistenceService.addView("non-existent-id", 10.0);
+        mediaPersistenceService.addView("non-existent-id", 10.0, 1000.0);
     }
 
     @Test
