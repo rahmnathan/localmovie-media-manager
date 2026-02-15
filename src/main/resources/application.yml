@@ -21,14 +21,16 @@ service:
   omdb:
     apiKey: ""
     enabled: true
+  opensubtitles:
+    enabled: false
   repository:
-    enabled: true
+    enabled: false
     updateFrequency:
       unit: SECONDS
       value: 30
     updateLimit: 201
   conversion-service:
-    enabled: true
+    enabled: false
 
 spring:
 #  output:
