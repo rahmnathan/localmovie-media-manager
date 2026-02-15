@@ -59,8 +59,12 @@ public class MediaService {
 
         Media parentInfoClone = loadMedia(path.getSeriesPath()).cloneToPojo();
 
-        parentInfoClone.setNumber(path.getMediaType() == MediaType.EPISODE ? path.getEpisodeNumber() : path.getSeasonNumber());
-        parentInfoClone.setTitle(parentInfoClone.getTitle());
+        if (path.getMediaType() == MediaType.SEASON) {
+            parentInfoClone.setNumber(path.getSeasonNumber());
+            parentInfoClone.setTitle("Season " + path.getSeasonNumber());
+        } else {
+            parentInfoClone.setNumber(path.getEpisodeNumber());
+        }
         parentInfoClone.setMediaType(path.getMediaType());
 
         return parentInfoClone;
