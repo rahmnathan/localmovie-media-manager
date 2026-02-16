@@ -5,6 +5,7 @@ import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.OpenSubtitl
 import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.OpenSubtitlesAuthManager;
 import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.model.OpenSubtitlesDownloadResponse;
 import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.model.OpenSubtitlesSearchResponse;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
@@ -258,6 +259,64 @@ class SubtitleProviderTest {
     void refreshQuota_delegatesToAuthManager() {
         subtitleProvider.refreshQuota();
         verify(authManager).refreshQuota();
+    }
+
+    @Test
+    void fetchSubtitle_when406Error_setsRemainingToZeroAndThrowsQuotaExceeded() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+        when(openSubtitlesConfig.getApiKey()).thenReturn("test-api-key");
+        when(authManager.hasDownloadsRemaining()).thenReturn(true);
+        when(authManager.getToken()).thenReturn("test-token");
+
+        OpenSubtitlesSearchResponse searchResponse = createSearchResponse();
+        when(openSubtitlesApi.search(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(searchResponse);
+
+        // Simulate 406 Not Acceptable response
+        Response mockResponse = mock(Response.class);
+        when(mockResponse.getStatus()).thenReturn(406);
+        Response.StatusType statusType = mock(Response.StatusType.class);
+        when(statusType.getStatusCode()).thenReturn(406);
+        when(statusType.getReasonPhrase()).thenReturn("Not Acceptable");
+        when(mockResponse.getStatusInfo()).thenReturn(statusType);
+        WebApplicationException webException = new WebApplicationException(mockResponse);
+        when(openSubtitlesApi.download(anyString(), anyString(), any()))
+                .thenThrow(webException);
+
+        assertThrows(DownloadQuotaExceededException.class,
+                () -> subtitleProvider.fetchSubtitle("tt1234567"));
+
+        // Verify that remaining downloads was set to 0
+        verify(authManager).updateRemainingDownloads(0);
+    }
+
+    @Test
+    void fetchSubtitle_whenNon406Error_propagatesException() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+        when(openSubtitlesConfig.getApiKey()).thenReturn("test-api-key");
+        when(authManager.hasDownloadsRemaining()).thenReturn(true);
+        when(authManager.getToken()).thenReturn("test-token");
+
+        OpenSubtitlesSearchResponse searchResponse = createSearchResponse();
+        when(openSubtitlesApi.search(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(searchResponse);
+
+        // Simulate 500 Internal Server Error
+        Response mockResponse = mock(Response.class);
+        when(mockResponse.getStatus()).thenReturn(500);
+        Response.StatusType statusType = mock(Response.StatusType.class);
+        when(statusType.getStatusCode()).thenReturn(500);
+        when(statusType.getReasonPhrase()).thenReturn("Internal Server Error");
+        when(mockResponse.getStatusInfo()).thenReturn(statusType);
+        WebApplicationException webException = new WebApplicationException(mockResponse);
+        when(openSubtitlesApi.download(anyString(), anyString(), any()))
+                .thenThrow(webException);
+
+        assertThrows(WebApplicationException.class,
+                () -> subtitleProvider.fetchSubtitle("tt1234567"));
+
+        // Verify that remaining downloads was NOT set to 0 for non-406 errors
+        verify(authManager, never()).updateRemainingDownloads(anyInt());
     }
 
     private OpenSubtitlesSearchResponse createSearchResponse() {

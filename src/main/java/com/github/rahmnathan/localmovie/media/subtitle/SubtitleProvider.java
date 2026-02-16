@@ -5,6 +5,7 @@ import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.*;
 import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.model.OpenSubtitlesDownloadRequest;
 import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.model.OpenSubtitlesDownloadResponse;
 import com.github.rahmnathan.localmovie.media.subtitle.opensubtitles.model.OpenSubtitlesSearchResponse;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public class SubtitleProvider {
     }
 
     private Optional<SubtitleResult> downloadSubtitle(OpenSubtitlesSearchResponse.SubtitleData subtitle,
-                                                       String imdbId, String token) {
+                                                       String imdbId, String token) throws DownloadQuotaExceededException {
         int fileId = subtitle.getAttributes().getFiles().getFirst().getFileId();
         String subtitleId = subtitle.getAttributes().getSubtitleId();
 
@@ -105,10 +106,22 @@ public class SubtitleProvider {
                 .subFormat(VTT_FORMAT)
                 .build();
 
-        OpenSubtitlesDownloadResponse downloadResponse = openSubtitlesApi.download(
-                getApiKey(),
-                "Bearer " + token,
-                downloadRequest);
+        OpenSubtitlesDownloadResponse downloadResponse;
+        try {
+            downloadResponse = openSubtitlesApi.download(
+                    getApiKey(),
+                    "Bearer " + token,
+                    downloadRequest);
+        } catch (WebApplicationException e) {
+            int status = e.getResponse().getStatus();
+            if (status == 406) {
+                // 406 indicates quota exceeded - set remaining to 0 to stop subsequent requests
+                logger.warn("OpenSubtitles returned 406 Not Acceptable (quota exceeded) for subtitle: {}", subtitleId);
+                authManager.updateRemainingDownloads(0);
+                throw new DownloadQuotaExceededException();
+            }
+            throw e;
+        }
 
         if (downloadResponse == null || downloadResponse.getLink() == null) {
             logger.warn("Failed to get download link for subtitle: {}", subtitleId);

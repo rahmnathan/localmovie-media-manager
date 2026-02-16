@@ -27,7 +27,7 @@ public interface OpenSubtitlesApi {
     @POST
     @Path("/download")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.WILDCARD)  // OpenSubtitles requires Accept: */* for download endpoint
     OpenSubtitlesDownloadResponse download(
             @HeaderParam("Api-Key") String apiKey,
             @HeaderParam("Authorization") String bearerToken,
