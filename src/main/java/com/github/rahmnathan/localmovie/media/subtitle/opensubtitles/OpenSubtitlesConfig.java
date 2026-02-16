@@ -36,6 +36,10 @@ public class OpenSubtitlesConfig {
         @Override
         public void filter(ClientRequestContext requestContext) {
             requestContext.getHeaders().putSingle("User-Agent", USER_AGENT);
+            // Explicitly set Accept header - OpenSubtitles API requires this
+            if (!requestContext.getHeaders().containsKey("Accept")) {
+                requestContext.getHeaders().putSingle("Accept", "application/json");
+            }
         }
     }
 }
