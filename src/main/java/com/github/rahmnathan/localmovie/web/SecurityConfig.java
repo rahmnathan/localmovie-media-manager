@@ -8,6 +8,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -23,6 +24,11 @@ class SecurityConfig {
         resolver.setAllowUriQueryParameter(true);
         resolver.setAllowFormEncodedBodyParameter(true);
 
+        // Configure JWT to use preferred_username as the principal name
+        // This ensures consistency between OAuth2 login (webapp) and JWT bearer tokens (Android)
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setPrincipalClaimName("preferred_username");
+
         http.authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/signed/media/**")
                                 .permitAll()
@@ -31,7 +37,7 @@ class SecurityConfig {
                                 .anyRequest()
                                 .authenticated())
                 .oauth2ResourceServer(oauth2 -> {
-                    oauth2.jwt(Customizer.withDefaults());
+                    oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter));
                     oauth2.bearerTokenResolver(resolver);
                 })
                 .oauth2Login(Customizer.withDefaults())

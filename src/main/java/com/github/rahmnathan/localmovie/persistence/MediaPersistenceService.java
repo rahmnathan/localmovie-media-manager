@@ -333,7 +333,9 @@ public class MediaPersistenceService {
     private String getUsername(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication != null){
-            return authentication.getName();
+            String name = authentication.getName();
+            log.debug("Authentication principal: {}, name: {}", authentication.getPrincipal(), name);
+            return name;
         }
 
         return "movieuser";
