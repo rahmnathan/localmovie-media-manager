@@ -301,9 +301,13 @@ public class MediaPersistenceService {
     }
 
     private List<MediaFile> executeQuery(MediaRequest request, JPAQuery<MediaFile> jpaQuery, QMediaFile qMediaFile, List<Predicate> predicates, OrderSpecifier<?> orderSpecifier) {
+        // Secondary sort by mediaFileId ensures deterministic ordering for pagination
+        // (prevents duplicates when primary sort has ties, e.g., same rating/year)
+        OrderSpecifier<String> secondaryOrder = qMediaFile.mediaFileId.asc();
+
         List<String> ids = jpaQuery.from(qMediaFile)
                 .select(qMediaFile.mediaFileId)
-                .orderBy(orderSpecifier)
+                .orderBy(orderSpecifier, secondaryOrder)
                 .where(predicates.toArray(new Predicate[0]))
                 .offset((long) request.getPage() * request.getPageSize())
                 .limit(request.getPageSize())
@@ -322,7 +326,7 @@ public class MediaPersistenceService {
                 .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.parent).fetchJoin()
-                .orderBy(orderSpecifier)
+                .orderBy(orderSpecifier, secondaryOrder)
                 .fetch();
     }
 
