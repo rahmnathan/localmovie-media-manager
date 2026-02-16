@@ -91,7 +91,8 @@ const formatDuration = (millis) => {
 };
 
 /**
- * Get the resume position from mediaViews.
+ * Get the resume position from mediaViews in milliseconds.
+ * Position is stored in seconds, so we convert to milliseconds for display.
  */
 const getResumePosition = (mediaFile) => {
     const views = mediaFile.mediaViews;
@@ -100,7 +101,7 @@ const getResumePosition = (mediaFile) => {
     // Get the most recent view with position > 0
     const view = views[0];
     if (view && view.position > 0) {
-        return view.position;
+        return view.position * 1000;  // Convert seconds to milliseconds
     }
     return null;
 };
