@@ -20,6 +20,7 @@ const groupHistoryItems = (mediaList) => {
                 groups.set(seriesInfo.seriesId, {
                     id: seriesInfo.seriesId,
                     title: seriesInfo.seriesTitle,
+                    posterId: seriesInfo.seriesId, // Use series ID for poster
                     isSeries: true,
                     mostRecentEpisode: mediaFile,
                     seasonNumber: seriesInfo.seasonNumber,
@@ -33,6 +34,7 @@ const groupHistoryItems = (mediaList) => {
             groups.set(mediaFile.mediaFileId, {
                 id: mediaFile.mediaFileId,
                 title: mediaFile.media?.title || mediaFile.fileName,
+                posterId: mediaFile.mediaFileId,
                 isSeries: false,
                 movie: mediaFile
             });
@@ -147,7 +149,7 @@ const HistoryCard = ({ group, playMedia }) => {
             <div className="history-card__poster">
                 <LazyLoadImage
                     onError={(e) => { e.target.onerror = null; e.target.src = "noPicture.gif"; }}
-                    src={buildPosterUri(mediaFile.mediaFileId)}
+                    src={buildPosterUri(group.posterId)}
                     alt={`${group.title} poster`}
                     effect="opacity"
                     threshold={100}

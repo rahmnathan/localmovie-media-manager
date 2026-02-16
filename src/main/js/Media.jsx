@@ -88,6 +88,30 @@ const MediaComponent = (props) => {
         title = media.title;
     }
 
+    // Build parent context (series/season info) for episodes and seasons
+    const getParentContext = () => {
+        const parent = mediaFile.parent;
+        if (!parent) return null;
+
+        // For episodes: show "Series Name · S1"
+        if (parent.mediaFileType === 'SEASON') {
+            const season = parent;
+            const series = season.parent;
+            const parts = [];
+            if (series?.title) parts.push(series.title);
+            if (season.number) parts.push(`S${season.number}`);
+            return parts.length > 0 ? parts.join(' · ') : null;
+        }
+
+        // For seasons: show "Series Name"
+        if (parent.mediaFileType === 'SERIES') {
+            return parent.title || null;
+        }
+
+        return null;
+    };
+    const parentContext = getParentContext();
+
     const year = media.releaseYear || 0;
     const rating = media.imdbRating || '';
 
@@ -133,11 +157,6 @@ const MediaComponent = (props) => {
                     scrollPosition={props.scrollPosition}
                     effect="opacity"
                     threshold={100}
-                    placeholder={
-                        <div className="media-card__poster" style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                        }} />
-                    }
                 />
                 {watchProgress && (
                     <div className="media-card__progress-bar">
@@ -149,14 +168,19 @@ const MediaComponent = (props) => {
                 )}
             </div>
             <div className="media-card__description">
+                {parentContext && (
+                    <p className="media-card__parent-context">{parentContext}</p>
+                )}
                 <h3 className="media-card__title">{title}</h3>
-                <p className="media-card__year">{year}</p>
-                <div className="media-card__rating-container">
-                    <img src={'imdb.png'} alt={'IMDB logo'} className="media-card__imdb-icon"/>
-                    <span className="media-card__rating">{rating}</span>
+                <div className="media-card__meta">
+                    {year > 0 && <span className="media-card__year">{year}</span>}
+                    {rating && (
+                        <span className="media-card__rating">
+                            <img src={'imdb.png'} alt={'IMDB'} className="media-card__imdb-icon"/>
+                            {rating}
+                        </span>
+                    )}
                 </div>
-                <p className="media-card__text">{genre}</p>
-                <p className="media-card__plot">{plot}</p>
             </div>
             <DetailedMediaView
                 mediaFile={mediaFile}
