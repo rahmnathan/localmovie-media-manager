@@ -4,48 +4,9 @@ import Cookies from 'universal-cookie';
 import { trackPromise } from 'react-promise-tracker';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { getAutoplayEnabled } from './ControlBar.jsx';
 
 const cookies = new Cookies();
-
-const backgroundTintStyle = {
-    zIndex: -1,
-    height: '100%',
-    width: '100%',
-    position: 'fixed',
-    overflow: 'auto',
-    top: 0,
-    left: 0,
-    background: 'rgba(0, 0, 0, 0.7)'
-};
-
-const videoPlayerStyle = {
-    position: 'absolute',
-    width: '95%',
-    height: '95%',
-    maxWidth: '1200px',
-    maxHeight: '90vh',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    textAlign: 'center'
-};
-
-const dialogStyle = {
-    position: 'absolute',
-    width: '90%',
-    height: 'auto',
-    maxWidth: '600px',
-    maxHeight: '90vh',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    textAlign: 'center',
-    background: 'rgba(0, 0, 0, 0.7)',
-    color: 'rgb(220,220,220)',
-    padding: '1rem',
-    borderRadius: '8px',
-    overflow: 'auto'
-};
 
 export function VideoPlayer() {
     const [mediaFile, setMediaFile] = useState(null);
@@ -362,6 +323,9 @@ export function VideoPlayer() {
     const onVideoEnded = useCallback(() => {
         if (!nextEpisode) return;
 
+        // Check if auto-play is enabled
+        if (!getAutoplayEnabled()) return;
+
         setShowNextEpisodeOverlay(true);
         setCountdown(10);
 
@@ -413,7 +377,7 @@ export function VideoPlayer() {
 
     if (mediaFile && signedUrls && url) {
         return (
-            <div style={videoPlayerStyle}>
+            <div className="video-player">
                 {!isCasting && (
                     <ReactPlayer
                         ref={playerRef}
@@ -463,16 +427,20 @@ export function VideoPlayer() {
                 )}
 
                 {isCasting && (
-                    <Dialog open={isCasting} onClose={() => {}} style={dialogStyle}>
-                        <DialogPanel>
-                            <DialogTitle>{mediaFile.media.title}</DialogTitle>
+                    <Dialog open={isCasting} onClose={() => {}} className="cast-dialog">
+                        <DialogPanel className="cast-dialog__panel">
+                            <DialogTitle className="cast-dialog__title">{mediaFile.media.title}</DialogTitle>
                             {castError && (
-                                <div style={{ color: '#ff6b6b', marginBottom: '1rem' }}>
+                                <div className="cast-dialog__error">
                                     Error: {castError}
                                 </div>
                             )}
-                            <p>Playing on {remotePlayer?.deviceFriendlyName || 'Chromecast device'}...</p>
-                            <img src={`${window.location.origin}${signedUrls.poster}`} alt="" style={{ maxWidth: '100%', height: 'auto' }} />
+                            <p className="cast-dialog__device">Playing on {remotePlayer?.deviceFriendlyName || 'Chromecast device'}</p>
+                            <img
+                                src={`${window.location.origin}${signedUrls.poster}`}
+                                alt=""
+                                className="cast-dialog__poster"
+                            />
                             {/* Seek bar */}
                             <input
                                 type="range"
@@ -480,7 +448,7 @@ export function VideoPlayer() {
                                 max={duration || 0}
                                 value={currentTime || 0}
                                 step="1"
-                                style={{ width: '80%', margin: '1rem 0' }}
+                                className="cast-dialog__seek"
                                 onChange={(e) => {
                                     const seekTo = Number(e.target.value);
                                     if (remotePlayer && remotePlayerController) {
@@ -492,20 +460,24 @@ export function VideoPlayer() {
                             />
 
                             {/* Time display */}
-                            <div>
+                            <div className="cast-dialog__time">
                                 {formatTime(currentTime)} / {formatTime(duration)}
                             </div>
 
                             {/* Controls */}
-                            <div style={{ marginTop: '0.5rem' }}>
-                                <button onClick={() => {
-                                    if (remotePlayerController) {
-                                        remotePlayerController.playOrPause();
-                                    }
-                                }}>
-                                    {remotePlayer?.isPaused ? 'Resume' : 'Pause'}
+                            <div className="cast-dialog__controls">
+                                <button
+                                    className="cast-dialog__btn cast-dialog__btn--primary"
+                                    onClick={() => {
+                                        if (remotePlayerController) {
+                                            remotePlayerController.playOrPause();
+                                        }
+                                    }}
+                                >
+                                    {remotePlayer?.isPaused ? '▶ Resume' : '⏸ Pause'}
                                 </button>
                                 <button
+                                    className="cast-dialog__btn cast-dialog__btn--stop"
                                     onClick={() =>
                                         window.cast.framework.CastContext.getInstance().endCurrentSession(true)
                                     }
@@ -516,7 +488,7 @@ export function VideoPlayer() {
                         </DialogPanel>
                     </Dialog>
                 )}
-                <div style={backgroundTintStyle}/>
+                <div className="video-player__backdrop"/>
             </div>
         );
     }

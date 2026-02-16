@@ -1,27 +1,29 @@
 import { usePromiseTracker } from "react-promise-tracker";
-import Loader, {ColorRing} from 'react-loader-spinner';
+import { ColorRing } from 'react-loader-spinner';
 import React from "react";
 
-export const LoadingIndicator = props => {
+export const LoadingIndicator = ({ loadedCount, totalCount }) => {
     const { promiseInProgress } = usePromiseTracker();
 
-    return promiseInProgress === true ? (
-        <div
-          style={{
-            width: "100%",
-                height: "100",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center"
-              }}>
+    if (!promiseInProgress) return null;
+
+    const showProgress = totalCount > 0 && loadedCount > 0;
+
+    return (
+        <div className="loading-indicator" role="status" aria-live="polite">
             <ColorRing
                 visible={true}
-                height="80"
-                width="80"
-                ariaLabel="blocks-loading"
-                wrapperStyle={{}}
-                wrapperClass="blocks-wrapper"
-                colors={['#b81d2a', '#981b39', '#620616', '#480408', '#860419']}
+                height="60"
+                width="60"
+                ariaLabel="Loading content"
+                wrapperClass="loading-indicator__spinner"
+                colors={['#667eea', '#764ba2', '#667eea', '#764ba2', '#667eea']}
             />
-        </div>) : null;
+            {showProgress && (
+                <p className="loading-indicator__text">
+                    Loading... {loadedCount} of {totalCount}
+                </p>
+            )}
+        </div>
+    );
 };

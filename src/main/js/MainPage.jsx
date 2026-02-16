@@ -54,6 +54,26 @@ export function MainPage() {
     const [error, setError] = useState(null);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+    // Parse error to provide user-friendly message
+    const getErrorMessage = (error, status) => {
+        if (!navigator.onLine) {
+            return { title: 'No Internet Connection', message: 'Please check your network and try again.' };
+        }
+        if (status === 401 || status === 403) {
+            return { title: 'Authentication Error', message: 'Your session may have expired. Please refresh the page.' };
+        }
+        if (status === 404) {
+            return { title: 'Not Found', message: 'The requested content could not be found.' };
+        }
+        if (status >= 500) {
+            return { title: 'Server Error', message: 'The server is temporarily unavailable. Please try again later.' };
+        }
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            return { title: 'Connection Failed', message: 'Unable to reach the server. Please check your connection.' };
+        }
+        return { title: 'Something Went Wrong', message: 'Failed to load media. Please try again.' };
+    };
+
     const fetchMedia = useCallback((append = false, stateToUse = navigationState) => {
         setError(null);
         trackPromise(
@@ -67,7 +87,9 @@ export function MainPage() {
             })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        const err = new Error(`HTTP error! status: ${response.status}`);
+                        err.status = response.status;
+                        throw err;
                     }
                     if(stateToUse.page === 0) {
                         setTotalCount(parseInt(response.headers.get("Count")))
@@ -80,7 +102,7 @@ export function MainPage() {
                 })
                 .catch(error => {
                     console.error('Failed to fetch media:', error);
-                    setError('Failed to load media. Please try again.');
+                    setError(getErrorMessage(error, error.status));
                     setIsInitialLoad(false);
                 })
         );
@@ -250,15 +272,40 @@ export function MainPage() {
         !isHistoryView &&
         navigationState.type?.toUpperCase() !== FAVORITES_TYPE;
 
+    // Check if any filters are active
+    const hasActiveFilters = navigationState.q || (navigationState.genre && navigationState.genre !== 'all');
+
+    // Clear all filters
+    const clearFilters = useCallback(() => {
+        search(navigationState.order, '', '', navigationState.type, navigationState.parentId);
+    }, [search, navigationState.order, navigationState.type, navigationState.parentId]);
+
     return (
         <div style={layoutProps}>
-            <ControlBar selectSort={selectSort} selectGenre={selectGenre} filterMedia={filterMedia} navigateTo={navigateTo} filterMediaNavigate={filterMediaNavigate} setType={setType}/>
+            <ControlBar
+                selectSort={selectSort}
+                selectGenre={selectGenre}
+                filterMedia={filterMedia}
+                navigateTo={navigateTo}
+                filterMediaNavigate={filterMediaNavigate}
+                setType={setType}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+            />
             {showBreadcrumb && (
                 <Breadcrumb path={navigationPath} onNavigateBack={navigateBack} />
             )}
             {error && (
-                <div className="error-message">
-                    {error}
+                <div className="error-state">
+                    <div className="error-state__icon">⚠</div>
+                    <h2 className="error-state__title">{error.title}</h2>
+                    <p className="error-state__message">{error.message}</p>
+                    <button
+                        className="error-state__retry-btn"
+                        onClick={() => fetchMedia(false, navigationState)}
+                    >
+                        Try Again
+                    </button>
                 </div>
             )}
             {isInitialLoad ? (
@@ -286,7 +333,7 @@ export function MainPage() {
             ) : (
                 <MediaList media={displayMedia} navigateTo={navigateTo} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             )}
-            <LoadingIndicator/>
+            <LoadingIndicator loadedCount={media.length} totalCount={totalCount} />
         </div>
     )
 }

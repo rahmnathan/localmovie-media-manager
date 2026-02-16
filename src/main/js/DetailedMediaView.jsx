@@ -6,6 +6,21 @@ import { buildPosterUri } from './Media.jsx';
 const MOVIE_DIRECTORY_DEPTH = 2;
 const SERIES_EPISODE_DEPTH = 4;
 
+/**
+ * Format duration in seconds to human-readable format (e.g., "1h 42m" or "45m")
+ */
+const formatRuntime = (seconds) => {
+    if (!seconds || seconds <= 0) return null;
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+};
+
 export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite }) => {
     if (!mediaFile) return null;
 
@@ -26,9 +41,10 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
     const isPlayable = (path.includes("Movies") && pathDepth === MOVIE_DIRECTORY_DEPTH) ||
                        pathDepth === SERIES_EPISODE_DEPTH;
 
-    // Check if user can resume
+    // Check if user can resume and get runtime from views
     const mediaViews = mediaFile.mediaViews;
     const canResume = mediaViews?.length > 0 && (mediaViews[0]?.position || 0) > 0;
+    const runtime = mediaViews?.length > 0 ? formatRuntime(mediaViews[0]?.duration) : null;
 
     const handlePlay = () => {
         if (playMedia) {
@@ -93,6 +109,13 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
                                 <div className="detailed-media-meta-item">
                                     <span className="detailed-media-meta-label">Year:</span>
                                     <span className="detailed-media-meta-value">{year}</span>
+                                </div>
+                            )}
+
+                            {runtime && (
+                                <div className="detailed-media-meta-item">
+                                    <span className="detailed-media-meta-label">Runtime:</span>
+                                    <span className="detailed-media-meta-value">{runtime}</span>
                                 </div>
                             )}
 

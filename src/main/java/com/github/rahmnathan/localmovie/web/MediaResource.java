@@ -10,6 +10,7 @@ import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import java.util.List;
 import java.util.Optional;
 
+import com.github.rahmnathan.localmovie.persistence.MediaViewService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaSubtitleRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,6 +32,7 @@ public class MediaResource {
     private final MediaPersistenceService persistenceService;
     private final SecurityService securityService;
     private final MediaSubtitleRepository subtitleRepository;
+    private final MediaViewService mediaViewService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) {
@@ -107,6 +109,20 @@ public class MediaResource {
     public ResponseEntity<Void> removeFavorite(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Removing favorite - {}", mediaFileId);
         persistenceService.removeFavorite(mediaFileId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping(path = "/history")
+    public ResponseEntity<Void> clearHistory() {
+        log.info("Clearing history");
+        mediaViewService.clearHistory();
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping(path = "/{mediaFileId}/history")
+    public ResponseEntity<Void> removeFromHistory(@PathVariable("mediaFileId") String mediaFileId) {
+        log.info("Removing from history - {}", mediaFileId);
+        mediaViewService.removeFromHistory(mediaFileId);
         return ResponseEntity.ok().build();
     }
 

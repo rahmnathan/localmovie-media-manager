@@ -114,4 +114,18 @@ public class MediaViewService {
                 .orderBy(orderSpecifier, secondaryOrder)
                 .fetch();
     }
+
+    @Transactional
+    public void clearHistory() {
+        String username = securityUtils.getUsername();
+        log.info("Clearing history for user: {}", username);
+        mediaViewRepository.deleteAllByUserId(username);
+    }
+
+    @Transactional
+    public void removeFromHistory(String mediaFileId) {
+        String username = securityUtils.getUsername();
+        log.info("Removing {} from history for user: {}", mediaFileId, username);
+        mediaViewRepository.deleteByMediaFileIdAndUserId(mediaFileId, username);
+    }
 }

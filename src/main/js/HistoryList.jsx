@@ -1,6 +1,26 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { buildPosterUri } from './Media.jsx';
+
+/**
+ * Clear all history for the current user.
+ */
+const clearAllHistory = async () => {
+    const response = await fetch('/localmovie/v1/media/history', {
+        method: 'DELETE'
+    });
+    return response.ok;
+};
+
+/**
+ * Remove a single item from history.
+ */
+const removeFromHistory = async (mediaFileId) => {
+    const response = await fetch(`/localmovie/v1/media/${encodeURIComponent(mediaFileId)}/history`, {
+        method: 'DELETE'
+    });
+    return response.ok;
+};
 
 /**
  * Groups history items by series for a "Continue Watching" experience.
@@ -108,7 +128,7 @@ const getResumePosition = (mediaFile) => {
     return null;
 };
 
-const HistoryCard = ({ group, playMedia }) => {
+const HistoryCard = ({ group, playMedia, onRemove }) => {
     const mediaFile = group.mostRecentEpisode || group.movie;
     const resumePosition = getResumePosition(mediaFile);
     const resumeText = formatDuration(resumePosition);
@@ -121,6 +141,14 @@ const HistoryCard = ({ group, playMedia }) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             handleClick();
+        }
+    };
+
+    const handleRemove = async (e) => {
+        e.stopPropagation();
+        const success = await removeFromHistory(mediaFile.mediaFileId);
+        if (success && onRemove) {
+            onRemove(group.id);
         }
     };
 
@@ -146,6 +174,14 @@ const HistoryCard = ({ group, playMedia }) => {
             role="button"
             aria-label={`Continue watching ${group.title}${episodeText ? `: ${episodeText}` : ''}`}
         >
+            <button
+                className="history-card__remove-btn"
+                onClick={handleRemove}
+                aria-label="Remove from history"
+                title="Remove from history"
+            >
+                ✕
+            </button>
             <div className="history-card__poster">
                 <LazyLoadImage
                     onError={(e) => { e.target.onerror = null; e.target.src = "noPicture.gif"; }}
@@ -179,10 +215,30 @@ const HistoryCard = ({ group, playMedia }) => {
     );
 };
 
-export const HistoryList = ({ media, playMedia }) => {
+export const HistoryList = ({ media, playMedia, onRefresh }) => {
     const groupedHistory = useMemo(() => groupHistoryItems(media), [media]);
+    const [removedIds, setRemovedIds] = useState(new Set());
+    const [isClearing, setIsClearing] = useState(false);
 
-    if (groupedHistory.length === 0) {
+    const handleRemove = (id) => {
+        setRemovedIds(prev => new Set([...prev, id]));
+    };
+
+    const handleClearAll = async () => {
+        if (!window.confirm('Clear all viewing history? This cannot be undone.')) return;
+
+        setIsClearing(true);
+        const success = await clearAllHistory();
+        setIsClearing(false);
+
+        if (success && onRefresh) {
+            onRefresh();
+        }
+    };
+
+    const visibleHistory = groupedHistory.filter(g => !removedIds.has(g.id));
+
+    if (visibleHistory.length === 0) {
         return (
             <div className="empty-state" role="status">
                 <h2>No viewing history</h2>
@@ -193,13 +249,24 @@ export const HistoryList = ({ media, playMedia }) => {
 
     return (
         <main className="history-list" aria-label="Continue watching">
-            <h2 className="history-list__heading">Continue Watching</h2>
+            <div className="history-list__header">
+                <h2 className="history-list__heading">Continue Watching</h2>
+                <button
+                    className="history-list__clear-btn"
+                    onClick={handleClearAll}
+                    disabled={isClearing}
+                    aria-label="Clear all history"
+                >
+                    {isClearing ? 'Clearing...' : 'Clear All'}
+                </button>
+            </div>
             <div className="history-list__items" role="list">
-                {groupedHistory.map(group => (
+                {visibleHistory.map(group => (
                     <HistoryCard
                         key={group.id}
                         group={group}
                         playMedia={playMedia}
+                        onRemove={handleRemove}
                     />
                 ))}
             </div>
