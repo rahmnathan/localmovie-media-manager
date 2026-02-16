@@ -52,8 +52,9 @@ class MediaResourceTest {
     void getPosterTest() throws Exception {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
 
-        byte[] poster = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());
-        assertNotNull(poster);
+        var response = mediaResource.getPoster(mediaFileList.get(0).getMediaFileId());
+        assertTrue(response.getStatusCode().is2xxSuccessful());
+        assertNotNull(response.getBody());
     }
 
     private MediaRequest buildRequest() {

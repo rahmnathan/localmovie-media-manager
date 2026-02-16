@@ -129,11 +129,13 @@ public class MediaPersistenceService {
 
     public List<MediaFileDto> getMediaFileDtos(MediaRequest request) {
         String username = getUsername();
+        // Batch fetch all favorite IDs for this user in a single query (avoids N+1)
+        Set<String> favoriteIds = mediaFavoriteRepository.findAllMediaFileIdsByUserId(username);
+
         return getMediaFiles(request).stream()
                 .map(mediaFile -> {
                     MediaFileDto dto = MediaFileTransformer.toMediaFileDto(mediaFile);
-                    dto.setFavorite(mediaFavoriteRepository.existsByMediaFileMediaFileIdAndMediaUserUserId(
-                            mediaFile.getMediaFileId(), username));
+                    dto.setFavorite(favoriteIds.contains(mediaFile.getMediaFileId()));
                     return dto;
                 })
                 .toList();
@@ -258,10 +260,12 @@ public class MediaPersistenceService {
         jpaQuery = new JPAQuery<>(entityManager);
         qMediaFile = QMediaFile.mediaFile;
 
+        // Fetch parent eagerly for episode context
         return jpaQuery.from(qMediaFile)
                 .where(qMediaFile.mediaFileId.in(ids))
                 .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
+                .leftJoin(QMediaFile.mediaFile.parent).fetchJoin()
                 .orderBy(qMediaFile.fileName.asc())
                 .fetch();
     }
@@ -310,10 +314,14 @@ public class MediaPersistenceService {
         jpaQuery = new JPAQuery<>(entityManager);
         qMediaFile = QMediaFile.mediaFile;
 
+        // Fetch parent eagerly to avoid N+1 queries
+        // Note: For deeper parent chains (episode -> season -> series), Hibernate will
+        // batch-fetch thanks to @BatchSize or default batching behavior
         return jpaQuery.from(qMediaFile)
                 .where(qMediaFile.mediaFileId.in(ids))
                 .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
+                .leftJoin(QMediaFile.mediaFile.parent).fetchJoin()
                 .orderBy(orderSpecifier)
                 .fetch();
     }

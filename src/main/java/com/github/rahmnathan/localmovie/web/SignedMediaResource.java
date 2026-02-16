@@ -48,7 +48,14 @@ public class SignedMediaResource {
     @GetMapping(path = "/{mediaFileId}/poster")
     public ResponseEntity<byte[]> getPoster(@PathVariable String mediaFileId) {
         log.info("Streaming poster - {}", mediaFileId);
-        return ResponseEntity.ok(persistenceService.getMediaImageById(mediaFileId));
+        byte[] image = persistenceService.getMediaImageById(mediaFileId);
+        if (image == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .header("Cache-Control", "public, max-age=86400") // Cache for 24 hours
+                .header("Content-Type", "image/jpeg")
+                .body(image);
     }
 
     @PatchMapping(path = "/{mediaFileId}/position/{position}")

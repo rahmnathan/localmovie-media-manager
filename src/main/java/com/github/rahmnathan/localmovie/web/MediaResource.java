@@ -84,10 +84,16 @@ public class MediaResource {
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")
-    public byte[] getPoster(@PathVariable("mediaFileId") String id) {
+    public ResponseEntity<byte[]> getPoster(@PathVariable("mediaFileId") String id) {
         log.info("Streaming poster - {}", id);
-
-        return persistenceService.getMediaImageById(id);
+        byte[] image = persistenceService.getMediaImageById(id);
+        if (image == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .header("Cache-Control", "public, max-age=86400") // Cache for 24 hours
+                .header("Content-Type", "image/jpeg")
+                .body(image);
     }
 
     @PostMapping(path = "/{mediaFileId}/favorite")

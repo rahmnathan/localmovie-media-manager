@@ -88,10 +88,6 @@ public class MediaFileTransformer {
         if (media != null) {
             builder.title(media.getTitle())
                     .number(media.getNumber());
-
-            if (media.getImage() != null) {
-                builder.image(media.getImage().getImage());
-            }
         }
 
         // Recursively build parent chain (season -> series)

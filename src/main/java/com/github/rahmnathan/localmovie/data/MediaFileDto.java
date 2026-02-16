@@ -69,6 +69,7 @@ public class MediaFileDto {
     /**
      * Lightweight parent reference for episode context (season/series info).
      * Recursive structure: episode.parent = season, season.parent = series.
+     * Note: image is intentionally excluded to keep response size small.
      */
     @Data
     @Builder
@@ -77,8 +78,6 @@ public class MediaFileDto {
         private MediaFileType mediaFileType;
         private String title;
         private Integer number;
-        @ToString.Exclude
-        private byte[] image;
         private ParentMediaDto parent;
     }
 }
