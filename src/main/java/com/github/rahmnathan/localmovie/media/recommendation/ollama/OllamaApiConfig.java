@@ -17,21 +17,18 @@ import java.util.concurrent.TimeUnit;
 public class OllamaApiConfig {
 
     @Bean
-    public Client ollamaJaxrsClient() {
+    public OllamaApi ollamaApi(ServiceConfig serviceConfig) {
         ApacheHttpClient43Engine engine = new ApacheHttpClient43Engine();
         engine.setFollowRedirects(true);
 
-        return ((ResteasyClientBuilder) ClientBuilder.newBuilder())
+        Client client = ((ResteasyClientBuilder) ClientBuilder.newBuilder())
                 .httpEngine(engine)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(300, TimeUnit.SECONDS) // Ollama can be slow for large prompts
                 .build();
-    }
 
-    @Bean
-    public OllamaApi ollamaApi(Client ollamaJaxrsClient, ServiceConfig serviceConfig) {
         String baseUrl = serviceConfig.getOllama().getBaseUrl();
-        ResteasyWebTarget target = (ResteasyWebTarget) ollamaJaxrsClient.target(baseUrl);
+        ResteasyWebTarget target = (ResteasyWebTarget) client.target(baseUrl);
         return target.proxy(OllamaApi.class);
     }
 }

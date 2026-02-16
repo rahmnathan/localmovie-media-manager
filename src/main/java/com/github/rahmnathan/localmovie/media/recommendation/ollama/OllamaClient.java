@@ -22,12 +22,12 @@ public class OllamaClient {
     public String generate(String prompt) {
         ServiceConfig.OllamaConfig ollamaConfig = serviceConfig.getOllama();
         if (ollamaConfig == null || !ollamaConfig.isEnabled() || ollamaApi == null) {
-            logger.debug("Ollama is disabled or not configured, skipping generation");
+            logger.info("Ollama is disabled or not configured, skipping generation");
             return null;
         }
 
         try {
-            logger.debug("Sending request to Ollama with model: {}", ollamaConfig.getModel());
+            logger.info("Sending request to Ollama with model: {}", ollamaConfig.getModel());
 
             OllamaRequest request = OllamaRequest.builder()
                     .model(ollamaConfig.getModel())
@@ -38,7 +38,7 @@ public class OllamaClient {
             OllamaResponse response = ollamaApi.generate(request);
 
             if (response != null && response.getResponse() != null) {
-                logger.debug("Ollama response received, length: {}", response.getResponse().length());
+                logger.info("Ollama response received, length: {}", response.getResponse().length());
                 return response.getResponse();
             } else {
                 logger.warn("Ollama returned empty response");
@@ -60,7 +60,7 @@ public class OllamaClient {
             OllamaTagsResponse response = ollamaApi.getTags();
             return response != null;
         } catch (Exception e) {
-            logger.debug("Ollama not available: {}", e.getMessage());
+            logger.warn("Ollama not available: {}", e.getMessage());
             return false;
         }
     }
