@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.persistence.repository;
 
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
@@ -29,4 +31,13 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
            "AND NOT EXISTS (SELECT 1 FROM MediaSubtitle ms WHERE ms.mediaFile = mf AND ms.languageCode = 'en') " +
            "AND NOT EXISTS (SELECT 1 FROM SubtitleJob sj WHERE sj.mediaFile = mf AND sj.status IN ('QUEUED', 'RUNNING'))")
     List<MediaFile> findMediaFilesNeedingSubtitles();
+
+    @Query("SELECT mf FROM MediaFile mf " +
+           "JOIN FETCH mf.media m " +
+           "WHERE mf.mediaFileType IN (com.github.rahmnathan.localmovie.data.MediaFileType.MOVIE, " +
+           "                           com.github.rahmnathan.localmovie.data.MediaFileType.SERIES) " +
+           "AND mf.mediaFileId NOT IN :excludeIds " +
+           "AND m.title IS NOT NULL " +
+           "ORDER BY m.imdbRating DESC NULLS LAST")
+    List<MediaFile> findCandidatesForRecommendation(@Param("excludeIds") Set<String> excludeIds, Pageable pageable);
 }

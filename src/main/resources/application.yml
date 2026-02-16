@@ -21,6 +21,8 @@ service:
   omdb:
     apiKey: ""
     enabled: true
+  ollama:
+    enabled: false
   opensubtitles:
     enabled: false
   repository:

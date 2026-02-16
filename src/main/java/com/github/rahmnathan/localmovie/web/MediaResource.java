@@ -2,9 +2,11 @@ package com.github.rahmnathan.localmovie.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.rahmnathan.localmovie.data.MediaFileDto;
+import com.github.rahmnathan.localmovie.data.RecommendationDto;
 import com.github.rahmnathan.localmovie.data.SignedUrls;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
+import com.github.rahmnathan.localmovie.media.recommendation.RecommendationService;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Optional;
 
 import com.github.rahmnathan.localmovie.persistence.MediaViewService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaRecommendation;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaSubtitleRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -33,6 +36,7 @@ public class MediaResource {
     private final SecurityService securityService;
     private final MediaSubtitleRepository subtitleRepository;
     private final MediaViewService mediaViewService;
+    private final RecommendationService recommendationService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) {
@@ -124,6 +128,22 @@ public class MediaResource {
         log.info("Removing from history - {}", mediaFileId);
         mediaViewService.removeFromHistory(mediaFileId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/recommendations", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RecommendationDto> getRecommendations() {
+        String userId = getUsername();
+        log.info("Getting recommendations for user - {}", userId);
+
+        List<MediaRecommendation> recommendations = recommendationService.getRecommendationsForUser(userId);
+
+        return recommendations.stream()
+                .map(rec -> RecommendationDto.builder()
+                        .mediaFile(MediaFileTransformer.toMediaFileDto(rec.getMediaFile()))
+                        .reason(rec.getReason())
+                        .rank(rec.getRank())
+                        .build())
+                .toList();
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {

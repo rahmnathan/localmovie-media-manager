@@ -20,6 +20,7 @@ public class ServiceConfig {
     private String jedisHost;
     private OmdbConfig omdb;
     private OpenSubtitlesConfig opensubtitles;
+    private OllamaConfig ollama;
     private boolean forceConvert;
 
     @Data
@@ -51,5 +52,12 @@ public class ServiceConfig {
         private String apiKey;
         private String username;
         private String password;
+    }
+
+    @Data
+    public static class OllamaConfig {
+        private boolean enabled;
+        private String baseUrl = "http://open-webui-ollama.open-webui.svc.cluster.local:11434";
+        private String model = "gpt-oss:20b";
     }
 }

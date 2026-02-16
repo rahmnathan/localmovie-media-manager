@@ -45,6 +45,10 @@ service:
     enabled: true
   opensubtitles:
     enabled: true
+  ollama:
+    enabled: true
+    base-url: http://open-webui-ollama.open-webui.svc.cluster.local:11434
+    model: gpt-oss:20b
   repository:
     enabled: true
     updateFrequency:

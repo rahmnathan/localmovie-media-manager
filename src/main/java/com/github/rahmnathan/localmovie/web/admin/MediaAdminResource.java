@@ -4,9 +4,11 @@ import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.media.MediaUpdateService;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
+import com.github.rahmnathan.localmovie.media.recommendation.RecommendationJobService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class MediaAdminResource {
     private final MediaUpdateService updateService;
     private final ServiceConfig serviceConfig;
+    private final RecommendationJobService recommendationJobService;
 
     @PostMapping(path = "/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateMedia(@RequestBody MediaRequest mediaRequest) throws InvalidMediaException {
@@ -30,5 +33,17 @@ public class MediaAdminResource {
     public void toggleConversionService(@RequestParam boolean enabled) {
         log.info("Setting conversion service enabled to: {}", enabled);
         serviceConfig.getConversionService().setEnabled(enabled);
+    }
+
+    @PostMapping(path = "/recommendations/refresh")
+    public ResponseEntity<String> refreshRecommendations() {
+        log.info("Manually triggering recommendations refresh");
+
+        if (serviceConfig.getOllama() == null || !serviceConfig.getOllama().isEnabled()) {
+            return ResponseEntity.badRequest().body("Ollama is not enabled");
+        }
+
+        recommendationJobService.refreshRecommendations();
+        return ResponseEntity.ok("Recommendations refresh triggered");
     }
 }
