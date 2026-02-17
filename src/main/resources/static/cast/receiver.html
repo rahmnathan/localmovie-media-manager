@@ -8,24 +8,8 @@
     </script>
 </head>
 <body>
-    <div class="cinema-bg"></div>
-    <div class="receiver-shell">
-        <header class="receiver-topbar">
-            <div class="brand">
-                <span class="brand__mark">LM</span>
-                <span class="brand__name">LocalMovies</span>
-            </div>
-            <div id="statusBadge" class="status-badge">Ready</div>
-        </header>
-
-        <main class="receiver-stage">
-            <cast-media-player></cast-media-player>
-            <div class="receiver-overlay">
-                <p class="eyebrow">Now Casting</p>
-                <h1 id="mediaTitle" class="overlay-title">Select a movie to begin</h1>
-            </div>
-        </main>
-    </div>
+    <cast-media-player></cast-media-player>
+    <div id="statusBadge" class="status-badge">Ready</div>
 
     <script>
         var context = cast.framework.CastReceiverContext.getInstance();
@@ -35,7 +19,6 @@
         var progressInterval = null;
         var lastSavedPositionSec = -1;
         var statusBadge = document.getElementById('statusBadge');
-        var mediaTitle = document.getElementById('mediaTitle');
 
         function updateUiState(label, bodyClass) {
             if (statusBadge) statusBadge.textContent = label;
@@ -73,14 +56,6 @@
                 stopProgressTimer();
                 lastSavedPositionSec = -1;
                 updateUiState('Loading', 'is-idle');
-
-                var title = request &&
-                    request.media &&
-                    request.media.metadata &&
-                    request.media.metadata.title;
-                if (mediaTitle) {
-                    mediaTitle.textContent = title || 'Preparing playback';
-                }
 
                 var url = getUpdatePositionUrl(request);
                 if (url) {
