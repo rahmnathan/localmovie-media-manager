@@ -34,6 +34,7 @@ public class RecommendationJobService {
     @SchedulerLock(name = "refresh-recommendations-lock", lockAtMostFor = "PT30M")
     public void refreshRecommendations() {
         if (serviceConfig.getOllama() == null || !serviceConfig.getOllama().isEnabled()) {
+            log.warn("Ollama is not available/enabled.");
             return;
         }
 
