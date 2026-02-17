@@ -108,22 +108,8 @@ public class RecommendationService {
 
     private String buildPrompt(List<MediaFile> watchHistory, List<MediaFile> candidates) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("You are an expert movie recommendation system. Analyze the user's watch history carefully ");
-        prompt.append("to understand their preferences (genres, themes, era, mood, style) and recommend titles they would genuinely enjoy.\n\n");
 
-        prompt.append("USER'S RECENT WATCH HISTORY (most recent first):\n");
-        for (MediaFile mf : watchHistory) {
-            Media media = mf.getMedia();
-            if (media != null) {
-                prompt.append(String.format("- %s (%s) - Genre: %s - Rating: %s\n",
-                        media.getTitle(),
-                        media.getReleaseYear() != null ? media.getReleaseYear() : "Unknown year",
-                        media.getGenre() != null ? media.getGenre() : "Unknown genre",
-                        media.getImdbRating() != null ? media.getImdbRating() : "N/A"));
-            }
-        }
-
-        // Extract genres from watch history to highlight patterns
+        // Extract genres from watch history first for clear summary
         String watchedGenres = watchHistory.stream()
                 .map(MediaFile::getMedia)
                 .filter(Objects::nonNull)
@@ -137,33 +123,55 @@ public class RecommendationService {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.joining(", "));
 
-        if (!watchedGenres.isEmpty()) {
-            prompt.append("\nOBSERVED PREFERENCES: User frequently watches: ").append(watchedGenres).append("\n");
-        }
+        // Extract watched titles for explicit reference
+        String watchedTitles = watchHistory.stream()
+                .map(MediaFile::getMedia)
+                .filter(Objects::nonNull)
+                .map(Media::getTitle)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(", "));
 
-        prompt.append("\nAVAILABLE TITLES TO RECOMMEND FROM:\n");
-        for (MediaFile mf : candidates) {
+        prompt.append("=== TASK ===\n");
+        prompt.append("Recommend movies/shows from the CANDIDATE LIST that match the user's tastes based on their WATCH HISTORY.\n\n");
+
+        prompt.append("=== USER'S WATCH HISTORY (what they have already watched and enjoyed) ===\n");
+        prompt.append("The user has watched these ").append(watchHistory.size()).append(" titles:\n");
+        for (MediaFile mf : watchHistory) {
             Media media = mf.getMedia();
             if (media != null) {
-                prompt.append(String.format("- ID:%s | %s (%s) - %s - %s\n",
-                        mf.getMediaFileId(),
+                prompt.append(String.format("  * %s (%s) [%s]\n",
                         media.getTitle(),
-                        media.getReleaseYear() != null ? media.getReleaseYear() : "Unknown",
-                        media.getGenre() != null ? media.getGenre() : "Unknown genre",
-                        media.getPlot() != null ? truncate(media.getPlot(), 150) : "No description"));
+                        media.getReleaseYear() != null ? media.getReleaseYear() : "?",
+                        media.getGenre() != null ? media.getGenre() : "Unknown"));
             }
         }
 
-        prompt.append("\nINSTRUCTIONS:\n");
-        prompt.append("1. Match recommendations to the user's demonstrated genre preferences\n");
-        prompt.append("2. Consider similar themes, tone, and style - not just genre\n");
-        prompt.append("3. Prioritize quality matches over popularity\n");
-        prompt.append("4. Include some variety while staying relevant to their taste\n\n");
+        prompt.append("\nUser's preferred genres (from watch history): ").append(watchedGenres).append("\n");
+        prompt.append("--- END OF WATCH HISTORY ---\n\n");
 
-        prompt.append("Provide your top ").append(MAX_RECOMMENDATIONS).append(" recommendations ");
-        prompt.append("from the available titles above. For each recommendation, respond in this exact format:\n");
-        prompt.append("RECOMMENDATION: ID:<media_file_id> | REASON: <brief reason connecting to their watch history>\n\n");
-        prompt.append("Only recommend titles from the available list. Be specific about why each matches their taste.");
+        prompt.append("=== CANDIDATE LIST (titles to recommend FROM - user has NOT seen these) ===\n");
+        prompt.append("Pick recommendations ONLY from this list of ").append(candidates.size()).append(" unwatched titles:\n");
+        for (MediaFile mf : candidates) {
+            Media media = mf.getMedia();
+            if (media != null) {
+                prompt.append(String.format("  ID:%s | %s (%s) [%s]\n",
+                        mf.getMediaFileId(),
+                        media.getTitle(),
+                        media.getReleaseYear() != null ? media.getReleaseYear() : "?",
+                        media.getGenre() != null ? media.getGenre() : "Unknown"));
+            }
+        }
+        prompt.append("--- END OF CANDIDATE LIST ---\n\n");
+
+        prompt.append("=== INSTRUCTIONS ===\n");
+        prompt.append("1. ONLY recommend titles from the CANDIDATE LIST above (not from watch history)\n");
+        prompt.append("2. Match to user's genre preferences: ").append(watchedGenres).append("\n");
+        prompt.append("3. Explain why each matches titles they watched (").append(watchedTitles.length() > 100 ? watchedTitles.substring(0, 100) + "..." : watchedTitles).append(")\n\n");
+
+        prompt.append("=== OUTPUT FORMAT (exactly ").append(MAX_RECOMMENDATIONS).append(" lines) ===\n");
+        prompt.append("ID:<media_file_id> | <reason why this matches their watch history>\n\n");
+        prompt.append("Example:\n");
+        prompt.append("ID:abc-123-def | Similar thriller tone to films in their history\n");
 
         return prompt.toString();
     }
@@ -184,14 +192,17 @@ public class RecommendationService {
                 .collect(Collectors.toMap(MediaFile::getMediaFileId, mf -> mf, (a, b) -> a));
 
         // Try multiple patterns to handle variations in model output
+        // Note: \u2013 is en-dash, \u2014 is em-dash (models often use these instead of hyphen)
         List<Pattern> patterns = List.of(
-                // Standard format: RECOMMENDATION: ID:xxx | REASON: yyy
-                Pattern.compile("RECOMMENDATION:\\s*ID:([^|]+)\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // Without RECOMMENDATION prefix: ID:xxx | REASON: yyy
-                Pattern.compile("^\\d*\\.?\\s*ID:([^|]+)\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // Numbered list: 1. ID:xxx | reason or 1. ID:xxx - reason
-                Pattern.compile("^\\d+\\.\\s*ID:([^|\\-]+)[|\\-]\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // Just ID somewhere in line: ...ID:xxx...
+                // Bracketed format: [1] ID:xxx – reason (with en-dash or em-dash)
+                Pattern.compile("^\\[\\d+\\]\\s*ID:([a-f0-9\\-]{36})\\s*[\\-\\u2013\\u2014|]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Standard format: ID:xxx | reason (simple pipe separator)
+                Pattern.compile("^ID:([a-f0-9\\-]{36})\\s*\\|\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Numbered format: 1. ID:xxx | reason or 1. ID:xxx - reason
+                Pattern.compile("^\\d+\\.?\\s*ID:([a-f0-9\\-]{36})\\s*[\\-\\u2013\\u2014|]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // With RECOMMENDATION prefix: RECOMMENDATION: ID:xxx | REASON: yyy
+                Pattern.compile("RECOMMENDATION:\\s*ID:([a-f0-9\\-]{36})\\s*\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Fallback: Just extract UUID-format ID anywhere in line
                 Pattern.compile("ID:([a-f0-9\\-]{36})", Pattern.CASE_INSENSITIVE)
         );
 
