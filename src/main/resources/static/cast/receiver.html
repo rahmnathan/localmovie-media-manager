@@ -65,23 +65,6 @@
             }
         );
 
-        playerManager.addEventListener(
-            cast.framework.events.EventType.ERROR,
-            function(event) { debug('ERROR: ' + event.detailedErrorCode); }
-        );
-
-        playerManager.addEventListener(
-            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
-            function(event) {
-                debug('State: ' + event.state);
-                if (event.state === cast.framework.messages.PlayerState.PLAYING) {
-                    startProgressTimer();
-                } else {
-                    stopProgressTimer();
-                }
-            }
-        );
-
         context.start();
         debug('Receiver started');
 
