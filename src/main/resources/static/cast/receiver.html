@@ -8,11 +8,11 @@
     <cast-media-player></cast-media-player>
     <script>
         var context = cast.framework.CastReceiverContext.getInstance();
-
-        // Start first, then get player manager
         context.start();
 
         var playerManager = context.getPlayerManager();
+        var progressTimer = null;
+        var currentUpdatePositionUrl = null;
 
         // Log errors
         playerManager.addEventListener(
@@ -20,11 +20,70 @@
             function(event) { console.error('Player error:', event.detailedErrorCode, event.error); }
         );
 
-        // Log state changes
+        // Track state changes for progress saving
         playerManager.addEventListener(
             cast.framework.events.EventType.PLAYER_STATE_CHANGED,
-            function(event) { console.log('Player state:', event.state); }
+            function(event) {
+                console.log('Player state:', event.state);
+                if (event.state === cast.framework.messages.PlayerState.PLAYING) {
+                    startProgressTimer();
+                } else {
+                    stopProgressTimer();
+                    if (event.state === cast.framework.messages.PlayerState.IDLE ||
+                        event.state === cast.framework.messages.PlayerState.PAUSED) {
+                        saveProgress();
+                    }
+                }
+            }
         );
+
+        // Extract update URL from media metadata when media loads
+        playerManager.addEventListener(
+            cast.framework.events.EventType.MEDIA_STATUS,
+            function(event) {
+                var mediaInfo = playerManager.getMediaInformation();
+                if (mediaInfo && mediaInfo.metadata) {
+                    var url = mediaInfo.metadata['update-position-url'];
+                    if (url && url !== currentUpdatePositionUrl) {
+                        currentUpdatePositionUrl = url;
+                        console.log('Update position URL:', currentUpdatePositionUrl);
+                    }
+                }
+            }
+        );
+
+        function startProgressTimer() {
+            if (progressTimer) return;
+            console.log('Starting progress timer');
+            progressTimer = setInterval(saveProgress, 10000);
+        }
+
+        function stopProgressTimer() {
+            if (progressTimer) {
+                console.log('Stopping progress timer');
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+        }
+
+        function saveProgress() {
+            if (!currentUpdatePositionUrl) return;
+
+            var positionSec = Math.floor(playerManager.getCurrentTimeSec());
+            var durationMs = Math.floor(playerManager.getDurationSec() * 1000);
+
+            var parts = currentUpdatePositionUrl.split('?');
+            var baseUrl = parts[0];
+            var query = parts[1] || '';
+
+            var url = baseUrl + '/' + positionSec;
+            url += query ? '?' + query + '&duration=' + durationMs : '?duration=' + durationMs;
+
+            console.log('Saving progress:', positionSec, 'seconds');
+            fetch(url, { method: 'PATCH' }).catch(function(err) {
+                console.error('Progress save error:', err);
+            });
+        }
     </script>
 </body>
 </html>
