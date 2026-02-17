@@ -83,24 +83,15 @@ public class RecommendationService {
             return;
         }
 
-        // Step 1: ask Ollama for ranked IDs only
-        String idPrompt = buildIdSelectionPrompt(watchHistory, candidates);
-        log.info("Ollama ID prompt prepared: chars={}, estimatedTokens={}, historyItems={}, candidates={}",
-                idPrompt.length(), estimateTokens(idPrompt), watchHistory.size(), candidates.size());
-        String idResponse = ollamaClient.generate(idPrompt);
+        // Build prompt and get recommendations from Ollama
+        String prompt = buildPrompt(watchHistory, candidates);
+        log.info("Ollama prompt prepared: chars={}, estimatedTokens={}, historyItems={}, candidates={}",
+                prompt.length(), estimateTokens(prompt), watchHistory.size(), candidates.size());
+        String response = ollamaClient.generate(prompt);
 
-        List<RecommendationResult> results = idResponse == null || idResponse.isBlank()
+        List<RecommendationResult> results = response == null || response.isBlank()
                 ? List.of()
-                : parseIdSelectionResponse(idResponse, candidates);
-
-        // Step 2: ask Ollama for reasons only for selected IDs
-        if (!results.isEmpty()) {
-            String reasonPrompt = buildReasonPrompt(watchHistory, results);
-            log.info("Ollama reason prompt prepared: chars={}, estimatedTokens={}, selected={}",
-                    reasonPrompt.length(), estimateTokens(reasonPrompt), results.size());
-            String reasonResponse = ollamaClient.generate(reasonPrompt);
-            results = applyGeneratedReasons(results, reasonResponse);
-        }
+                : parseResponse(response, candidates);
 
         if (isLowQuality(results, candidates.size())) {
             log.info("Ollama recommendations were low quality (count={}), falling back to heuristic ranking for user {}",
@@ -140,7 +131,7 @@ public class RecommendationService {
         return fileRepository.findRandomCandidatesForRecommendation(safeExcludeIds, PageRequest.of(0, MAX_CANDIDATES_FOR_PROMPT));
     }
 
-    private String buildIdSelectionPrompt(List<MediaFile> watchHistory, List<MediaFile> candidates) {
+    private String buildPrompt(List<MediaFile> watchHistory, List<MediaFile> candidates) {
         StringBuilder prompt = new StringBuilder();
 
         // Extract genres from watch history
@@ -151,10 +142,11 @@ public class RecommendationService {
         prompt.append("You are a recommendation engine. Choose from catalog IDs only.\n");
         prompt.append("Return ONLY valid JSON. No markdown. No prose.\n");
         prompt.append("JSON schema:\n");
-        prompt.append("{\"ids\":[\"<catalog_id>\",\"...\"]}\n");
+        prompt.append("{\"recommendations\":[{\"id\":\"<catalog_id>\",\"reason\":\"<short reason>\"}]}\n");
         prompt.append("Rules:\n");
         prompt.append("- Recommend up to ").append(MAX_RECOMMENDATIONS).append(" items\n");
         prompt.append("- Use only IDs from CATALOG below\n");
+        prompt.append("- Reasons must be <= 140 chars and specific\n");
         prompt.append("- No duplicate IDs\n\n");
 
         prompt.append("WATCH_HISTORY:\n");
@@ -193,114 +185,11 @@ public class RecommendationService {
         return prompt.toString();
     }
 
-    private String buildReasonPrompt(List<MediaFile> watchHistory, List<RecommendationResult> selected) {
-        StringBuilder prompt = new StringBuilder();
-
-        String watchedGenres = extractTopGenres(watchHistory, 5).stream()
-                .map(Map.Entry::getKey)
-                .collect(Collectors.joining(", "));
-
-        prompt.append("Generate short recommendation reasons for selected IDs.\n");
-        prompt.append("Return ONLY valid JSON. No markdown. No prose.\n");
-        prompt.append("JSON schema:\n");
-        prompt.append("{\"reasons\":[{\"id\":\"<catalog_id>\",\"reason\":\"<short reason>\"}]}\n");
-        prompt.append("Rules:\n");
-        prompt.append("- Use only IDs from SELECTED below\n");
-        prompt.append("- Reason length <= 140 chars\n");
-        prompt.append("- Keep reasons concise and specific\n\n");
-
-        prompt.append("TOP_GENRES: ").append(watchedGenres).append("\n\n");
-        prompt.append("SELECTED:\n");
-        for (RecommendationResult result : selected) {
-            Media media = result.mediaFile().getMedia();
-            if (media == null) continue;
-            prompt.append(String.format("%s | %s | %s | %s\n",
-                    result.mediaFile().getMediaFileId(),
-                    media.getTitle(),
-                    media.getReleaseYear() != null ? media.getReleaseYear() : "?",
-                    media.getGenre() != null ? media.getGenre() : "Unknown genre"));
-        }
-
-        return prompt.toString();
-    }
-
     private int estimateTokens(String text) {
         if (text == null || text.isEmpty()) {
             return 0;
         }
         return (text.length() + 3) / 4;
-    }
-
-    private List<RecommendationResult> parseIdSelectionResponse(String response, List<MediaFile> candidates) {
-        Map<String, MediaFile> candidateMap = candidates.stream()
-                .filter(mf -> mf.getMediaFileId() != null)
-                .collect(Collectors.toMap(mf -> mf.getMediaFileId().toLowerCase(Locale.ROOT), mf -> mf, (a, b) -> a));
-
-        List<RecommendationResult> results = new ArrayList<>();
-        Optional<JsonNode> jsonNode = tryParseJsonNode(response);
-        if (jsonNode.isPresent()) {
-            JsonNode root = jsonNode.get();
-
-            JsonNode idsNode = root.get("ids");
-            if (idsNode != null && idsNode.isArray()) {
-                for (JsonNode idNode : idsNode) {
-                    if (idNode.isTextual()) {
-                        addResultIfCandidateExists(results, candidateMap, idNode.asText(), null);
-                    }
-                }
-            }
-
-            JsonNode recNode = root.get("recommendations");
-            if (recNode != null && recNode.isArray()) {
-                for (JsonNode item : recNode) {
-                    if (item.isTextual()) {
-                        addResultIfCandidateExists(results, candidateMap, item.asText(), null);
-                    } else {
-                        String id = textField(item, "id", "mediaFileId", "media_id");
-                        addResultIfCandidateExists(results, candidateMap, id, null);
-                    }
-                }
-            }
-        }
-
-        if (results.isEmpty()) {
-            results.addAll(parseByIdMentions(response, candidateMap));
-        }
-        if (results.isEmpty()) {
-            results.addAll(parseByTitleMentions(response, candidates));
-        }
-
-        return deduplicateAndRank(results);
-    }
-
-    private List<RecommendationResult> applyGeneratedReasons(List<RecommendationResult> baseResults, String reasonResponse) {
-        if (reasonResponse == null || reasonResponse.isBlank() || baseResults.isEmpty()) {
-            return baseResults;
-        }
-
-        List<MediaFile> selectedCandidates = baseResults.stream()
-                .map(RecommendationResult::mediaFile)
-                .toList();
-
-        List<RecommendationResult> parsedWithReasons = parseResponse(reasonResponse, selectedCandidates);
-        if (parsedWithReasons.isEmpty()) {
-            return baseResults;
-        }
-
-        Map<String, String> reasonById = parsedWithReasons.stream()
-                .collect(Collectors.toMap(
-                        r -> r.mediaFile().getMediaFileId(),
-                        RecommendationResult::reason,
-                        (first, ignored) -> first
-                ));
-
-        List<RecommendationResult> enriched = new ArrayList<>();
-        for (RecommendationResult base : baseResults) {
-            String reason = reasonById.getOrDefault(base.mediaFile().getMediaFileId(), base.reason());
-            enriched.add(new RecommendationResult(base.mediaFile(), sanitizeReason(reason, base.mediaFile()), base.rank()));
-        }
-
-        return enriched;
     }
 
     private List<Map.Entry<String, Long>> extractTopGenres(List<MediaFile> watchHistory, int limit) {
