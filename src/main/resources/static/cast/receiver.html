@@ -61,23 +61,19 @@
                     }
                 }
                 debug('LOAD done');
+
+                // Start progress saving after a delay
+                setTimeout(function() {
+                    debug('Timer fired');
+                    saveProgress();
+                }, 5000);
+
                 return request;
             }
         );
 
         context.start();
         debug('Receiver started');
-
-        // Try an immediate save after 5 seconds as a test
-        setTimeout(function() {
-            debug('5s test...');
-            if (currentUpdatePositionUrl) {
-                debug('Has URL, saving...');
-                saveProgress();
-            } else {
-                debug('No URL after 5s');
-            }
-        }, 5000);
 
         function startProgressTimer() {
             if (progressTimer) return;
