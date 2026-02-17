@@ -177,26 +177,52 @@ public class RecommendationService {
     private List<RecommendationResult> parseResponse(String response, List<MediaFile> candidates) {
         List<RecommendationResult> results = new ArrayList<>();
 
+        log.debug("Ollama raw response:\n{}", response);
+
         // Create lookup map for candidates
         Map<String, MediaFile> candidateMap = candidates.stream()
                 .collect(Collectors.toMap(MediaFile::getMediaFileId, mf -> mf, (a, b) -> a));
 
-        // Parse lines looking for RECOMMENDATION: ID:xxx | REASON: yyy
-        Pattern pattern = Pattern.compile("RECOMMENDATION:\\s*ID:([^|]+)\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE);
+        // Try multiple patterns to handle variations in model output
+        List<Pattern> patterns = List.of(
+                // Standard format: RECOMMENDATION: ID:xxx | REASON: yyy
+                Pattern.compile("RECOMMENDATION:\\s*ID:([^|]+)\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Without RECOMMENDATION prefix: ID:xxx | REASON: yyy
+                Pattern.compile("^\\d*\\.?\\s*ID:([^|]+)\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Numbered list: 1. ID:xxx | reason or 1. ID:xxx - reason
+                Pattern.compile("^\\d+\\.\\s*ID:([^|\\-]+)[|\\-]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Just ID somewhere in line: ...ID:xxx...
+                Pattern.compile("ID:([a-f0-9\\-]{36})", Pattern.CASE_INSENSITIVE)
+        );
 
         int rank = 1;
         for (String line : response.split("\n")) {
-            Matcher matcher = pattern.matcher(line.trim());
-            if (matcher.find()) {
-                String mediaFileId = matcher.group(1).trim();
-                String reason = matcher.group(2).trim();
+            String trimmedLine = line.trim();
+            if (trimmedLine.isEmpty()) continue;
 
-                MediaFile candidate = candidateMap.get(mediaFileId);
-                if (candidate != null) {
-                    results.add(new RecommendationResult(candidate, reason, rank++));
-                    if (results.size() >= MAX_RECOMMENDATIONS) break;
+            for (Pattern pattern : patterns) {
+                Matcher matcher = pattern.matcher(trimmedLine);
+                if (matcher.find()) {
+                    String mediaFileId = matcher.group(1).trim();
+                    String reason = matcher.groupCount() >= 2 ? matcher.group(2).trim() : "Recommended based on your watch history";
+
+                    MediaFile candidate = candidateMap.get(mediaFileId);
+                    if (candidate != null) {
+                        log.debug("Parsed recommendation: {} -> {}", mediaFileId, candidate.getMedia().getTitle());
+                        results.add(new RecommendationResult(candidate, reason, rank++));
+                        break; // Found a match for this line, move to next line
+                    } else {
+                        log.debug("ID not found in candidates: {}", mediaFileId);
+                    }
                 }
             }
+
+            if (results.size() >= MAX_RECOMMENDATIONS) break;
+        }
+
+        if (results.isEmpty()) {
+            log.warn("Failed to parse any recommendations from Ollama response. First 500 chars: {}",
+                    response.substring(0, Math.min(500, response.length())));
         }
 
         return results;
