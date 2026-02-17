@@ -34,17 +34,35 @@ context.addCustomMessageListener(NAMESPACE, (event) => {
 playerManager.setMessageInterceptor(
     cast.framework.messages.MessageType.LOAD,
     (request) => {
-        console.log('LOAD request received:', request);
+        console.log('LOAD request received:', JSON.stringify(request, null, 2));
 
-        const metadata = request.media?.metadata;
+        if (!request.media) {
+            console.error('LOAD request has no media object');
+            return request;
+        }
+
+        console.log('Media contentId (stream URL):', request.media.contentId);
+        console.log('Media contentType:', request.media.contentType);
+
+        const metadata = request.media.metadata;
         if (metadata) {
             // Read custom fields from metadata (set by Android sender in GoogleCastUtils.kt)
             currentMediaId = metadata['media-id'];
             currentUpdatePositionUrl = metadata['update-position-url'];
             console.log('Media loaded - id:', currentMediaId, 'updateUrl:', currentUpdatePositionUrl);
+        } else {
+            console.warn('No metadata in LOAD request');
         }
 
         return request;
+    }
+);
+
+// --- Handle media errors ---
+playerManager.addEventListener(
+    cast.framework.events.EventType.ERROR,
+    (event) => {
+        console.error('Player error:', event.detailedErrorCode, event.error);
     }
 );
 
@@ -149,5 +167,9 @@ function saveProgress() {
 
 // --- Start the receiver ---
 console.log('LocalMovies Cast Receiver starting...');
-context.start();
+
+const options = new cast.framework.CastReceiverOptions();
+options.disableIdleTimeout = true;
+
+context.start(options);
 console.log('LocalMovies Cast Receiver started');

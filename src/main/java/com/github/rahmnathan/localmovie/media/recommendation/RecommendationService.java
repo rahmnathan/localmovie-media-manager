@@ -109,7 +109,7 @@ public class RecommendationService {
     private String buildPrompt(List<MediaFile> watchHistory, List<MediaFile> candidates) {
         StringBuilder prompt = new StringBuilder();
 
-        // Extract genres from watch history first for clear summary
+        // Extract genres from watch history
         String watchedGenres = watchHistory.stream()
                 .map(MediaFile::getMedia)
                 .filter(Objects::nonNull)
@@ -123,55 +123,36 @@ public class RecommendationService {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.joining(", "));
 
-        // Extract watched titles for explicit reference
-        String watchedTitles = watchHistory.stream()
-                .map(MediaFile::getMedia)
-                .filter(Objects::nonNull)
-                .map(Media::getTitle)
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(", "));
+        prompt.append("I need movie recommendations for a user based on their viewing history.\n\n");
 
-        prompt.append("=== TASK ===\n");
-        prompt.append("Recommend movies/shows from the CANDIDATE LIST that match the user's tastes based on their WATCH HISTORY.\n\n");
-
-        prompt.append("=== USER'S WATCH HISTORY (what they have already watched and enjoyed) ===\n");
-        prompt.append("The user has watched these ").append(watchHistory.size()).append(" titles:\n");
+        prompt.append("The user has recently watched:\n");
         for (MediaFile mf : watchHistory) {
             Media media = mf.getMedia();
             if (media != null) {
-                prompt.append(String.format("  * %s (%s) [%s]\n",
+                prompt.append(String.format("- %s (%s) - %s\n",
                         media.getTitle(),
                         media.getReleaseYear() != null ? media.getReleaseYear() : "?",
-                        media.getGenre() != null ? media.getGenre() : "Unknown"));
+                        media.getGenre() != null ? media.getGenre() : "Unknown genre"));
             }
         }
 
-        prompt.append("\nUser's preferred genres (from watch history): ").append(watchedGenres).append("\n");
-        prompt.append("--- END OF WATCH HISTORY ---\n\n");
+        prompt.append("\nTheir favorite genres appear to be: ").append(watchedGenres).append("\n\n");
 
-        prompt.append("=== CANDIDATE LIST (titles to recommend FROM - user has NOT seen these) ===\n");
-        prompt.append("Pick recommendations ONLY from this list of ").append(candidates.size()).append(" unwatched titles:\n");
+        prompt.append("Please recommend ").append(MAX_RECOMMENDATIONS).append(" movies from this catalog that they haven't seen yet:\n\n");
         for (MediaFile mf : candidates) {
             Media media = mf.getMedia();
             if (media != null) {
-                prompt.append(String.format("  ID:%s | %s (%s) [%s]\n",
+                prompt.append(String.format("%s: %s (%s) - %s\n",
                         mf.getMediaFileId(),
                         media.getTitle(),
                         media.getReleaseYear() != null ? media.getReleaseYear() : "?",
-                        media.getGenre() != null ? media.getGenre() : "Unknown"));
+                        media.getGenre() != null ? media.getGenre() : "Unknown genre"));
             }
         }
-        prompt.append("--- END OF CANDIDATE LIST ---\n\n");
 
-        prompt.append("=== INSTRUCTIONS ===\n");
-        prompt.append("1. ONLY recommend titles from the CANDIDATE LIST above (not from watch history)\n");
-        prompt.append("2. Match to user's genre preferences: ").append(watchedGenres).append("\n");
-        prompt.append("3. Explain why each matches titles they watched (").append(watchedTitles.length() > 100 ? watchedTitles.substring(0, 100) + "..." : watchedTitles).append(")\n\n");
-
-        prompt.append("=== OUTPUT FORMAT (exactly ").append(MAX_RECOMMENDATIONS).append(" lines) ===\n");
-        prompt.append("ID:<media_file_id> | <reason why this matches their watch history>\n\n");
-        prompt.append("Example:\n");
-        prompt.append("ID:abc-123-def | Similar thriller tone to films in their history\n");
+        prompt.append("\nFor each recommendation, output one line in this format:\n");
+        prompt.append("<id> | <brief reason>\n\n");
+        prompt.append("Example: abc-123-def | Great action film similar to their favorites\n");
 
         return prompt.toString();
     }
@@ -194,16 +175,16 @@ public class RecommendationService {
         // Try multiple patterns to handle variations in model output
         // Note: \u2013 is en-dash, \u2014 is em-dash (models often use these instead of hyphen)
         List<Pattern> patterns = List.of(
-                // Bracketed format: [1] ID:xxx – reason (with en-dash or em-dash)
-                Pattern.compile("^\\[\\d+\\]\\s*ID:([a-f0-9\\-]{36})\\s*[\\-\\u2013\\u2014|]\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // Standard format: ID:xxx | reason (simple pipe separator)
-                Pattern.compile("^ID:([a-f0-9\\-]{36})\\s*\\|\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // Numbered format: 1. ID:xxx | reason or 1. ID:xxx - reason
-                Pattern.compile("^\\d+\\.?\\s*ID:([a-f0-9\\-]{36})\\s*[\\-\\u2013\\u2014|]\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // With RECOMMENDATION prefix: RECOMMENDATION: ID:xxx | REASON: yyy
-                Pattern.compile("RECOMMENDATION:\\s*ID:([a-f0-9\\-]{36})\\s*\\|\\s*REASON:\\s*(.+)", Pattern.CASE_INSENSITIVE),
-                // Fallback: Just extract UUID-format ID anywhere in line
-                Pattern.compile("ID:([a-f0-9\\-]{36})", Pattern.CASE_INSENSITIVE)
+                // Simple format: uuid | reason (our new prompt format)
+                Pattern.compile("^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\\s*[|\\-\\u2013\\u2014]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Numbered format: 1. uuid | reason
+                Pattern.compile("^\\d+\\.?\\s*([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\\s*[|\\-\\u2013\\u2014]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Bracketed format: [1] uuid | reason
+                Pattern.compile("^\\[\\d+\\]\\s*([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\\s*[|\\-\\u2013\\u2014]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // With ID: prefix: ID:uuid | reason
+                Pattern.compile("ID:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\\s*[|\\-\\u2013\\u2014]\\s*(.+)", Pattern.CASE_INSENSITIVE),
+                // Fallback: Just extract UUID anywhere in line
+                Pattern.compile("([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})", Pattern.CASE_INSENSITIVE)
         );
 
         int rank = 1;

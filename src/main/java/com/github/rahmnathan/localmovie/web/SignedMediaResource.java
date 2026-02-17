@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Slf4j
 @AllArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.PATCH, RequestMethod.OPTIONS})
 @RestController
 @RequestMapping(value = "/localmovie/v1/signed/media")
 public class SignedMediaResource {
