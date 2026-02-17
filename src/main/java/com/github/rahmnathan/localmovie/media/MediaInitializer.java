@@ -4,7 +4,6 @@ import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.exception.InvalidMediaException;
 import com.github.rahmnathan.localmovie.media.subtitle.SubtitleJobService;
-import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaFileRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
@@ -37,7 +36,6 @@ import static com.github.rahmnathan.localmovie.media.event.MediaEventMonitor.ACT
 @RequiredArgsConstructor
 public class MediaInitializer {
     private final MediaFileService mediaFileService;
-    private final MediaPersistenceService persistenceService;
     private final MediaFileRepository mediaFileRepository;
     private final MediaJobRepository jobRepository;
     private final ServiceConfig serviceConfig;

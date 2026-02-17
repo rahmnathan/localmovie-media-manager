@@ -40,4 +40,14 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
            "AND m.title IS NOT NULL " +
            "ORDER BY m.imdbRating DESC NULLS LAST")
     List<MediaFile> findCandidatesForRecommendation(@Param("excludeIds") Set<String> excludeIds, Pageable pageable);
+
+    @Query("SELECT mf FROM MediaFile mf " +
+           "JOIN FETCH mf.media m " +
+           "WHERE mf.mediaFileType IN (com.github.rahmnathan.localmovie.data.MediaFileType.MOVIE, " +
+           "                           com.github.rahmnathan.localmovie.data.MediaFileType.SERIES) " +
+           "AND mf.mediaFileId NOT IN :excludeIds " +
+           "AND m.title IS NOT NULL " +
+           "AND m.genre IS NOT NULL " +
+           "ORDER BY RANDOM()")
+    List<MediaFile> findRandomCandidatesForRecommendation(@Param("excludeIds") Set<String> excludeIds, Pageable pageable);
 }

@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import com.github.rahmnathan.localmovie.persistence.entity.Media;
 
 @Slf4j
 @Service
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 public class RecommendationService {
     private static final int MAX_RECOMMENDATIONS = 10;
     private static final int MAX_HISTORY_FOR_PROMPT = 20;
-    private static final int MAX_CANDIDATES_FOR_PROMPT = 50;
+    private static final int MAX_CANDIDATES_FOR_PROMPT = 100;
 
     private final OllamaClient ollamaClient;
     private final MediaUserRepository userRepository;
@@ -99,21 +100,22 @@ public class RecommendationService {
 
     private List<MediaFile> getCandidateMedia(Set<String> excludeIds) {
         // Get movies and series that haven't been watched
+        // Use random selection to get diverse candidates rather than always picking highest-rated
         // If excludeIds is empty, use a dummy value to avoid SQL issues
         Set<String> safeExcludeIds = excludeIds.isEmpty() ? Set.of("__none__") : excludeIds;
-        return fileRepository.findCandidatesForRecommendation(safeExcludeIds, PageRequest.of(0, MAX_CANDIDATES_FOR_PROMPT));
+        return fileRepository.findRandomCandidatesForRecommendation(safeExcludeIds, PageRequest.of(0, MAX_CANDIDATES_FOR_PROMPT));
     }
 
     private String buildPrompt(List<MediaFile> watchHistory, List<MediaFile> candidates) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("You are a movie recommendation system. Based on the user's watch history, ");
-        prompt.append("recommend movies or series from the available library.\n\n");
+        prompt.append("You are an expert movie recommendation system. Analyze the user's watch history carefully ");
+        prompt.append("to understand their preferences (genres, themes, era, mood, style) and recommend titles they would genuinely enjoy.\n\n");
 
-        prompt.append("USER'S WATCH HISTORY:\n");
+        prompt.append("USER'S RECENT WATCH HISTORY (most recent first):\n");
         for (MediaFile mf : watchHistory) {
             Media media = mf.getMedia();
             if (media != null) {
-                prompt.append(String.format("- %s (%s) - %s - Rating: %s\n",
+                prompt.append(String.format("- %s (%s) - Genre: %s - Rating: %s\n",
                         media.getTitle(),
                         media.getReleaseYear() != null ? media.getReleaseYear() : "Unknown year",
                         media.getGenre() != null ? media.getGenre() : "Unknown genre",
@@ -121,7 +123,25 @@ public class RecommendationService {
             }
         }
 
-        prompt.append("\nAVAILABLE TITLES TO RECOMMEND FROM (use exact titles):\n");
+        // Extract genres from watch history to highlight patterns
+        String watchedGenres = watchHistory.stream()
+                .map(MediaFile::getMedia)
+                .filter(Objects::nonNull)
+                .map(Media::getGenre)
+                .filter(Objects::nonNull)
+                .flatMap(g -> Arrays.stream(g.split(",\\s*")))
+                .collect(Collectors.groupingBy(g -> g, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.joining(", "));
+
+        if (!watchedGenres.isEmpty()) {
+            prompt.append("\nOBSERVED PREFERENCES: User frequently watches: ").append(watchedGenres).append("\n");
+        }
+
+        prompt.append("\nAVAILABLE TITLES TO RECOMMEND FROM:\n");
         for (MediaFile mf : candidates) {
             Media media = mf.getMedia();
             if (media != null) {
@@ -130,14 +150,20 @@ public class RecommendationService {
                         media.getTitle(),
                         media.getReleaseYear() != null ? media.getReleaseYear() : "Unknown",
                         media.getGenre() != null ? media.getGenre() : "Unknown genre",
-                        media.getPlot() != null ? truncate(media.getPlot(), 100) : "No description"));
+                        media.getPlot() != null ? truncate(media.getPlot(), 150) : "No description"));
             }
         }
 
-        prompt.append("\nProvide your top ").append(MAX_RECOMMENDATIONS).append(" recommendations ");
+        prompt.append("\nINSTRUCTIONS:\n");
+        prompt.append("1. Match recommendations to the user's demonstrated genre preferences\n");
+        prompt.append("2. Consider similar themes, tone, and style - not just genre\n");
+        prompt.append("3. Prioritize quality matches over popularity\n");
+        prompt.append("4. Include some variety while staying relevant to their taste\n\n");
+
+        prompt.append("Provide your top ").append(MAX_RECOMMENDATIONS).append(" recommendations ");
         prompt.append("from the available titles above. For each recommendation, respond in this exact format:\n");
-        prompt.append("RECOMMENDATION: ID:<media_file_id> | REASON: <brief reason why they'd like it>\n\n");
-        prompt.append("Only recommend titles from the available list. Be concise with reasons (under 100 chars).");
+        prompt.append("RECOMMENDATION: ID:<media_file_id> | REASON: <brief reason connecting to their watch history>\n\n");
+        prompt.append("Only recommend titles from the available list. Be specific about why each matches their taste.");
 
         return prompt.toString();
     }
