@@ -30,7 +30,7 @@ class SecurityConfig {
         jwtAuthenticationConverter.setPrincipalClaimName("preferred_username");
 
         http.authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/signed/media/**")
+                        authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/signed/media/**", "/cast/**")
                                 .permitAll()
 //                                .requestMatchers("/admin/**")
 //                                .hasRole("movie-admin")
