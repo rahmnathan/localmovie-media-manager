@@ -32,7 +32,7 @@ public class OllamaClient {
             String modelName = ollamaConfig.getModel() != null ? ollamaConfig.getModel().toLowerCase() : "";
             Object thinkMode = modelName.contains("gpt-oss") ? "low" : Boolean.FALSE;
 
-            OllamaRequest request = OllamaRequest.builder()
+            OllamaRequest strictRequest = OllamaRequest.builder()
                     .model(ollamaConfig.getModel())
                     .system("Return only the requested JSON. Do not include chain-of-thought, planning, or commentary.")
                     .prompt(prompt)
@@ -47,19 +47,47 @@ public class OllamaClient {
                     ))
                     .build();
 
-            OllamaResponse response = ollamaApi.generate(request);
-
-            if (response != null && response.getResponse() != null) {
-                logger.info("Ollama response received, length: {}", response.getResponse().length());
-                return response.getResponse();
-            } else {
-                logger.warn("Ollama returned empty response");
-                return null;
+            String strictResponse = sendGenerate(strictRequest, "strict");
+            if (strictResponse != null && !strictResponse.isBlank()) {
+                return strictResponse;
             }
+
+            logger.warn("Ollama strict response was empty, retrying with relaxed settings");
+            OllamaRequest relaxedRequest = OllamaRequest.builder()
+                    .model(ollamaConfig.getModel())
+                    .prompt(prompt)
+                    .stream(false)
+                    .options(Map.of(
+                            "num_ctx", 8192,
+                            "num_predict", 1200,
+                            "temperature", 0.3,
+                            "top_p", 0.95
+                    ))
+                    .build();
+
+            String relaxedResponse = sendGenerate(relaxedRequest, "relaxed");
+            if (relaxedResponse != null && !relaxedResponse.isBlank()) {
+                return relaxedResponse;
+            }
+
+            logger.warn("Ollama returned empty response in both strict and relaxed modes");
+            return null;
         } catch (Exception e) {
             logger.error("Error calling Ollama API", e);
             return null;
         }
+    }
+
+    private String sendGenerate(OllamaRequest request, String mode) {
+        OllamaResponse response = ollamaApi.generate(request);
+        if (response == null || response.getResponse() == null) {
+            logger.warn("Ollama {} response was null", mode);
+            return null;
+        }
+
+        String body = response.getResponse().trim();
+        logger.info("Ollama {} response received, length: {}", mode, body.length());
+        return body;
     }
 
     public boolean isAvailable() {
