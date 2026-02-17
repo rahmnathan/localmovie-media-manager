@@ -3,70 +3,93 @@
     <script type="text/javascript"
         src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js">
     </script>
+    <style>
+        #debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 10px;
+            z-index: 9999;
+            max-width: 600px;
+            max-height: 200px;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
     <cast-media-player></cast-media-player>
+    <div id="debug">Debug: Starting...</div>
     <script>
+        var debugEl = document.getElementById('debug');
+        var debugLines = [];
+        function debug(msg) {
+            debugLines.push(msg);
+            if (debugLines.length > 8) debugLines.shift();
+            debugEl.innerText = debugLines.join('\n');
+        }
+
         var context = cast.framework.CastReceiverContext.getInstance();
         var playerManager = context.getPlayerManager();
         var progressTimer = null;
         var currentUpdatePositionUrl = null;
 
+        debug('Receiver initialized');
+
         // Intercept LOAD to extract custom metadata BEFORE start()
         playerManager.setMessageInterceptor(
             cast.framework.messages.MessageType.LOAD,
             function(request) {
-                console.log('LOAD intercepted');
-                if (request.media && request.media.customData) {
-                    currentUpdatePositionUrl = request.media.customData['update-position-url'];
-                    console.log('Got update URL from customData:', currentUpdatePositionUrl);
-                }
+                debug('LOAD intercepted');
+                debug('Media: ' + (request.media ? 'yes' : 'no'));
+                debug('Metadata: ' + (request.media && request.media.metadata ? 'yes' : 'no'));
+
                 if (request.media && request.media.metadata) {
+                    var keys = Object.keys(request.media.metadata);
+                    debug('Metadata keys: ' + keys.join(', '));
                     var url = request.media.metadata['update-position-url'];
                     if (url) {
                         currentUpdatePositionUrl = url;
-                        console.log('Got update URL from metadata:', currentUpdatePositionUrl);
+                        debug('URL found: ' + url.substring(0, 50) + '...');
+                    } else {
+                        debug('No update-position-url in metadata');
                     }
                 }
                 return request;
             }
         );
 
-        // Now start the receiver
         context.start();
+        debug('Receiver started');
 
-        // Log errors
         playerManager.addEventListener(
             cast.framework.events.EventType.ERROR,
-            function(event) { console.error('Player error:', event.detailedErrorCode, event.error); }
+            function(event) { debug('ERROR: ' + event.detailedErrorCode); }
         );
 
-        // Track state changes for progress saving
         playerManager.addEventListener(
             cast.framework.events.EventType.PLAYER_STATE_CHANGED,
             function(event) {
-                console.log('Player state:', event.state);
+                debug('State: ' + event.state);
                 if (event.state === cast.framework.messages.PlayerState.PLAYING) {
                     startProgressTimer();
                 } else {
                     stopProgressTimer();
-                    if (event.state === cast.framework.messages.PlayerState.IDLE ||
-                        event.state === cast.framework.messages.PlayerState.PAUSED) {
-                        saveProgress();
-                    }
                 }
             }
         );
 
         function startProgressTimer() {
             if (progressTimer) return;
-            console.log('Starting progress timer');
+            debug('Timer started');
             progressTimer = setInterval(saveProgress, 10000);
         }
 
         function stopProgressTimer() {
             if (progressTimer) {
-                console.log('Stopping progress timer');
                 clearInterval(progressTimer);
                 progressTimer = null;
             }
@@ -74,7 +97,7 @@
 
         function saveProgress() {
             if (!currentUpdatePositionUrl) {
-                console.log('No update URL, skipping save');
+                debug('Save skipped: no URL');
                 return;
             }
 
@@ -88,10 +111,10 @@
             var url = baseUrl + '/' + positionSec;
             url += query ? '?' + query + '&duration=' + durationMs : '?duration=' + durationMs;
 
-            console.log('Saving progress:', positionSec, 'seconds to', url);
+            debug('Saving: ' + positionSec + 's');
             fetch(url, { method: 'PATCH' })
-                .then(function(r) { console.log('Progress saved, status:', r.status); })
-                .catch(function(err) { console.error('Progress save error:', err); });
+                .then(function(r) { debug('Saved: ' + r.status); })
+                .catch(function(err) { debug('Save err: ' + err.message); });
         }
     </script>
 </body>
