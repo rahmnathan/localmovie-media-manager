@@ -94,12 +94,20 @@ class SecurityServiceTest {
         String mediaFileId = "test-media-auth";
         SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
+        String streamSignature = extractSignatureFromUrl(urls.getStream());
+        long streamExpires = extractExpiresFromUrl(urls.getStream());
+        boolean streamAuthorized = securityService.authorizedRequest(mediaFileId, streamExpires, streamSignature);
+        assertTrue(streamAuthorized);
+
         // Use updatePosition URL which includes userId in signature
         String signature = extractSignatureFromUrl(urls.getUpdatePosition());
         long expires = extractExpiresFromUrl(urls.getUpdatePosition());
 
         boolean authorized = securityService.authorizedRequest(mediaFileId, TEST_USER_ID, expires, signature);
         assertTrue(authorized);
+
+        boolean unauthorizedWithoutUser = securityService.authorizedRequest(mediaFileId, expires, signature);
+        assertFalse(unauthorizedWithoutUser);
     }
 
     @Test

@@ -76,15 +76,16 @@ public class SecurityService {
     }
 
     public SignedUrls generateSignedUrls(String mediaFileId, String userId, boolean hasSubtitle) throws JsonProcessingException {
-        SignedRequest signedRequest = generateSignedRequest(mediaFileId, userId);
+        SignedRequest mediaSignedRequest = generateSignedRequest(mediaFileId, null);
+        SignedRequest positionSignedRequest = generateSignedRequest(mediaFileId, userId);
 
         SignedUrls.SignedUrlsBuilder builder = SignedUrls.builder()
-                .stream(formatUrl(URL_PATTERN_STREAM, signedRequest))
-                .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
-                .updatePosition(formatUpdatePositionUrl(signedRequest));
+                .stream(formatUrl(URL_PATTERN_STREAM, mediaSignedRequest))
+                .poster(formatUrl(URL_PATTERN_POSTER, mediaSignedRequest))
+                .updatePosition(formatUpdatePositionUrl(positionSignedRequest));
 
         if (hasSubtitle) {
-            builder.subtitle(formatUrl(URL_PATTERN_SUBTITLE, signedRequest));
+            builder.subtitle(formatUrl(URL_PATTERN_SUBTITLE, mediaSignedRequest));
         }
 
         return builder.build();
