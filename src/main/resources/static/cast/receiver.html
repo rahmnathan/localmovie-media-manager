@@ -8,15 +8,16 @@
             position: fixed;
             top: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             color: #0f0;
             font-family: monospace;
-            font-size: 14px;
-            padding: 10px;
-            z-index: 9999;
-            max-width: 600px;
-            max-height: 200px;
+            font-size: 18px;
+            padding: 15px;
+            z-index: 2147483647;
+            max-width: 800px;
+            max-height: 300px;
             overflow: hidden;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -49,15 +50,17 @@
 
                 if (request.media && request.media.metadata) {
                     var keys = Object.keys(request.media.metadata);
-                    debug('Metadata keys: ' + keys.join(', '));
+                    debug('Keys: ' + keys.join(', '));
                     var url = request.media.metadata['update-position-url'];
                     if (url) {
                         currentUpdatePositionUrl = url;
-                        debug('URL found: ' + url.substring(0, 50) + '...');
+                        debug('URL found');
+                        debug('Returning request...');
                     } else {
-                        debug('No update-position-url in metadata');
+                        debug('No update-position-url');
                     }
                 }
+                debug('LOAD done');
                 return request;
             }
         );
