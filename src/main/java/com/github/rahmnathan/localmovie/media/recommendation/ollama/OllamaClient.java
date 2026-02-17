@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -33,6 +34,11 @@ public class OllamaClient {
                     .model(ollamaConfig.getModel())
                     .prompt(prompt)
                     .stream(false)
+                    .format("json")
+                    .options(Map.of(
+                            "temperature", 0.2,
+                            "top_p", 0.9
+                    ))
                     .build();
 
             OllamaResponse response = ollamaApi.generate(request);
