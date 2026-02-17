@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { HistoryList } from './HistoryList.jsx';
+import { RecommendationsList } from './RecommendationsList.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
@@ -10,6 +11,7 @@ import {UserPreferences} from "./userPreferences.js";
 
 const FAVORITES_TYPE = 'FAVORITES';
 const HISTORY_TYPE = 'HISTORY';
+const RECOMMENDATIONS_TYPE = 'RECOMMENDATIONS';
 
 const layoutProps = {
     textAlign: 'center'
@@ -38,6 +40,7 @@ const Breadcrumb = ({ path, onNavigateBack }) => {
 export function MainPage() {
 
     const [media, setMedia] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [navigationPath, setNavigationPath] = useState([{ name: 'Movies', parentId: null }]);
     const [navigationState, setNavigationState] = useState({
@@ -108,6 +111,35 @@ export function MainPage() {
         );
     }, []);
 
+    const fetchRecommendations = useCallback(() => {
+        setError(null);
+        trackPromise(
+            fetch('/localmovie/v1/media/recommendations', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        const err = new Error(`HTTP error! status: ${response.status}`);
+                        err.status = response.status;
+                        throw err;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setRecommendations(data);
+                    setIsInitialLoad(false);
+                })
+                .catch(error => {
+                    console.error('Failed to fetch recommendations:', error);
+                    setError(getErrorMessage(error, error.status));
+                    setIsInitialLoad(false);
+                })
+        );
+    }, []);
+
     useEffect(() => {
         let type = searchParams.get('type');
         let parentId = searchParams.get('parentId');
@@ -132,8 +164,14 @@ export function MainPage() {
         };
 
         setNavigationState(newState);
-        fetchMedia(false, newState);
-    }, [searchParams, fetchMedia]);
+
+        // Recommendations use a different API endpoint
+        if (type.toUpperCase() === RECOMMENDATIONS_TYPE) {
+            fetchRecommendations();
+        } else {
+            fetchMedia(false, newState);
+        }
+    }, [searchParams, fetchMedia, fetchRecommendations]);
 
     const navigate = useNavigate();
 
@@ -266,10 +304,12 @@ export function MainPage() {
 
     const showFavoritesEmpty = navigationState.type?.toUpperCase() === FAVORITES_TYPE && displayMedia.length === 0 && !isInitialLoad;
     const isHistoryView = navigationState.type?.toUpperCase() === HISTORY_TYPE;
+    const isRecommendationsView = navigationState.type?.toUpperCase() === RECOMMENDATIONS_TYPE;
 
     // Show breadcrumb only when navigating into series/seasons (not for special views)
     const showBreadcrumb = navigationPath.length > 1 &&
         !isHistoryView &&
+        !isRecommendationsView &&
         navigationState.type?.toUpperCase() !== FAVORITES_TYPE;
 
     // Check if any filters are active
@@ -330,6 +370,8 @@ export function MainPage() {
                 </div>
             ) : isHistoryView ? (
                 <HistoryList media={displayMedia} playMedia={playMedia} />
+            ) : isRecommendationsView ? (
+                <RecommendationsList recommendations={recommendations} playMedia={playMedia} isLoading={isInitialLoad} />
             ) : (
                 <MediaList media={displayMedia} navigateTo={navigateTo} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
             )}

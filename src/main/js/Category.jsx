@@ -32,6 +32,13 @@ export const Category = ({setType}) => {
             >
                 History
             </button>
+            <button
+                className="control-bar__button"
+                onClick={() => setType('recommendations')}
+                aria-label="Show personalized recommendations"
+            >
+                For You
+            </button>
         </div>
     );
 };
