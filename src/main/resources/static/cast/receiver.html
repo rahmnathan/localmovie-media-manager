@@ -7,21 +7,7 @@
 <body>
     <cast-media-player></cast-media-player>
     <script>
-        const context = cast.framework.CastReceiverContext.getInstance();
-        const playerManager = context.getPlayerManager();
-
-        // Log errors
-        playerManager.addEventListener(
-            cast.framework.events.EventType.ERROR,
-            (event) => console.error('Player error:', event.detailedErrorCode, event.error)
-        );
-
-        // Log state changes
-        playerManager.addEventListener(
-            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
-            (event) => console.log('Player state:', event.state)
-        );
-
+        var context = cast.framework.CastReceiverContext.getInstance();
         context.start();
     </script>
 </body>
