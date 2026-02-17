@@ -82,7 +82,7 @@ public class MediaResource {
         boolean hasSubtitle = subtitleRepository.existsByMediaFileUuid(mediaFileId);
 
         try {
-            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId, hasSubtitle));
+            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId, getUsername(), hasSubtitle));
         } catch (JsonProcessingException e) {
             log.error("Failed to generate signed URLs.", e);
             return ResponseEntity.internalServerError().build();

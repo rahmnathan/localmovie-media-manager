@@ -96,6 +96,11 @@ public class MediaPersistenceService {
         mediaViewService.addView(id, position, duration);
     }
 
+    @Transactional
+    public void addView(String id, String userId, Double position, Double duration) {
+        mediaViewService.addView(id, userId, position, duration);
+    }
+
     public long countHistory() {
         return mediaViewService.countHistory();
     }

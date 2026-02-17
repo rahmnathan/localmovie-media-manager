@@ -38,14 +38,24 @@ public class MediaViewService {
 
     @Transactional
     public void addView(String id, Double position, Double duration) {
+        addView(id, securityUtils.getUsername(), position, duration);
+    }
+
+    @Transactional
+    public void addView(String id, String userId, Double position, Double duration) {
         Optional<MediaFile> mediaFileOptional = fileRepository.findByMediaFileId(id);
         if (mediaFileOptional.isEmpty()) return;
 
         MediaFile mediaFile = mediaFileOptional.get();
-        String userName = securityUtils.getUsername();
+        String userName = userId != null ? userId : securityUtils.getUsername();
         log.info("Adding view for User: {} Path: {} Position: {} Duration: {}", userName, mediaFile.getPath(), position, duration);
 
-        if (mediaFile.getMediaViews().isEmpty()) {
+        // Find existing view for this user
+        Optional<MediaView> existingView = mediaFile.getMediaViews().stream()
+                .filter(v -> v.getMediaUser().getUserId().equals(userName))
+                .findFirst();
+
+        if (existingView.isEmpty()) {
             MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
             MediaView mediaView = new MediaView(mediaFile, mediaUser, position, duration);
             mediaFile.addMediaView(mediaView);
@@ -53,7 +63,7 @@ public class MediaViewService {
             userRepository.save(mediaUser);
             mediaViewRepository.save(mediaView);
         } else {
-            MediaView mediaView = mediaFile.getMediaViews().iterator().next();
+            MediaView mediaView = existingView.get();
             mediaView.setPosition(position);
             if (duration != null && duration > 0) {
                 mediaView.setDuration(duration);

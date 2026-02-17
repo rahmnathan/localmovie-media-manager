@@ -67,16 +67,17 @@ public class SignedMediaResource {
     public ResponseEntity<Void> updatePosition(@PathVariable String mediaFileId,
                                                @PathVariable Double position,
                                                @RequestParam(value = "expires", defaultValue = "0") long expires,
+                                               @RequestParam(value = "user", required = false) String userId,
                                                @RequestParam(value = "sig") String signature,
                                                @RequestParam(value = "duration", required = false) Double duration) {
-        log.info("Updating position for MediaFile id: {} position: {} duration: {}", mediaFileId, position, duration);
+        log.info("Updating position for MediaFile id: {} user: {} position: {} duration: {}", mediaFileId, userId, position, duration);
 
-        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
-            log.warn("Unauthorized poster request for id.");
+        if (!securityService.authorizedRequest(mediaFileId, userId, expires, signature)) {
+            log.warn("Unauthorized position update request.");
             return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
         }
 
-        persistenceService.addView(mediaFileId, position, duration);
+        persistenceService.addView(mediaFileId, userId, position, duration);
         return ResponseEntity.ok().build();
     }
 

@@ -3,96 +3,80 @@
     <script type="text/javascript"
         src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js">
     </script>
-    <style>
-        #debug {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.9);
-            color: #0f0;
-            font-family: monospace;
-            font-size: 18px;
-            padding: 15px;
-            z-index: 2147483647;
-            max-width: 800px;
-            max-height: 300px;
-            overflow: hidden;
-            pointer-events: none;
-        }
-    </style>
 </head>
 <body>
     <cast-media-player></cast-media-player>
-    <div id="debug">Debug: Starting...</div>
     <script>
-        var debugEl = document.getElementById('debug');
-        var debugLines = [];
-        function debug(msg) {
-            debugLines.push(msg);
-            if (debugLines.length > 8) debugLines.shift();
-            debugEl.innerText = debugLines.join('\n');
-        }
-
         var context = cast.framework.CastReceiverContext.getInstance();
         var playerManager = context.getPlayerManager();
-        var progressTimer = null;
         var currentUpdatePositionUrl = null;
+        var progressInterval = null;
 
-        debug('Receiver initialized');
-
-        // Intercept LOAD to extract custom metadata BEFORE start()
+        // Intercept LOAD to extract custom metadata
         playerManager.setMessageInterceptor(
             cast.framework.messages.MessageType.LOAD,
             function(request) {
-                debug('LOAD intercepted');
-                debug('Media: ' + (request.media ? 'yes' : 'no'));
-                debug('Metadata: ' + (request.media && request.media.metadata ? 'yes' : 'no'));
+                console.log('LOAD intercepted');
 
                 if (request.media && request.media.metadata) {
-                    var keys = Object.keys(request.media.metadata);
-                    debug('Keys: ' + keys.join(', '));
                     var url = request.media.metadata['update-position-url'];
                     if (url) {
                         currentUpdatePositionUrl = url;
-                        debug('URL found');
-                        debug('Returning request...');
-                    } else {
-                        debug('No update-position-url');
+                        console.log('Update position URL:', url);
                     }
                 }
-                debug('LOAD done');
-
-                // Start progress saving after a delay
-                setTimeout(function() {
-                    debug('Timer fired');
-                    saveProgress();
-                }, 5000);
 
                 return request;
             }
         );
 
         context.start();
-        debug('Receiver started');
+
+        // Register event listeners after start()
+        playerManager.addEventListener(
+            cast.framework.events.EventType.PLAYING,
+            function() {
+                console.log('Playback started');
+                startProgressTimer();
+            }
+        );
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.PAUSE,
+            function() {
+                console.log('Playback paused');
+                saveProgress();
+                stopProgressTimer();
+            }
+        );
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.ENDED,
+            function() {
+                console.log('Playback ended');
+                saveProgress();
+                stopProgressTimer();
+            }
+        );
 
         function startProgressTimer() {
-            if (progressTimer) return;
-            debug('Timer started');
-            progressTimer = setInterval(saveProgress, 10000);
+            if (progressInterval) return;
+            console.log('Starting progress timer');
+            // Save immediately, then every 10 seconds
+            saveProgress();
+            progressInterval = setInterval(saveProgress, 10000);
         }
 
         function stopProgressTimer() {
-            if (progressTimer) {
-                clearInterval(progressTimer);
-                progressTimer = null;
+            if (progressInterval) {
+                console.log('Stopping progress timer');
+                clearInterval(progressInterval);
+                progressInterval = null;
             }
         }
 
         function saveProgress() {
-            if (!currentUpdatePositionUrl) {
-                debug('Save skipped: no URL');
-                return;
-            }
+            if (!currentUpdatePositionUrl) return;
 
             var positionSec = Math.floor(playerManager.getCurrentTimeSec());
             var durationMs = Math.floor(playerManager.getDurationSec() * 1000);
@@ -104,10 +88,10 @@
             var url = baseUrl + '/' + positionSec;
             url += query ? '?' + query + '&duration=' + durationMs : '?duration=' + durationMs;
 
-            debug('Saving: ' + positionSec + 's');
+            console.log('Saving progress:', positionSec, 'seconds');
             fetch(url, { method: 'PATCH' })
-                .then(function(r) { debug('Saved: ' + r.status); })
-                .catch(function(err) { debug('Save err: ' + err.message); });
+                .then(function(r) { console.log('Progress saved:', r.status); })
+                .catch(function(err) { console.error('Progress save error:', err); });
         }
     </script>
 </body>

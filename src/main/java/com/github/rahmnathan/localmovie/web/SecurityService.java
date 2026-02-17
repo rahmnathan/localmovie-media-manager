@@ -22,7 +22,7 @@ import java.util.Base64;
 public class SecurityService {
     private static final String URL_PATTERN_STREAM = "/localmovie/v1/signed/media/%s/stream.mp4?expires=%s&sig=%s";
     private static final String URL_PATTERN_POSTER = "/localmovie/v1/signed/media/%s/poster?expires=%s&sig=%s";
-    private static final String URL_PATTERN_UPDATE_POSITION = "/localmovie/v1/signed/media/%s/position?expires=%s&sig=%s";
+    private static final String URL_PATTERN_UPDATE_POSITION = "/localmovie/v1/signed/media/%s/position?expires=%s&user=%s&sig=%s";
     private static final String URL_PATTERN_SUBTITLE = "/localmovie/v1/signed/media/%s/subtitle.vtt?expires=%s&sig=%s";
 
     private final ObjectMapper objectMapper = new ObjectMapper()
@@ -35,8 +35,13 @@ public class SecurityService {
     }
 
     public boolean authorizedRequest(String mediaFileId, long expires, String signature) {
+        return authorizedRequest(mediaFileId, null, expires, signature);
+    }
+
+    public boolean authorizedRequest(String mediaFileId, String userId, long expires, String signature) {
         SignedRequest signedRequest = SignedRequest.builder()
                 .mediaFileId(mediaFileId)
+                .userId(userId)
                 .expires(expires)
                 .build();
 
@@ -66,17 +71,17 @@ public class SecurityService {
                 .build();
     }
 
-    public SignedUrls generateSignedUrls(String mediaFileId) throws JsonProcessingException {
-        return generateSignedUrls(mediaFileId, false);
+    public SignedUrls generateSignedUrls(String mediaFileId, String userId) throws JsonProcessingException {
+        return generateSignedUrls(mediaFileId, userId, false);
     }
 
-    public SignedUrls generateSignedUrls(String mediaFileId, boolean hasSubtitle) throws JsonProcessingException {
-        SignedRequest signedRequest = generateSignedRequest(mediaFileId);
+    public SignedUrls generateSignedUrls(String mediaFileId, String userId, boolean hasSubtitle) throws JsonProcessingException {
+        SignedRequest signedRequest = generateSignedRequest(mediaFileId, userId);
 
         SignedUrls.SignedUrlsBuilder builder = SignedUrls.builder()
                 .stream(formatUrl(URL_PATTERN_STREAM, signedRequest))
                 .poster(formatUrl(URL_PATTERN_POSTER, signedRequest))
-                .updatePosition(formatUrl(URL_PATTERN_UPDATE_POSITION, signedRequest));
+                .updatePosition(formatUpdatePositionUrl(signedRequest));
 
         if (hasSubtitle) {
             builder.subtitle(formatUrl(URL_PATTERN_SUBTITLE, signedRequest));
@@ -85,15 +90,24 @@ public class SecurityService {
         return builder.build();
     }
 
-    private SignedRequest generateSignedRequest(String mediaFileId) throws JsonProcessingException {
+    private SignedRequest generateSignedRequest(String mediaFileId, String userId) throws JsonProcessingException {
         SignedRequest signedRequest = SignedRequest.builder()
                 .mediaFileId(mediaFileId)
+                .userId(userId)
                 .expires(ZonedDateTime.now().plusDays(1L).toEpochSecond())
                 .build();
 
         signedRequest.setSignature(generateSignature(signedRequest));
 
         return signedRequest;
+    }
+
+    private String formatUpdatePositionUrl(SignedRequest signedRequest) {
+        return String.format(URL_PATTERN_UPDATE_POSITION,
+                signedRequest.getMediaFileId(),
+                signedRequest.getExpires(),
+                signedRequest.getUserId(),
+                signedRequest.getSignature());
     }
 
     private String generateSignature(SignedRequest signedRequest) throws JsonProcessingException {
@@ -116,6 +130,7 @@ public class SecurityService {
     @Builder
     private static class SignedRequest {
         private final String mediaFileId;
+        private final String userId;
         private final long expires;
         @JsonIgnore
         private String signature;
