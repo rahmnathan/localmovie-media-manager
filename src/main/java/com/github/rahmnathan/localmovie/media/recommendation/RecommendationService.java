@@ -28,9 +28,10 @@ import java.util.stream.Collectors;
 public class RecommendationService {
     private static final int MAX_RECOMMENDATIONS = 10;
     private static final int MIN_ACCEPTABLE_RECOMMENDATIONS = 4;
-    private static final int MAX_HISTORY_FOR_PROMPT = 20;
-    private static final int MAX_CANDIDATES_FOR_PROMPT = 100;
+    private static final int MAX_HISTORY_FOR_PROMPT = 12;
+    private static final int MAX_CANDIDATES_FOR_PROMPT = 35;
     private static final int MAX_REASON_LENGTH = 180;
+    private static final int PROMPT_TOKEN_BUDGET = 3000;
     private static final Pattern SIMPLE_LINE_PATTERN = Pattern.compile(
             "^(?:[-*]|\\d+[.)]|\\[\\d+\\])?\\s*([A-Za-z0-9._:-]{4,})\\s*(?:\\||-|\\u2013|\\u2014|:)\\s*(.+)$");
     private static final Pattern ID_KEY_VALUE_PATTERN = Pattern.compile(
@@ -81,6 +82,8 @@ public class RecommendationService {
 
         // Build prompt and get recommendations from Ollama
         String prompt = buildPrompt(watchHistory, candidates);
+        log.info("Ollama prompt prepared: chars={}, estimatedTokens={}, historyItems={}, candidates={}",
+                prompt.length(), estimateTokens(prompt), watchHistory.size(), candidates.size());
         String response = ollamaClient.generate(prompt);
 
         List<RecommendationResult> results = response == null || response.isBlank()
@@ -92,6 +95,8 @@ public class RecommendationService {
                     results.size(), userId);
             results = buildFallbackRecommendations(watchHistory, candidates);
         }
+
+        results = deduplicateAndRank(results);
 
         if (results.isEmpty()) {
             log.warn("No valid recommendations generated for user {}. Keeping existing recommendations.", userId);
@@ -142,7 +147,7 @@ public class RecommendationService {
         prompt.append("- No duplicate IDs\n\n");
 
         prompt.append("WATCH_HISTORY:\n");
-        for (MediaFile mf : watchHistory) {
+        for (MediaFile mf : watchHistory.stream().limit(MAX_HISTORY_FOR_PROMPT).toList()) {
             Media media = mf.getMedia();
             if (media != null) {
                 prompt.append(String.format("- %s (%s) - %s\n",
@@ -155,18 +160,33 @@ public class RecommendationService {
         prompt.append("\nTOP_GENRES: ").append(watchedGenres).append("\n\n");
 
         prompt.append("CATALOG:\n");
+        int includedCandidates = 0;
         for (MediaFile mf : candidates) {
             Media media = mf.getMedia();
             if (media != null) {
-                prompt.append(String.format("%s | %s | %s | %s | imdb=%s\n",
+                String candidateLine = String.format("%s | %s | %s | %s | imdb=%s\n",
                         mf.getMediaFileId(),
                         media.getTitle(),
                         media.getReleaseYear() != null ? media.getReleaseYear() : "?",
                         media.getGenre() != null ? media.getGenre() : "Unknown genre",
-                        media.getImdbRating() != null ? media.getImdbRating() : "?"));
+                        media.getImdbRating() != null ? media.getImdbRating() : "?");
+
+                if (includedCandidates > 0 && estimateTokens(prompt.toString() + candidateLine) > PROMPT_TOKEN_BUDGET) {
+                    break;
+                }
+
+                prompt.append(candidateLine);
+                includedCandidates++;
             }
         }
         return prompt.toString();
+    }
+
+    private int estimateTokens(String text) {
+        if (text == null || text.isEmpty()) {
+            return 0;
+        }
+        return (text.length() + 3) / 4;
     }
 
     private List<Map.Entry<String, Long>> extractTopGenres(List<MediaFile> watchHistory, int limit) {
@@ -364,6 +384,13 @@ public class RecommendationService {
 
         List<ScoredCandidate> scoredCandidates = candidates.stream()
                 .filter(candidate -> candidate.getMedia() != null)
+                .collect(Collectors.toMap(
+                        MediaFile::getMediaFileId,
+                        candidate -> candidate,
+                        (first, ignored) -> first,
+                        LinkedHashMap::new
+                ))
+                .values().stream()
                 .map(candidate -> scoreCandidate(candidate, preferredGenres))
                 .sorted(comparator)
                 .limit(MAX_RECOMMENDATIONS)
@@ -436,11 +463,14 @@ public class RecommendationService {
 
     @Transactional
     protected void saveRecommendations(MediaUser user, List<RecommendationResult> results) {
+        List<RecommendationResult> dedupedResults = deduplicateAndRank(results);
+
         // Clear existing recommendations for this user
         recommendationRepository.deleteByMediaUserUserId(user.getUserId());
+        recommendationRepository.flush();
 
         // Save new recommendations
-        for (RecommendationResult result : results) {
+        for (RecommendationResult result : dedupedResults) {
             MediaRecommendation recommendation = new MediaRecommendation(
                     result.mediaFile(),
                     user,

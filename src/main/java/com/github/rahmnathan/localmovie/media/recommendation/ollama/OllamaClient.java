@@ -36,6 +36,7 @@ public class OllamaClient {
                     .stream(false)
                     .format("json")
                     .options(Map.of(
+                            "num_ctx", 8192,
                             "temperature", 0.2,
                             "top_p", 0.9
                     ))
