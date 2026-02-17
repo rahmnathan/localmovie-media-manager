@@ -8,11 +8,32 @@
     <cast-media-player></cast-media-player>
     <script>
         var context = cast.framework.CastReceiverContext.getInstance();
-        context.start();
-
         var playerManager = context.getPlayerManager();
         var progressTimer = null;
         var currentUpdatePositionUrl = null;
+
+        // Intercept LOAD to extract custom metadata BEFORE start()
+        playerManager.setMessageInterceptor(
+            cast.framework.messages.MessageType.LOAD,
+            function(request) {
+                console.log('LOAD intercepted');
+                if (request.media && request.media.customData) {
+                    currentUpdatePositionUrl = request.media.customData['update-position-url'];
+                    console.log('Got update URL from customData:', currentUpdatePositionUrl);
+                }
+                if (request.media && request.media.metadata) {
+                    var url = request.media.metadata['update-position-url'];
+                    if (url) {
+                        currentUpdatePositionUrl = url;
+                        console.log('Got update URL from metadata:', currentUpdatePositionUrl);
+                    }
+                }
+                return request;
+            }
+        );
+
+        // Now start the receiver
+        context.start();
 
         // Log errors
         playerManager.addEventListener(
@@ -37,21 +58,6 @@
             }
         );
 
-        // Extract update URL from media metadata when media loads
-        playerManager.addEventListener(
-            cast.framework.events.EventType.MEDIA_STATUS,
-            function(event) {
-                var mediaInfo = playerManager.getMediaInformation();
-                if (mediaInfo && mediaInfo.metadata) {
-                    var url = mediaInfo.metadata['update-position-url'];
-                    if (url && url !== currentUpdatePositionUrl) {
-                        currentUpdatePositionUrl = url;
-                        console.log('Update position URL:', currentUpdatePositionUrl);
-                    }
-                }
-            }
-        );
-
         function startProgressTimer() {
             if (progressTimer) return;
             console.log('Starting progress timer');
@@ -67,7 +73,10 @@
         }
 
         function saveProgress() {
-            if (!currentUpdatePositionUrl) return;
+            if (!currentUpdatePositionUrl) {
+                console.log('No update URL, skipping save');
+                return;
+            }
 
             var positionSec = Math.floor(playerManager.getCurrentTimeSec());
             var durationMs = Math.floor(playerManager.getDurationSec() * 1000);
@@ -79,10 +88,10 @@
             var url = baseUrl + '/' + positionSec;
             url += query ? '?' + query + '&duration=' + durationMs : '?duration=' + durationMs;
 
-            console.log('Saving progress:', positionSec, 'seconds');
-            fetch(url, { method: 'PATCH' }).catch(function(err) {
-                console.error('Progress save error:', err);
-            });
+            console.log('Saving progress:', positionSec, 'seconds to', url);
+            fetch(url, { method: 'PATCH' })
+                .then(function(r) { console.log('Progress saved, status:', r.status); })
+                .catch(function(err) { console.error('Progress save error:', err); });
         }
     </script>
 </body>
