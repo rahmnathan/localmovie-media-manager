@@ -8,7 +8,23 @@
     <cast-media-player></cast-media-player>
     <script>
         var context = cast.framework.CastReceiverContext.getInstance();
+
+        // Start first, then get player manager
         context.start();
+
+        var playerManager = context.getPlayerManager();
+
+        // Log errors
+        playerManager.addEventListener(
+            cast.framework.events.EventType.ERROR,
+            function(event) { console.error('Player error:', event.detailedErrorCode, event.error); }
+        );
+
+        // Log state changes
+        playerManager.addEventListener(
+            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
+            function(event) { console.log('Player state:', event.state); }
+        );
     </script>
 </body>
 </html>
