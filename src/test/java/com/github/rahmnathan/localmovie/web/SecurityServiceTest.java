@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @Import(TestContainersConfiguration.class)
 class SecurityServiceTest {
+    private static final String TEST_USER_ID = "testuser";
     private final SecurityService securityService;
 
     @Autowired
@@ -36,13 +37,13 @@ class SecurityServiceTest {
     void testGenerateSignatureConsistency() throws JsonProcessingException {
         String mediaFileId = "test-media-123";
 
-        SignedUrls urls1 = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls1 = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
         // Extract signature from URL
         String signature1 = extractSignatureFromUrl(urls1.getStream());
 
         // Reset and generate again - should produce different signature due to different timestamp
         Thread.yield();
-        SignedUrls urls2 = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls2 = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
         String signature2 = extractSignatureFromUrl(urls2.getStream());
 
         // Signatures should be different because timestamps are different
@@ -54,8 +55,8 @@ class SecurityServiceTest {
 
     @Test
     void testGenerateSignatureVariability() throws JsonProcessingException {
-        SignedUrls urls1 = securityService.generateSignedUrls("media-123");
-        SignedUrls urls2 = securityService.generateSignedUrls("media-456");
+        SignedUrls urls1 = securityService.generateSignedUrls("media-123", TEST_USER_ID);
+        SignedUrls urls2 = securityService.generateSignedUrls("media-456", TEST_USER_ID);
 
         String signature1 = extractSignatureFromUrl(urls1.getStream());
         String signature2 = extractSignatureFromUrl(urls2.getStream());
@@ -66,7 +67,7 @@ class SecurityServiceTest {
 
     @Test
     void testSignatureEncodingBase64Url() throws JsonProcessingException {
-        SignedUrls urls = securityService.generateSignedUrls("test-media");
+        SignedUrls urls = securityService.generateSignedUrls("test-media", TEST_USER_ID);
         String signature = extractSignatureFromUrl(urls.getStream());
 
         // Base64 URL encoding should not contain +, /, or = characters
@@ -81,7 +82,7 @@ class SecurityServiceTest {
     @Test
     void testGenerateSignatureWithSpecialCharacters() throws JsonProcessingException {
         String mediaFileId = "test-media-with-special-chars-!@#$%";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
         assertNotNull(urls.getStream());
         assertNotNull(urls.getPoster());
@@ -91,12 +92,13 @@ class SecurityServiceTest {
     @Test
     void testAuthorizedRequestValidSignature() throws JsonProcessingException {
         String mediaFileId = "test-media-auth";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
-        String signature = extractSignatureFromUrl(urls.getStream());
-        long expires = extractExpiresFromUrl(urls.getStream());
+        // Use updatePosition URL which includes userId in signature
+        String signature = extractSignatureFromUrl(urls.getUpdatePosition());
+        long expires = extractExpiresFromUrl(urls.getUpdatePosition());
 
-        boolean authorized = securityService.authorizedRequest(mediaFileId, expires, signature);
+        boolean authorized = securityService.authorizedRequest(mediaFileId, TEST_USER_ID, expires, signature);
         assertTrue(authorized);
     }
 
@@ -124,13 +126,14 @@ class SecurityServiceTest {
     @Test
     void testAuthorizedRequestFutureTimestamp() throws JsonProcessingException {
         String mediaFileId = "test-media-future";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
-        String signature = extractSignatureFromUrl(urls.getStream());
-        long expires = extractExpiresFromUrl(urls.getStream());
+        // Use updatePosition URL which includes userId in signature
+        String signature = extractSignatureFromUrl(urls.getUpdatePosition());
+        long expires = extractExpiresFromUrl(urls.getUpdatePosition());
 
         // Should be authorized as expiration is in the future
-        boolean authorized = securityService.authorizedRequest(mediaFileId, expires, signature);
+        boolean authorized = securityService.authorizedRequest(mediaFileId, TEST_USER_ID, expires, signature);
         assertTrue(authorized);
     }
 
@@ -148,7 +151,7 @@ class SecurityServiceTest {
         String originalMediaFileId = "test-media-original";
         String tamperedMediaFileId = "test-media-tampered";
 
-        SignedUrls urls = securityService.generateSignedUrls(originalMediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(originalMediaFileId, TEST_USER_ID);
         String signature = extractSignatureFromUrl(urls.getStream());
         long expires = extractExpiresFromUrl(urls.getStream());
 
@@ -169,7 +172,7 @@ class SecurityServiceTest {
     @Test
     void testGenerateSignedUrls() throws JsonProcessingException {
         String mediaFileId = "test-media-urls";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
         assertNotNull(urls);
         assertNotNull(urls.getStream());
@@ -193,7 +196,7 @@ class SecurityServiceTest {
         String mediaFileId = "test-media-expiration";
         long beforeGeneration = ZonedDateTime.now().plusDays(1).toEpochSecond();
 
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
         long expires = extractExpiresFromUrl(urls.getStream());
 
         long afterGeneration = ZonedDateTime.now().plusDays(1).toEpochSecond();
@@ -206,7 +209,7 @@ class SecurityServiceTest {
     @Test
     void testSignedUrlsContainCorrectPattern() throws JsonProcessingException {
         String mediaFileId = "test-media-pattern";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
         // Verify stream URL pattern (Base64 URL encoding allows = padding)
         String streamPattern = "/localmovie/v1/signed/media/" + mediaFileId + "/stream\\.mp4\\?expires=\\d+&sig=[A-Za-z0-9_-]+=*";
@@ -218,8 +221,8 @@ class SecurityServiceTest {
         assertTrue(Pattern.matches(posterPattern, urls.getPoster()),
                 "Poster URL doesn't match expected pattern: " + urls.getPoster());
 
-        // Verify update position URL pattern
-        String updatePattern = "/localmovie/v1/signed/media/" + mediaFileId + "/position\\?expires=\\d+&sig=[A-Za-z0-9_-]+=*";
+        // Verify update position URL pattern (now includes user parameter)
+        String updatePattern = "/localmovie/v1/signed/media/" + mediaFileId + "/position\\?expires=\\d+&user=" + TEST_USER_ID + "&sig=[A-Za-z0-9_-]+=*";
         assertTrue(Pattern.matches(updatePattern, urls.getUpdatePosition()),
                 "Update position URL doesn't match expected pattern: " + urls.getUpdatePosition());
     }
@@ -227,7 +230,7 @@ class SecurityServiceTest {
     @Test
     void testGenerateSignedUrlsAllThreeUrlsGenerated() throws JsonProcessingException {
         String mediaFileId = "test-media-all-urls";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
         // All three URLs should be present and non-empty
         assertNotNull(urls.getStream());
@@ -261,7 +264,7 @@ class SecurityServiceTest {
     @Test
     void testGenerateSignedUrlsWithEmptyMediaFileId() throws JsonProcessingException {
         String mediaFileId = "";
-        SignedUrls urls = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
         // Should still generate URLs, even with empty ID
         assertNotNull(urls);
@@ -276,12 +279,12 @@ class SecurityServiceTest {
         // because the timestamp changes between calls
         String mediaFileId = "consistent-test";
 
-        SignedUrls urls1 = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls1 = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
         String sig1 = extractSignatureFromUrl(urls1.getStream());
         long exp1 = extractExpiresFromUrl(urls1.getStream());
 
         // Generate again - timestamp will be different
-        SignedUrls urls2 = securityService.generateSignedUrls(mediaFileId);
+        SignedUrls urls2 = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
         String sig2 = extractSignatureFromUrl(urls2.getStream());
         long exp2 = extractExpiresFromUrl(urls2.getStream());
 
@@ -292,21 +295,25 @@ class SecurityServiceTest {
     }
 
     private String extractSignatureFromUrl(String url) {
-        // URL format: /path?expires=123456&sig=signature
+        // URL format: /path?expires=123456&sig=signature or /path?expires=123456&user=xxx&sig=signature
         int sigIndex = url.indexOf("sig=");
         if (sigIndex == -1) {
             return null;
         }
+        // sig is always last, so take everything after sig=
         return url.substring(sigIndex + 4);
     }
 
     private long extractExpiresFromUrl(String url) {
-        // URL format: /path?expires=123456&sig=signature
+        // URL format: /path?expires=123456&sig=signature or /path?expires=123456&user=xxx&sig=signature
         int expiresIndex = url.indexOf("expires=");
         if (expiresIndex == -1) {
             return 0;
         }
         int endIndex = url.indexOf("&", expiresIndex);
+        if (endIndex == -1) {
+            endIndex = url.length();
+        }
         String expiresStr = url.substring(expiresIndex + 8, endIndex);
         return Long.parseLong(expiresStr);
     }
