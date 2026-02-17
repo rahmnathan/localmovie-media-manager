@@ -8,6 +8,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,7 +18,22 @@ import org.springframework.security.web.SecurityFilterChain;
 @AllArgsConstructor
 class SecurityConfig {
 
+    /**
+     * Security chain for Cast receiver - needs frame options disabled since
+     * Chromecast loads the receiver in an embedded context.
+     */
     @Order(1)
+    @Bean
+    public SecurityFilterChain castReceiverFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher("/cast/**")
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .csrf(AbstractHttpConfigurer::disable);
+
+        return http.build();
+    }
+
+    @Order(2)
     @Bean
     public SecurityFilterChain anonymousAccessFilterChain(HttpSecurity http) throws Exception {
         DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
@@ -30,7 +46,7 @@ class SecurityConfig {
         jwtAuthenticationConverter.setPrincipalClaimName("preferred_username");
 
         http.authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/signed/media/**", "/cast/**")
+                        authorizeRequests.requestMatchers("/actuator/**", "/forbidden.css", "/localmovie/v1/signed/media/**")
                                 .permitAll()
 //                                .requestMatchers("/admin/**")
 //                                .hasRole("movie-admin")
