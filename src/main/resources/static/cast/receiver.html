@@ -1,16 +1,68 @@
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/cast/styles.css">
     <script type="text/javascript"
         src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js">
     </script>
 </head>
 <body>
-    <cast-media-player></cast-media-player>
+    <div class="cinema-bg"></div>
+    <div class="receiver-shell">
+        <header class="receiver-topbar">
+            <div class="brand">
+                <span class="brand__mark">LM</span>
+                <span class="brand__name">LocalMovies</span>
+            </div>
+            <div id="statusBadge" class="status-badge">Ready</div>
+        </header>
+
+        <main class="receiver-stage">
+            <cast-media-player></cast-media-player>
+            <div class="receiver-overlay">
+                <p class="eyebrow">Now Casting</p>
+                <h1 id="mediaTitle" class="overlay-title">Select a movie to begin</h1>
+            </div>
+        </main>
+    </div>
+
     <script>
         var context = cast.framework.CastReceiverContext.getInstance();
         var playerManager = context.getPlayerManager();
+        var PROGRESS_INTERVAL_MS = 10000;
         var currentUpdatePositionUrl = null;
         var progressInterval = null;
+        var lastSavedPositionSec = -1;
+        var statusBadge = document.getElementById('statusBadge');
+        var mediaTitle = document.getElementById('mediaTitle');
+
+        function updateUiState(label, bodyClass) {
+            if (statusBadge) statusBadge.textContent = label;
+            document.body.classList.remove('is-idle', 'is-playing', 'is-paused');
+            if (bodyClass) document.body.classList.add(bodyClass);
+        }
+
+        function getUpdatePositionUrl(request) {
+            if (!request || !request.media) return null;
+
+            var metadataUrl = request.media.metadata && request.media.metadata['update-position-url'];
+            if (metadataUrl) return metadataUrl;
+
+            var mediaCustomUrl = request.media.customData && (
+                request.media.customData['update-position-url'] ||
+                request.media.customData.updatePositionUrl
+            );
+            if (mediaCustomUrl) return mediaCustomUrl;
+
+            var requestCustomUrl = request.customData && (
+                request.customData['update-position-url'] ||
+                request.customData.updatePositionUrl
+            );
+            if (requestCustomUrl) return requestCustomUrl;
+
+            return null;
+        }
 
         // Intercept LOAD to extract custom metadata
         playerManager.setMessageInterceptor(
@@ -18,12 +70,25 @@
             function(request) {
                 console.log('LOAD intercepted');
 
-                if (request.media && request.media.metadata) {
-                    var url = request.media.metadata['update-position-url'];
-                    if (url) {
-                        currentUpdatePositionUrl = url;
-                        console.log('Update position URL:', url);
-                    }
+                stopProgressTimer();
+                lastSavedPositionSec = -1;
+                updateUiState('Loading', 'is-idle');
+
+                var title = request &&
+                    request.media &&
+                    request.media.metadata &&
+                    request.media.metadata.title;
+                if (mediaTitle) {
+                    mediaTitle.textContent = title || 'Preparing playback';
+                }
+
+                var url = getUpdatePositionUrl(request);
+                if (url) {
+                    currentUpdatePositionUrl = url;
+                    console.log('Update position URL:', url);
+                } else {
+                    currentUpdatePositionUrl = null;
+                    console.warn('No update position URL found in LOAD request');
                 }
 
                 return request;
@@ -37,6 +102,7 @@
             cast.framework.events.EventType.PLAYING,
             function() {
                 console.log('Playback started');
+                updateUiState('Playing', 'is-playing');
                 startProgressTimer();
             }
         );
@@ -45,7 +111,8 @@
             cast.framework.events.EventType.PAUSE,
             function() {
                 console.log('Playback paused');
-                saveProgress();
+                updateUiState('Paused', 'is-paused');
+                saveProgress(true);
                 stopProgressTimer();
             }
         );
@@ -54,7 +121,8 @@
             cast.framework.events.EventType.ENDED,
             function() {
                 console.log('Playback ended');
-                saveProgress();
+                updateUiState('Ready', 'is-idle');
+                saveProgress(true);
                 stopProgressTimer();
             }
         );
@@ -63,8 +131,8 @@
             if (progressInterval) return;
             console.log('Starting progress timer');
             // Save immediately, then every 10 seconds
-            saveProgress();
-            progressInterval = setInterval(saveProgress, 10000);
+            saveProgress(true);
+            progressInterval = setInterval(function() { saveProgress(false); }, PROGRESS_INTERVAL_MS);
         }
 
         function stopProgressTimer() {
@@ -75,22 +143,33 @@
             }
         }
 
-        function saveProgress() {
+        function saveProgress(force) {
             if (!currentUpdatePositionUrl) return;
 
             var positionSec = Math.floor(playerManager.getCurrentTimeSec());
             var durationMs = Math.floor(playerManager.getDurationSec() * 1000);
+            if (!Number.isFinite(positionSec) || positionSec < 0) return;
+            if (!force && positionSec === lastSavedPositionSec) return;
 
             var parts = currentUpdatePositionUrl.split('?');
             var baseUrl = parts[0];
             var query = parts[1] || '';
 
             var url = baseUrl + '/' + positionSec;
-            url += query ? '?' + query + '&duration=' + durationMs : '?duration=' + durationMs;
+            if (Number.isFinite(durationMs) && durationMs > 0) {
+                url += query ? '?' + query + '&duration=' + durationMs : '?duration=' + durationMs;
+            } else if (query) {
+                url += '?' + query;
+            }
 
             console.log('Saving progress:', positionSec, 'seconds');
             fetch(url, { method: 'PATCH' })
-                .then(function(r) { console.log('Progress saved:', r.status); })
+                .then(function(r) {
+                    if (r.ok) {
+                        lastSavedPositionSec = positionSec;
+                    }
+                    console.log('Progress saved:', r.status);
+                })
                 .catch(function(err) { console.error('Progress save error:', err); });
         }
     </script>

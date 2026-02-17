@@ -1,52 +1,186 @@
-/**
- * LocalMovies Cast Receiver Styles
- *
- * Cinematic dark theme with red accents
- */
+:root {
+    --bg-0: #070709;
+    --bg-1: #12121a;
+    --bg-2: #1a1620;
+    --ink: #f2f3f7;
+    --ink-dim: #b7bccb;
+    --accent: #e13d2d;
+    --accent-2: #ff8a3d;
+}
 
+* {
+    box-sizing: border-box;
+}
+
+html,
 body {
     margin: 0;
-    padding: 0;
-    background-color: #0a0a0a;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
 }
 
+body {
+    color: var(--ink);
+    background: radial-gradient(1200px 700px at 10% 10%, #2a1a25 0%, transparent 60%),
+    radial-gradient(1000px 700px at 90% 90%, #1f2b3d 0%, transparent 65%),
+    linear-gradient(135deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Avenir Next", sans-serif;
+}
+
+.cinema-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+            linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.7) 100%),
+            repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.022) 0px,
+                    rgba(255, 255, 255, 0.022) 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px
+            );
+}
+
+.receiver-shell {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    padding: 2.5vh 3.2vw;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+}
+
+.receiver-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand__mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    background: linear-gradient(150deg, var(--accent) 0%, var(--accent-2) 100%);
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(225, 61, 45, 0.35);
+}
+
+.brand__name {
+    font-size: 1.06rem;
+    font-weight: 650;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #f7f8fb;
+}
+
+.status-badge {
+    padding: 9px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(8, 9, 12, 0.55);
+    color: var(--ink-dim);
+    font-size: 0.86rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.receiver-stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5);
+}
+
 cast-media-player {
-    /* Red/crimson theme (hue 0 = red) */
-    --theme-hue: 0;
-
-    /* Progress bar - deep cinematic red */
-    --progress-color: #b71c1c;
-
-    /* Splash screen / loading */
+    width: 100%;
+    height: 100%;
+    --theme-hue: 8;
+    --progress-color: var(--accent);
     --splash-image: none;
     --splash-size: cover;
-
-    /* Background colors */
-    --background-color: #0a0a0a;
-    --font-family: 'Roboto', 'Segoe UI', sans-serif;
-
-    /* Playback controls */
+    --background-color: #08090d;
+    --font-family: "Segoe UI Variable Display", "Trebuchet MS", "Avenir Next", sans-serif;
     --advancement-skip-time: 15;
     --advancement-text-padding: 16px;
     --advancement-text-font-weight: 600;
-
-    /* Watermark / branding */
     --watermark-size: 0;
 }
 
-/* Metadata display styling */
 cast-media-player::part(background) {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 50%, #0a0a0a 100%);
+    background:
+            radial-gradient(1000px 600px at 20% 10%, rgba(224, 70, 48, 0.2) 0%, transparent 65%),
+            linear-gradient(130deg, #090a0f 0%, #151822 100%);
 }
 
-/* Ensure text is readable on dark background */
 cast-media-player::part(title) {
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.75);
 }
 
 cast-media-player::part(subtitle) {
-    color: #cccccc;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    color: #d2d8e2;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.receiver-overlay {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 22px;
+    pointer-events: none;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(7, 8, 11, 0.2) 0%, rgba(7, 8, 11, 0.62) 100%);
+    backdrop-filter: blur(2px);
+    transition: opacity 300ms ease;
+}
+
+.eyebrow {
+    margin: 0 0 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #f3ab96;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.overlay-title {
+    margin: 0;
+    font-size: clamp(1rem, 2.2vw, 1.6rem);
+    font-weight: 650;
+    color: #f8f9ff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75);
+}
+
+body.is-playing .status-badge {
+    color: #ffd8ce;
+    border-color: rgba(225, 61, 45, 0.6);
+    background: rgba(49, 17, 14, 0.75);
+}
+
+body.is-paused .status-badge {
+    color: #ffe0b3;
+    border-color: rgba(255, 138, 61, 0.5);
+}
+
+body.is-playing .receiver-overlay {
+    opacity: 0;
 }
