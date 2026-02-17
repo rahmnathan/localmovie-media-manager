@@ -82,6 +82,27 @@
             }
         );
 
+        // Also try TIME_UPDATE as fallback to detect playback
+        playerManager.addEventListener(
+            cast.framework.events.EventType.TIME_UPDATE,
+            function(event) {
+                if (!progressTimer && currentUpdatePositionUrl) {
+                    debug('TIME_UPDATE - starting timer');
+                    startProgressTimer();
+                }
+            }
+        );
+
+        // Try an immediate save after 5 seconds as a test
+        setTimeout(function() {
+            debug('Test save after 5s');
+            if (currentUpdatePositionUrl) {
+                saveProgress();
+            } else {
+                debug('Still no URL after 5s');
+            }
+        }, 5000);
+
         function startProgressTimer() {
             if (progressTimer) return;
             debug('Timer started');
