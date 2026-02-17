@@ -10,7 +10,9 @@ import java.util.Map;
 public class OllamaRequest {
     private String model;
     private String prompt;
+    private String system;
     private boolean stream;
     private String format;
+    private Object think;
     private Map<String, Object> options;
 }

@@ -29,14 +29,19 @@ public class OllamaClient {
 
         try {
             logger.info("Sending request to Ollama with model: {}", ollamaConfig.getModel());
+            String modelName = ollamaConfig.getModel() != null ? ollamaConfig.getModel().toLowerCase() : "";
+            Object thinkMode = modelName.contains("gpt-oss") ? "low" : Boolean.FALSE;
 
             OllamaRequest request = OllamaRequest.builder()
                     .model(ollamaConfig.getModel())
+                    .system("Return only the requested JSON. Do not include chain-of-thought, planning, or commentary.")
                     .prompt(prompt)
                     .stream(false)
                     .format("json")
+                    .think(thinkMode)
                     .options(Map.of(
                             "num_ctx", 8192,
+                            "num_predict", 800,
                             "temperature", 0.2,
                             "top_p", 0.9
                     ))

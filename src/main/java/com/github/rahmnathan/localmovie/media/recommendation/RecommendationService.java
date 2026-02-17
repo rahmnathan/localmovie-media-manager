@@ -36,6 +36,9 @@ public class RecommendationService {
             "^(?:[-*]|\\d+[.)]|\\[\\d+\\])?\\s*([A-Za-z0-9._:-]{4,})\\s*(?:\\||-|\\u2013|\\u2014|:)\\s*(.+)$");
     private static final Pattern ID_KEY_VALUE_PATTERN = Pattern.compile(
             "(?i)\\b(?:id|mediafileid|media_id)\\s*[:=]\\s*([A-Za-z0-9._:-]{4,})\\b");
+    private static final Pattern UUID_ANYWHERE_PATTERN = Pattern.compile(
+            "([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})",
+            Pattern.CASE_INSENSITIVE);
 
     private final OllamaClient ollamaClient;
     private final MediaUserRepository userRepository;
@@ -215,6 +218,16 @@ public class RecommendationService {
             return deduplicateAndRank(fromJson);
         }
 
+        List<RecommendationResult> fromAnyIdMention = parseByIdMentions(response, candidateMap);
+        if (!fromAnyIdMention.isEmpty()) {
+            return deduplicateAndRank(fromAnyIdMention);
+        }
+
+        List<RecommendationResult> fromTitleMentions = parseByTitleMentions(response, candidates);
+        if (!fromTitleMentions.isEmpty()) {
+            return deduplicateAndRank(fromTitleMentions);
+        }
+
         List<RecommendationResult> results = new ArrayList<>();
         for (String line : response.split("\n")) {
             String trimmedLine = line.trim();
@@ -239,6 +252,55 @@ public class RecommendationService {
         }
 
         return deduplicateAndRank(results);
+    }
+
+    private List<RecommendationResult> parseByIdMentions(String response, Map<String, MediaFile> candidateMap) {
+        List<RecommendationResult> results = new ArrayList<>();
+
+        Matcher matcher = UUID_ANYWHERE_PATTERN.matcher(response);
+        while (matcher.find()) {
+            String mediaFileId = matcher.group(1);
+            MediaFile candidate = candidateMap.get(mediaFileId.toLowerCase(Locale.ROOT));
+            if (candidate != null) {
+                results.add(new RecommendationResult(candidate, buildDefaultReason(candidate), 0));
+            }
+            if (results.size() >= MAX_RECOMMENDATIONS) {
+                break;
+            }
+        }
+
+        return results;
+    }
+
+    private List<RecommendationResult> parseByTitleMentions(String response, List<MediaFile> candidates) {
+        List<RecommendationResult> results = new ArrayList<>();
+        if (response == null || response.isBlank()) {
+            return results;
+        }
+
+        String normalizedResponse = normalizeText(response);
+
+        List<MediaFile> sortedCandidates = candidates.stream()
+                .filter(candidate -> candidate.getMedia() != null && candidate.getMedia().getTitle() != null)
+                .sorted(Comparator.comparingInt((MediaFile mf) -> mf.getMedia().getTitle().length()).reversed())
+                .toList();
+
+        for (MediaFile candidate : sortedCandidates) {
+            String normalizedTitle = normalizeText(candidate.getMedia().getTitle());
+            if (normalizedTitle.length() < 3) {
+                continue;
+            }
+
+            if (normalizedResponse.contains(normalizedTitle)) {
+                results.add(new RecommendationResult(candidate, buildDefaultReason(candidate), 0));
+            }
+
+            if (results.size() >= MAX_RECOMMENDATIONS) {
+                break;
+            }
+        }
+
+        return results;
     }
 
     private List<RecommendationResult> parseJsonRecommendations(String response, Map<String, MediaFile> candidateMap) {
@@ -445,6 +507,16 @@ public class RecommendationService {
                 .map(s -> s.toLowerCase(Locale.ROOT))
                 .distinct()
                 .toList();
+    }
+
+    private String normalizeText(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     private boolean isLowQuality(List<RecommendationResult> results, int candidateCount) {
