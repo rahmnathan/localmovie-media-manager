@@ -59,3 +59,9 @@ When new media is added to a monitored directory, the following process is trigg
 <h4>System Diagram</h4>
 
 ![Imgur Image](https://imgur.com/5Hse9Nv.png)
+
+<h4>API Contract</h4>
+
+OpenAPI contract export and Android contract workflow are documented in:
+
+- `docs/api-contract.md`

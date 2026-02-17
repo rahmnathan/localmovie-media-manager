@@ -127,6 +127,66 @@ spec:
                 }
             }
         }
+        stage('Publish OpenAPI Contract') {
+            steps {
+                script {
+                    sh '''
+                        mkdir -p target/openapi
+                        OPENAPI_BASE_URL=https://movies.nathanrahm.com ./scripts/export-openapi.sh target/openapi/localmovie-openapi.json
+                        cp target/openapi/localmovie-openapi.json target/openapi/localmovie-openapi-latest.json
+                    '''
+
+                    def contractServer = Artifactory.server 'Artifactory'
+                    def contractBuildInfo = Artifactory.newBuildInfo()
+
+                    def uploadSpec = """{
+                      "files": [
+                        {
+                          "pattern": "target/openapi/localmovie-openapi.json",
+                          "target": "rahmnathan-services/localmovie-media-manager/openapi/${NEW_VERSION}/localmovie-openapi.json"
+                        },
+                        {
+                          "pattern": "target/openapi/localmovie-openapi-latest.json",
+                          "target": "rahmnathan-services/localmovie-media-manager/openapi/latest/localmovie-openapi.json"
+                        }
+                      ]
+                    }"""
+
+                    contractServer.upload spec: uploadSpec, buildInfo: contractBuildInfo
+                    archiveArtifacts artifacts: 'target/openapi/localmovie-openapi.json', onlyIfSuccessful: true
+                }
+            }
+        }
+        stage('Build & Publish API Client Artifact') {
+            steps {
+                script {
+                    sh '''
+                        ./scripts/generate-api-client.sh target/openapi/localmovie-openapi.json ${NEW_VERSION} target/api-client
+                    '''
+
+                    def clientServer = Artifactory.server 'Artifactory'
+                    def clientBuildInfo = Artifactory.newBuildInfo()
+                    def clientPom = "target/api-client/pom.xml"
+                    def clientJar = "target/api-client/target/localmovie-api-client-${NEW_VERSION}.jar"
+
+                    def uploadSpec = """{
+                      "files": [
+                        {
+                          "pattern": "${clientPom}",
+                          "target": "rahmnathan-libraries/com/github/rahmnathan/localmovie/localmovie-api-client/${NEW_VERSION}/localmovie-api-client-${NEW_VERSION}.pom"
+                        },
+                        {
+                          "pattern": "${clientJar}",
+                          "target": "rahmnathan-libraries/com/github/rahmnathan/localmovie/localmovie-api-client/${NEW_VERSION}/localmovie-api-client-${NEW_VERSION}.jar"
+                        }
+                      ]
+                    }"""
+
+                    clientServer.upload spec: uploadSpec, buildInfo: clientBuildInfo
+                    archiveArtifacts artifacts: "${clientPom},${clientJar}", onlyIfSuccessful: true
+                }
+            }
+        }
         stage('Functional Test') {
             steps {
                 script {
