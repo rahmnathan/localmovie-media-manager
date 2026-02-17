@@ -16,7 +16,8 @@ OUTPUT_DIR="${3:-target/api-client}"
 
 GROUP_ID="com.github.rahmnathan.localmovie"
 ARTIFACT_ID="localmovie-api-client"
-GENERATOR_IMAGE="${OPENAPI_GENERATOR_IMAGE:-openapitools/openapi-generator-cli:v7.12.0}"
+GENERATOR_VERSION="${OPENAPI_GENERATOR_VERSION:-7.12.0}"
+GENERATOR_JAR="${OPENAPI_GENERATOR_JAR:-target/openapi/openapi-generator-cli-${GENERATOR_VERSION}.jar}"
 
 if [[ ! -f "${SPEC_FILE}" ]]; then
   echo "Spec file not found: ${SPEC_FILE}" >&2
@@ -25,25 +26,28 @@ fi
 
 rm -rf "${OUTPUT_DIR}"
 mkdir -p "${OUTPUT_DIR}"
+mkdir -p "$(dirname "${GENERATOR_JAR}")"
 
-echo "Generating API client from ${SPEC_FILE}"
+SPEC_FILE_ABS="$(cd "$(dirname "${SPEC_FILE}")" && pwd)/$(basename "${SPEC_FILE}")"
+OUTPUT_DIR_ABS="$(cd "$(dirname "${OUTPUT_DIR}")" && pwd)/$(basename "${OUTPUT_DIR}")"
 
-if command -v docker >/dev/null 2>&1; then
-  docker run --rm \
-    -v "$(pwd):/local" \
-    "${GENERATOR_IMAGE}" generate \
-      -i "/local/${SPEC_FILE}" \
-      -g java \
-      -o "/local/${OUTPUT_DIR}" \
-      --additional-properties "groupId=${GROUP_ID},artifactId=${ARTIFACT_ID},artifactVersion=${ARTIFACT_VERSION},library=okhttp-gson,dateLibrary=java8,serializationLibrary=gson,hideGenerationTimestamp=true,useJakartaEe=true"
-else
-  echo "docker is required to run openapi-generator-cli in CI" >&2
-  exit 1
+if [[ ! -f "${GENERATOR_JAR}" ]]; then
+  echo "Downloading openapi-generator-cli ${GENERATOR_VERSION}"
+  curl -fsSL \
+    "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${GENERATOR_VERSION}/openapi-generator-cli-${GENERATOR_VERSION}.jar" \
+    -o "${GENERATOR_JAR}"
 fi
 
+echo "Generating API client from ${SPEC_FILE_ABS}"
+java -jar "${GENERATOR_JAR}" generate \
+  -i "${SPEC_FILE_ABS}" \
+  -g java \
+  -o "${OUTPUT_DIR_ABS}" \
+  --additional-properties "groupId=${GROUP_ID},artifactId=${ARTIFACT_ID},artifactVersion=${ARTIFACT_VERSION},library=okhttp-gson,dateLibrary=java8,serializationLibrary=gson,hideGenerationTimestamp=true,useJakartaEe=true"
+
 echo "Building generated client jar"
-mvn -f "${OUTPUT_DIR}/pom.xml" -DskipTests package
+mvn -f "${OUTPUT_DIR_ABS}/pom.xml" -DskipTests package
 
 echo "Generated client:"
-echo "  POM: ${OUTPUT_DIR}/pom.xml"
-echo "  JAR: ${OUTPUT_DIR}/target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar"
+echo "  POM: ${OUTPUT_DIR_ABS}/pom.xml"
+echo "  JAR: ${OUTPUT_DIR_ABS}/target/${ARTIFACT_ID}-${ARTIFACT_VERSION}.jar"
