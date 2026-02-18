@@ -43,8 +43,7 @@ public class MediaResource {
         log.info("Received request: {}", mediaRequest.toString());
         handleDemoUser(mediaRequest);
 
-        if(mediaRequest.getPage() == 0)
-            getMediaCount(mediaRequest, response);
+        getMediaCount(mediaRequest, response);
 
         log.info("Loading media files for webapp.");
         List<MediaFileDto> mediaFiles = persistenceService.getMediaFileDtos(mediaRequest);
