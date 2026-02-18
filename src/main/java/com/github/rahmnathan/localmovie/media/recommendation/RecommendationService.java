@@ -29,7 +29,7 @@ public class RecommendationService {
     private static final int MAX_RECOMMENDATIONS = 10;
     private static final int MIN_ACCEPTABLE_RECOMMENDATIONS = 4;
     private static final int MAX_HISTORY_FOR_PROMPT = 12;
-    private static final int MAX_CANDIDATES_FOR_PROMPT = 35;
+    private static final int MAX_CANDIDATES_FOR_PROMPT = 24;
     private static final int MAX_REASON_LENGTH = 180;
     private static final int PROMPT_TOKEN_BUDGET = 3000;
     private static final Pattern SIMPLE_LINE_PATTERN = Pattern.compile(

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Component
 public class OllamaClient {
@@ -29,8 +30,7 @@ public class OllamaClient {
 
         try {
             logger.info("Sending request to Ollama with model: {}", ollamaConfig.getModel());
-            String modelName = ollamaConfig.getModel() != null ? ollamaConfig.getModel().toLowerCase() : "";
-            Object thinkMode = modelName.contains("gpt-oss") ? "low" : Boolean.FALSE;
+            Object thinkMode = Boolean.FALSE;
 
             OllamaRequest strictRequest = OllamaRequest.builder()
                     .model(ollamaConfig.getModel())
@@ -55,8 +55,10 @@ public class OllamaClient {
             logger.warn("Ollama strict response was empty, retrying with relaxed settings");
             OllamaRequest relaxedRequest = OllamaRequest.builder()
                     .model(ollamaConfig.getModel())
+                    .system("Return only valid output for the prompt.")
                     .prompt(prompt)
                     .stream(false)
+                    .think(thinkMode)
                     .options(Map.of(
                             "num_ctx", 8192,
                             "num_predict", 1200,
@@ -70,7 +72,24 @@ public class OllamaClient {
                 return relaxedResponse;
             }
 
-            logger.warn("Ollama returned empty response in both strict and relaxed modes");
+            logger.warn("Ollama relaxed response was empty, retrying with minimal settings");
+            OllamaRequest recoveryRequest = OllamaRequest.builder()
+                    .model(ollamaConfig.getModel())
+                    .prompt(prompt)
+                    .stream(false)
+                    .think(Boolean.FALSE)
+                    .options(Map.of(
+                            "num_predict", 512,
+                            "temperature", 0.1
+                    ))
+                    .build();
+
+            String recoveryResponse = sendGenerate(recoveryRequest, "recovery");
+            if (recoveryResponse != null && !recoveryResponse.isBlank()) {
+                return recoveryResponse;
+            }
+
+            logger.warn("Ollama returned empty response in strict, relaxed, and recovery modes");
             return null;
         } catch (Exception e) {
             logger.error("Error calling Ollama API", e);
@@ -80,14 +99,40 @@ public class OllamaClient {
 
     private String sendGenerate(OllamaRequest request, String mode) {
         OllamaResponse response = ollamaApi.generate(request);
-        if (response == null || response.getResponse() == null) {
+        if (response == null) {
             logger.warn("Ollama {} response was null", mode);
             return null;
         }
 
-        String body = response.getResponse().trim();
-        logger.info("Ollama {} response received, length: {}", mode, body.length());
+        if (response.getError() != null && !response.getError().isBlank()) {
+            logger.warn("Ollama {} response returned error: {}", mode, response.getError());
+        }
+
+        String responseBody = safeTrim(response.getResponse());
+        String messageBody = response.getMessage() == null ? "" : safeTrim(response.getMessage().getContent());
+        String thinkingBody = safeTrim(response.getThinking());
+
+        String body = firstNonBlank(responseBody, messageBody, thinkingBody);
+
+        if (responseBody.isBlank() && !messageBody.isBlank()) {
+            logger.warn("Ollama {} response field was empty but message.content was present (len={}), using message content fallback",
+                    mode, messageBody.length());
+        } else if (responseBody.isBlank() && messageBody.isBlank() && !thinkingBody.isBlank()) {
+            logger.warn("Ollama {} response body was empty but thinking was present (len={}), using thinking fallback",
+                    mode, thinkingBody.length());
+        }
+
+        logger.info("Ollama {} response received, length: {}, done={}, doneReason={}",
+                mode, body.length(), response.isDone(), response.getDoneReason());
         return body;
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String firstNonBlank(String... values) {
+        return Stream.of(values).filter(v -> v != null && !v.isBlank()).findFirst().orElse("");
     }
 
     public boolean isAvailable() {
