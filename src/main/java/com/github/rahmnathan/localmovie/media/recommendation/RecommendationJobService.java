@@ -50,10 +50,20 @@ public class RecommendationJobService {
 
             for (var user : users) {
                 try {
-                    recommendationService.generateRecommendationsForUser(user.getUserId());
+                    long userStart = System.currentTimeMillis();
+                    RecommendationService.GenerationReport report = recommendationService.generateRecommendationsForUser(user.getUserId());
+                    meterRegistry.counter("localmovies.recommendations.generate",
+                            "source", report.source().name().toLowerCase(),
+                            "persisted", String.valueOf(report.persisted()),
+                            "usedExisting", String.valueOf(report.usedExisting()),
+                            "lowQuality", String.valueOf(report.lowQuality()))
+                            .increment();
+                    meterRegistry.timer("localmovies.recommendations.user")
+                            .record(System.currentTimeMillis() - userStart, TimeUnit.MILLISECONDS);
                     processedCount++;
                 } catch (Exception e) {
                     log.error("Failed to generate recommendations for user: {}", user.getUserId(), e);
+                    meterRegistry.counter("localmovies.recommendations.generate.errors").increment();
                 }
             }
 

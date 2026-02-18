@@ -54,6 +54,7 @@ class RecommendationServiceTest {
         mediaUser = new MediaUser(USER_ID);
         when(ollamaClient.isAvailable()).thenReturn(true);
         when(userRepository.findByUserId(USER_ID)).thenReturn(Optional.of(mediaUser));
+        when(recommendationRepository.findByMediaUserUserIdOrderByRankAsc(USER_ID)).thenReturn(List.of());
     }
 
     @Test

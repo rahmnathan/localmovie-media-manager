@@ -48,27 +48,28 @@ public class RecommendationService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
-    public void generateRecommendationsForUser(String userId) {
+    public GenerationReport generateRecommendationsForUser(String userId) {
         log.info("Generating recommendations for user: {}", userId);
 
         if (!ollamaClient.isAvailable()) {
             log.warn("Ollama is not available, skipping recommendation generation");
-            return;
+            return GenerationReport.skipped(userId, "ollama_unavailable");
         }
 
         Optional<MediaUser> userOpt = userRepository.findByUserId(userId);
         if (userOpt.isEmpty()) {
             log.warn("User {} not found, skipping recommendations", userId);
-            return;
+            return GenerationReport.skipped(userId, "user_not_found");
         }
 
         MediaUser user = userOpt.get();
+        int existingCount = recommendationRepository.findByMediaUserUserIdOrderByRankAsc(userId).size();
 
         // Get user's watch history (movies/series they've watched)
         List<MediaFile> watchHistory = getWatchHistory(userId);
         if (watchHistory.isEmpty()) {
             log.info("No watch history for user {}, skipping recommendations", userId);
-            return;
+            return GenerationReport.skipped(userId, "no_watch_history");
         }
 
         // Get IDs of watched content to exclude
@@ -80,35 +81,75 @@ public class RecommendationService {
         List<MediaFile> candidates = getCandidateMedia(watchedIds);
         if (candidates.isEmpty()) {
             log.info("No unwatched candidates for user {}", userId);
-            return;
+            return GenerationReport.skipped(userId, "no_candidates");
         }
 
         // Build prompt and get recommendations from Ollama
         String prompt = buildPrompt(watchHistory, candidates);
+        int promptTokens = estimateTokens(prompt);
         log.info("Ollama prompt prepared: chars={}, estimatedTokens={}, historyItems={}, candidates={}",
-                prompt.length(), estimateTokens(prompt), watchHistory.size(), candidates.size());
+                prompt.length(), promptTokens, watchHistory.size(), candidates.size());
         String response = ollamaClient.generate(prompt);
 
+        RecommendationSource source = RecommendationSource.OLLAMA;
         List<RecommendationResult> results = response == null || response.isBlank()
                 ? List.of()
                 : parseResponse(response, candidates);
+        int parsedCount = results.size();
+        int responseLength = response == null ? 0 : response.length();
 
         if (isLowQuality(results, candidates.size())) {
             log.info("Ollama recommendations were low quality (count={}), falling back to heuristic ranking for user {}",
                     results.size(), userId);
             results = buildFallbackRecommendations(watchHistory, candidates);
+            source = RecommendationSource.HEURISTIC_FALLBACK;
         }
 
         results = deduplicateAndRank(results);
+        boolean finalLowQuality = isLowQuality(results, candidates.size());
 
         if (results.isEmpty()) {
-            log.warn("No valid recommendations generated for user {}. Keeping existing recommendations.", userId);
-            return;
+            if (existingCount > 0) {
+                log.warn("No valid recommendations generated for user {}. Keeping {} existing recommendations.", userId, existingCount);
+                return logAndReturn(GenerationReport.fromExisting(
+                        userId, source, parsedCount, 0, existingCount, watchHistory.size(), candidates.size(), promptTokens, responseLength, true));
+            }
+            log.warn("No valid recommendations generated for user {} and no existing recommendations available.", userId);
+            return logAndReturn(GenerationReport.generated(
+                    userId, source, parsedCount, 0, existingCount, watchHistory.size(), candidates.size(), promptTokens, responseLength, false, true));
+        }
+
+        if (finalLowQuality && existingCount > 0) {
+            log.warn("Generated recommendations still low quality for user {} (newCount={}, existingCount={}), keeping existing.",
+                    userId, results.size(), existingCount);
+            return logAndReturn(GenerationReport.fromExisting(
+                    userId, source, parsedCount, results.size(), existingCount, watchHistory.size(), candidates.size(), promptTokens, responseLength, true));
         }
 
         saveRecommendations(user, results);
 
         log.info("Generated {} recommendations for user {}", results.size(), userId);
+        return logAndReturn(GenerationReport.generated(
+                userId, source, parsedCount, results.size(), existingCount, watchHistory.size(), candidates.size(), promptTokens, responseLength, true, finalLowQuality));
+    }
+
+    private GenerationReport logAndReturn(GenerationReport report) {
+        log.info("Recommendation generation report: userId={} source={} reason={} persisted={} usedExisting={} " +
+                        "parsed={} final={} existing={} history={} candidates={} promptTokens={} responseLength={} lowQuality={}",
+                report.userId(),
+                report.source(),
+                report.reason(),
+                report.persisted(),
+                report.usedExisting(),
+                report.parsedCount(),
+                report.finalCount(),
+                report.existingCount(),
+                report.historyCount(),
+                report.candidateCount(),
+                report.promptTokens(),
+                report.responseLength(),
+                report.lowQuality());
+        return report;
     }
 
     private List<MediaFile> getWatchHistory(String userId) {
@@ -559,6 +600,65 @@ public class RecommendationService {
 
     public boolean hasRecommendations(String userId) {
         return recommendationRepository.existsByMediaUserUserId(userId);
+    }
+
+    public enum RecommendationSource {
+        OLLAMA,
+        HEURISTIC_FALLBACK,
+        EXISTING_STALE,
+        SKIPPED
+    }
+
+    public record GenerationReport(
+            String userId,
+            RecommendationSource source,
+            String reason,
+            int parsedCount,
+            int finalCount,
+            int existingCount,
+            int historyCount,
+            int candidateCount,
+            int promptTokens,
+            int responseLength,
+            boolean persisted,
+            boolean usedExisting,
+            boolean lowQuality
+    ) {
+        static GenerationReport skipped(String userId, String reason) {
+            return new GenerationReport(userId, RecommendationSource.SKIPPED, reason,
+                    0, 0, 0, 0, 0, 0, 0, false, false, false);
+        }
+
+        static GenerationReport generated(String userId,
+                                          RecommendationSource source,
+                                          int parsedCount,
+                                          int finalCount,
+                                          int existingCount,
+                                          int historyCount,
+                                          int candidateCount,
+                                          int promptTokens,
+                                          int responseLength,
+                                          boolean persisted,
+                                          boolean lowQuality) {
+            return new GenerationReport(userId, source, "generated",
+                    parsedCount, finalCount, existingCount, historyCount, candidateCount,
+                    promptTokens, responseLength, persisted, false, lowQuality);
+        }
+
+        static GenerationReport fromExisting(String userId,
+                                             RecommendationSource sourceBeforeFallback,
+                                             int parsedCount,
+                                             int finalCount,
+                                             int existingCount,
+                                             int historyCount,
+                                             int candidateCount,
+                                             int promptTokens,
+                                             int responseLength,
+                                             boolean lowQuality) {
+            return new GenerationReport(userId, RecommendationSource.EXISTING_STALE, "kept_existing_after_" + sourceBeforeFallback.name().toLowerCase(Locale.ROOT),
+                    parsedCount, finalCount, existingCount, historyCount, candidateCount,
+                    promptTokens, responseLength, false, true, lowQuality);
+        }
     }
 
     private record RecommendationResult(MediaFile mediaFile, String reason, int rank) {}
