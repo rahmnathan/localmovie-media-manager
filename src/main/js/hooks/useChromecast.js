@@ -120,6 +120,7 @@ export function useChromecast({ onProgress, receiverApplicationId = CAST.RECEIVE
         const mediaUrl = options.mediaUrl;
         const title = options.title;
         const imageUrl = options.imageUrl;
+        const mimeType = options.mimeType;
         const subtitleUrl = options.subtitleUrl;
         const updatePositionUrl = options.updatePositionUrl;
         const mediaId = options.mediaId;
@@ -145,44 +146,64 @@ export function useChromecast({ onProgress, receiverApplicationId = CAST.RECEIVE
             startTime = parseInt(fragmentMatch[1], 10);
         }
 
-        const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl.split('#')[0], 'video/mp4');
-        mediaInfo.metadata = new window.chrome.cast.media.MovieMediaMetadata();
-        mediaInfo.metadata.title = title;
-        mediaInfo.metadata.images = [{ url: imageUrl }];
-        mediaInfo.customData = {
-            updatePositionUrl,
-            'update-position-url': updatePositionUrl,
-            mediaId,
-            'media-id': mediaId
-        };
-        mediaInfo.metadata['update-position-url'] = updatePositionUrl;
-        mediaInfo.metadata['media-id'] = mediaId;
-
-        if (subtitleUrl) {
-            const track = new window.chrome.cast.media.Track(1, window.chrome.cast.media.TrackType.TEXT);
-            track.trackContentId = subtitleUrl;
-            track.trackContentType = 'text/vtt';
-            track.subtype = window.chrome.cast.media.TextTrackType.SUBTITLES;
-            track.name = 'English';
-            track.language = 'en-US';
-            mediaInfo.tracks = [track];
-        }
-
-        const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
-        request.currentTime = startTime;
-        request.customData = {
+        const playbackCustomData = {
             updatePositionUrl,
             'update-position-url': updatePositionUrl,
             mediaId,
             'media-id': mediaId
         };
 
-        session.loadMedia(request).then(
+        const buildRequest = (includeSubtitle) => {
+            const mediaInfo = new window.chrome.cast.media.MediaInfo(
+                mediaUrl.split('#')[0],
+                mimeType || 'application/octet-stream'
+            );
+
+            mediaInfo.metadata = new window.chrome.cast.media.MovieMediaMetadata();
+            mediaInfo.metadata.title = title;
+            mediaInfo.metadata.images = [{ url: imageUrl }];
+            mediaInfo.customData = playbackCustomData;
+            mediaInfo.metadata['update-position-url'] = updatePositionUrl;
+            mediaInfo.metadata['media-id'] = mediaId;
+
+            if (includeSubtitle && subtitleUrl) {
+                const track = new window.chrome.cast.media.Track(1, window.chrome.cast.media.TrackType.TEXT);
+                track.trackContentId = subtitleUrl;
+                track.trackContentType = 'text/vtt';
+                track.subtype = window.chrome.cast.media.TextTrackType.SUBTITLES;
+                track.name = 'English';
+                track.language = 'en-US';
+                mediaInfo.tracks = [track];
+            }
+
+            const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+            request.currentTime = startTime;
+            request.customData = playbackCustomData;
+            return request;
+        };
+
+        session.loadMedia(buildRequest(true)).then(
             () => {
                 console.log('Cast media loaded successfully');
                 setCastError(null);
             },
             (errorCode) => {
+                if (subtitleUrl) {
+                    console.warn('Cast load failed with subtitles, retrying without subtitles:', errorCode);
+                    session.loadMedia(buildRequest(false)).then(
+                        () => {
+                            console.log('Cast media loaded successfully without subtitles');
+                            setCastError('Subtitle track failed to load; playing without subtitles.');
+                        },
+                        (retryErrorCode) => {
+                            const error = `Failed to load media on cast device: ${retryErrorCode}`;
+                            console.error(error);
+                            setCastError(error);
+                        }
+                    );
+                    return;
+                }
+
                 const error = `Failed to load media on cast device: ${errorCode}`;
                 console.error(error);
                 setCastError(error);

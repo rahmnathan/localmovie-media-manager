@@ -158,6 +158,7 @@ export function VideoPlayer() {
             mediaUrl: url,
             title: mediaFile.media.title,
             imageUrl: `${window.location.origin}${signedUrls.poster}`,
+            mimeType: signedUrls.streamContentType,
             subtitleUrl: signedUrls.subtitle ? `${window.location.origin}${signedUrls.subtitle}` : null,
             updatePositionUrl: signedUrls.updatePosition,
             mediaId
