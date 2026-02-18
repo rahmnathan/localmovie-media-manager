@@ -12,11 +12,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.MDC;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -87,6 +89,16 @@ public class SubtitleJobService {
         try {
             MediaFile mediaFile = job.getMediaFile();
             String imdbId = job.getImdbId();
+            Long mediaFileId = mediaFile.getId();
+
+            String defaultLanguage = "en";
+            if (mediaFileId != null && subtitleRepository.existsByMediaFileIdAndLanguageCode(mediaFileId, defaultLanguage)) {
+                log.info("Subtitle already exists for MediaFile: {}, marking job as succeeded", mediaFile.getMediaFileId());
+                job.setStatus(SubtitleJobStatus.SUCCEEDED);
+                job.setErrorMessage(null);
+                subtitleJobRepository.save(job);
+                return;
+            }
 
             if (imdbId == null || imdbId.isBlank()) {
                 log.info("No IMDB ID available for MediaFile: {}", mediaFile.getMediaFileId());
@@ -110,16 +122,9 @@ public class SubtitleJobService {
 
             if (result.isPresent()) {
                 SubtitleResult subtitle = result.get();
-                MediaSubtitle mediaSubtitle = MediaSubtitle.builder()
-                        .mediaFile(mediaFile)
-                        .languageCode(subtitle.getLanguageCode())
-                        .format(subtitle.getFormat())
-                        .subtitleContent(subtitle.getContent())
-                        .opensubtitlesId(subtitle.getOpensubtitlesId())
-                        .build();
-
-                subtitleRepository.save(mediaSubtitle);
+                upsertSubtitle(mediaFile, subtitle);
                 job.setStatus(SubtitleJobStatus.SUCCEEDED);
+                job.setErrorMessage(null);
                 log.info("Successfully fetched subtitle for MediaFile: {}", mediaFile.getMediaFileId());
             } else {
                 job.setStatus(SubtitleJobStatus.NOT_FOUND);
@@ -143,6 +148,39 @@ public class SubtitleJobService {
 
             subtitleJobRepository.save(job);
         }
+    }
+
+    private void upsertSubtitle(MediaFile mediaFile, SubtitleResult subtitle) {
+        Long mediaFileId = mediaFile.getId();
+        String language = normalizeLanguage(subtitle.getLanguageCode());
+        String format = subtitle.getFormat() == null || subtitle.getFormat().isBlank() ? "vtt" : subtitle.getFormat();
+
+        try {
+            Optional<MediaSubtitle> existing = mediaFileId == null
+                    ? Optional.empty()
+                    : subtitleRepository.findByMediaFileIdAndLanguageCode(mediaFileId, language);
+
+            MediaSubtitle mediaSubtitle = existing.orElseGet(() -> MediaSubtitle.builder()
+                    .mediaFile(mediaFile)
+                    .languageCode(language)
+                    .build());
+
+            mediaSubtitle.setFormat(format);
+            mediaSubtitle.setSubtitleContent(subtitle.getContent());
+            mediaSubtitle.setOpensubtitlesId(subtitle.getOpensubtitlesId());
+            subtitleRepository.save(mediaSubtitle);
+        } catch (DataIntegrityViolationException e) {
+            // Another job likely inserted the same (media_file_id, language_code) concurrently.
+            log.info("Subtitle already persisted concurrently for MediaFile: {} language={}",
+                    mediaFile.getMediaFileId(), language);
+        }
+    }
+
+    private String normalizeLanguage(String languageCode) {
+        if (languageCode == null || languageCode.isBlank()) {
+            return "en";
+        }
+        return languageCode.trim().toLowerCase(Locale.ROOT);
     }
 
     public void queueSubtitleFetch(MediaFile mediaFile, String imdbId) {
