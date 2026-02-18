@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media.recommendation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rahmnathan.localmovie.data.MediaFileType;
 import com.github.rahmnathan.localmovie.media.omdb.MediaType;
 import com.github.rahmnathan.localmovie.media.recommendation.ollama.OllamaClient;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,7 +43,6 @@ class RecommendationServiceTest {
     @Mock
     private MediaRecommendationRepository recommendationRepository;
 
-    @InjectMocks
     private RecommendationService recommendationService;
 
     private static final String USER_ID = "user-1";
@@ -51,6 +50,16 @@ class RecommendationServiceTest {
 
     @BeforeEach
     void setUp() {
+        recommendationService = new RecommendationService(
+                ollamaClient,
+                userRepository,
+                viewRepository,
+                fileRepository,
+                recommendationRepository,
+                new RecommendationPromptBuilder(),
+                new RecommendationResponseParser(new ObjectMapper())
+        );
+
         mediaUser = new MediaUser(USER_ID);
         when(ollamaClient.isAvailable()).thenReturn(true);
         when(userRepository.findByUserId(USER_ID)).thenReturn(Optional.of(mediaUser));

@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +27,22 @@ public class SecurityService {
     private static final String URL_PATTERN_UPDATE_POSITION = "/localmovie/v1/signed/media/%s/position?expires=%s&user=%s&sig=%s";
     private static final String URL_PATTERN_SUBTITLE = "/localmovie/v1/signed/media/%s/subtitle.vtt?expires=%s&sig=%s";
 
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    private final ObjectMapper objectMapper;
 
     private final byte[] key;
 
-    public SecurityService(@Value("${service.stream.hmac.key}") String hmacKey) {
+    @Autowired
+    public SecurityService(@Value("${service.stream.hmac.key}") String hmacKey,
+                           ObjectProvider<ObjectMapper> objectMapperProvider) {
+        ObjectMapper mapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
+        this.objectMapper = mapper.copy()
+                .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+        key = hmacKey.getBytes();
+    }
+
+    SecurityService(String hmacKey, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper.copy()
+                .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
         key = hmacKey.getBytes();
     }
 

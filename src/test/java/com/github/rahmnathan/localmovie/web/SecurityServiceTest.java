@@ -1,36 +1,24 @@
 package com.github.rahmnathan.localmovie.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.github.rahmnathan.localmovie.TestContainersConfiguration;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rahmnathan.localmovie.data.SignedUrls;
-import com.github.rahmnathan.localmovie.media.MediaInitializer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
-@Import(TestContainersConfiguration.class)
 class SecurityServiceTest {
     private static final String TEST_USER_ID = "testuser";
-    private final SecurityService securityService;
+    private static final String TEST_HMAC_KEY = "test-hmac-key";
+    private SecurityService securityService;
 
-    @Autowired
-    SecurityServiceTest(SecurityService securityService, MediaInitializer initializer) {
-        this.securityService = securityService;
-        try {
-            initializer.getInitializationFuture().get();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @BeforeEach
+    void setUp() {
+        securityService = new SecurityService(TEST_HMAC_KEY, new ObjectMapper());
     }
 
     @Test

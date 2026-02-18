@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
+import { CAST } from '../constants.js';
 
 /**
  * Custom hook for Chromecast functionality
  */
-export function useChromecast({ onProgress }) {
+export function useChromecast({ onProgress, receiverApplicationId = CAST.RECEIVER_APP_ID }) {
     const [isCasting, setIsCasting] = useState(false);
     const [remotePlayer, setRemotePlayer] = useState(null);
     const [remotePlayerController, setRemotePlayerController] = useState(null);
@@ -37,11 +38,12 @@ export function useChromecast({ onProgress }) {
         const context = cast.framework.CastContext.getInstance();
 
         context.setOptions({
-            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+            receiverApplicationId: receiverApplicationId || CAST.RECEIVER_APP_ID,
             autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
         });
 
         let eventListeners = [];
+        let activeController = null;
 
         context.addEventListener(
             cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
@@ -54,13 +56,14 @@ export function useChromecast({ onProgress }) {
 
                     const player = new cast.framework.RemotePlayer();
                     const controller = new cast.framework.RemotePlayerController(player);
+                    activeController = controller;
                     setRemotePlayer(player);
                     setRemotePlayerController(controller);
 
                     const timeChangeHandler = () => {
                         setCurrentTime(player.currentTime);
                         if (onProgress) {
-                            onProgress({ playedSeconds: player.currentTime });
+                            onProgress({ playedSeconds: player.currentTime, durationSeconds: player.duration });
                         }
                     };
 
@@ -87,12 +90,13 @@ export function useChromecast({ onProgress }) {
                 }
 
                 if (event.sessionState === cast.framework.SessionState.SESSION_ENDED) {
-                    if (remotePlayerController && eventListeners.length > 0) {
+                    if (activeController && eventListeners.length > 0) {
                         eventListeners.forEach(({ type, handler }) => {
-                            remotePlayerController.removeEventListener(type, handler);
+                            activeController.removeEventListener(type, handler);
                         });
                         eventListeners = [];
                     }
+                    activeController = null;
 
                     setIsCasting(false);
                     setRemotePlayer(null);
@@ -104,7 +108,22 @@ export function useChromecast({ onProgress }) {
         );
     };
 
-    const playOnCast = useCallback((mediaUrl, title, imageUrl) => {
+    const playOnCast = useCallback((optionsOrMediaUrl, titleArg, imageUrlArg) => {
+        const options = typeof optionsOrMediaUrl === 'object' && optionsOrMediaUrl !== null
+            ? optionsOrMediaUrl
+            : {
+                mediaUrl: optionsOrMediaUrl,
+                title: titleArg,
+                imageUrl: imageUrlArg
+            };
+
+        const mediaUrl = options.mediaUrl;
+        const title = options.title;
+        const imageUrl = options.imageUrl;
+        const subtitleUrl = options.subtitleUrl;
+        const updatePositionUrl = options.updatePositionUrl;
+        const mediaId = options.mediaId;
+
         if (!window.cast) {
             const error = 'Cast framework not ready';
             console.warn(error);
@@ -130,9 +149,33 @@ export function useChromecast({ onProgress }) {
         mediaInfo.metadata = new window.chrome.cast.media.MovieMediaMetadata();
         mediaInfo.metadata.title = title;
         mediaInfo.metadata.images = [{ url: imageUrl }];
+        mediaInfo.customData = {
+            updatePositionUrl,
+            'update-position-url': updatePositionUrl,
+            mediaId,
+            'media-id': mediaId
+        };
+        mediaInfo.metadata['update-position-url'] = updatePositionUrl;
+        mediaInfo.metadata['media-id'] = mediaId;
+
+        if (subtitleUrl) {
+            const track = new window.chrome.cast.media.Track(1, window.chrome.cast.media.TrackType.TEXT);
+            track.trackContentId = subtitleUrl;
+            track.trackContentType = 'text/vtt';
+            track.subtype = window.chrome.cast.media.TextTrackType.SUBTITLES;
+            track.name = 'English';
+            track.language = 'en-US';
+            mediaInfo.tracks = [track];
+        }
 
         const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
         request.currentTime = startTime;
+        request.customData = {
+            updatePositionUrl,
+            'update-position-url': updatePositionUrl,
+            mediaId,
+            'media-id': mediaId
+        };
 
         session.loadMedia(request).then(
             () => {
@@ -145,7 +188,7 @@ export function useChromecast({ onProgress }) {
                 setCastError(error);
             }
         );
-    }, []);
+    }, [receiverApplicationId]);
 
     const seek = useCallback((seekTo) => {
         if (remotePlayer && remotePlayerController) {

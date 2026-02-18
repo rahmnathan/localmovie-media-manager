@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.persistence;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rahmnathan.localmovie.TestContainersConfiguration;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
@@ -11,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@Import(TestContainersConfiguration.class)
+@Import({TestContainersConfiguration.class, MediaPersistenceServiceTest.TestConfig.class})
 class MediaPersistenceServiceTest {
 
     private final MediaPersistenceService mediaPersistenceService;
@@ -230,5 +233,13 @@ class MediaPersistenceServiceTest {
 
         assertNotNull(dtos);
         assertFalse(dtos.isEmpty());
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
     }
 }

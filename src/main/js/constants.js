@@ -21,6 +21,11 @@ export const TIMING = {
     CAST_PROGRESS_SAVE_INTERVAL_MS: 10000,
 };
 
+// Cast
+export const CAST = {
+    RECEIVER_APP_ID: '9A05279D',
+};
+
 // Media types
 export const MEDIA_TYPES = {
     MOVIES: 'MOVIES',
