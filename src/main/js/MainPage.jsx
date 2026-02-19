@@ -345,7 +345,20 @@ export function MainPage() {
         search(navigationState.order, '', '', navigationState.type, navigationState.parentId);
     }, [search, navigationState.order, navigationState.type, navigationState.parentId]);
 
-    const showContinueWatching = !isHistoryView && !isRecommendationsView && continueWatching.length > 0;
+    const hasRenderableContinueWatching = continueWatching.some(item => {
+        const view = item?.mediaViews?.[0];
+        const hasProgress = Boolean(
+            view &&
+            view.position &&
+            view.duration &&
+            view.duration > 0 &&
+            ((view.position / view.duration) * 100) >= 2 &&
+            ((view.position / view.duration) * 100) < 98
+        );
+        return Boolean(item?.streamable && hasProgress);
+    });
+
+    const showContinueWatching = !isHistoryView && !isRecommendationsView && hasRenderableContinueWatching;
 
     const handleMoreLikeThis = useCallback((genreValue) => {
         const firstGenre = genreValue?.split(',')?.[0]?.trim();
