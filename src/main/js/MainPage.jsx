@@ -2,7 +2,6 @@ import React, {useEffect, useState, useCallback} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { HistoryList } from './HistoryList.jsx';
 import { RecommendationsList } from './RecommendationsList.jsx';
-import { ContinueWatchingRail } from './ContinueWatchingRail.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
@@ -42,7 +41,6 @@ export function MainPage() {
 
     const [media, setMedia] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
-    const [continueWatching, setContinueWatching] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [navigationPath, setNavigationPath] = useState([{ name: 'Movies', parentId: null }]);
     const [navigationState, setNavigationState] = useState({
@@ -142,25 +140,6 @@ export function MainPage() {
         );
     }, []);
 
-    const fetchContinueWatching = useCallback(() => {
-        fetch('/localmovie/v1/media', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                type: HISTORY_TYPE,
-                page: 0,
-                pageSize: 20,
-                client: 'WEBAPP'
-            })
-        })
-            .then(response => response.ok ? response.json() : [])
-            .then(data => setContinueWatching(Array.isArray(data) ? data : []))
-            .catch(() => setContinueWatching([]));
-    }, []);
-
     useEffect(() => {
         let type = searchParams.get('type');
         let parentId = searchParams.get('parentId');
@@ -193,10 +172,7 @@ export function MainPage() {
             fetchMedia(false, newState);
         }
 
-        if (type.toUpperCase() !== HISTORY_TYPE) {
-            fetchContinueWatching();
-        }
-    }, [searchParams, fetchMedia, fetchRecommendations, fetchContinueWatching]);
+    }, [searchParams, fetchMedia, fetchRecommendations]);
 
     const navigate = useNavigate();
 
@@ -345,21 +321,6 @@ export function MainPage() {
         search(navigationState.order, '', '', navigationState.type, navigationState.parentId);
     }, [search, navigationState.order, navigationState.type, navigationState.parentId]);
 
-    const hasRenderableContinueWatching = continueWatching.some(item => {
-        const view = item?.mediaViews?.[0];
-        const hasProgress = Boolean(
-            view &&
-            view.position &&
-            view.duration &&
-            view.duration > 0 &&
-            ((view.position / view.duration) * 100) >= 2 &&
-            ((view.position / view.duration) * 100) < 98
-        );
-        return Boolean(item?.streamable && hasProgress);
-    });
-
-    const showContinueWatching = !isHistoryView && !isRecommendationsView && hasRenderableContinueWatching;
-
     const handleMoreLikeThis = useCallback((genreValue) => {
         const firstGenre = genreValue?.split(',')?.[0]?.trim();
         if (!firstGenre) return;
@@ -378,9 +339,6 @@ export function MainPage() {
                 onClearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
             />
-            {showContinueWatching && (
-                <ContinueWatchingRail media={continueWatching} playMedia={playMedia} />
-            )}
             {showBreadcrumb && (
                 <Breadcrumb path={navigationPath} onNavigateBack={navigateBack} />
             )}
@@ -433,7 +391,6 @@ export function MainPage() {
                     playMedia={playMedia}
                     nextPage={nextPage}
                     hasMore={hasMore}
-                    topPadding={showContinueWatching ? 20 : 150}
                 />
             )}
             <LoadingIndicator loadedCount={media.length} totalCount={totalCount} />
