@@ -21,7 +21,6 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -80,12 +79,9 @@ public class MediaResource {
         }
 
         boolean hasSubtitle = subtitleRepository.existsByMediaFileUuid(mediaFileId);
-        String streamContentType = MediaTypeFactory.getMediaType(mediaFilePath.get().getFileName())
-                .map(MediaType::toString)
-                .orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
         try {
-            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId, getUsername(), hasSubtitle, streamContentType));
+            return ResponseEntity.ok(securityService.generateSignedUrls(mediaFileId, getUsername(), hasSubtitle));
         } catch (JsonProcessingException e) {
             log.error("Failed to generate signed URLs.", e);
             return ResponseEntity.internalServerError().build();

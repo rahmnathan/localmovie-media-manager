@@ -22,7 +22,7 @@ import java.util.Base64;
 @Slf4j
 @Service
 public class SecurityService {
-    private static final String URL_PATTERN_STREAM = "/localmovie/v1/signed/media/%s/stream?expires=%s&sig=%s";
+    private static final String URL_PATTERN_STREAM = "/localmovie/v1/signed/media/%s/stream.mp4?expires=%s&sig=%s";
     private static final String URL_PATTERN_POSTER = "/localmovie/v1/signed/media/%s/poster?expires=%s&sig=%s";
     private static final String URL_PATTERN_UPDATE_POSITION = "/localmovie/v1/signed/media/%s/position?expires=%s&user=%s&sig=%s";
     private static final String URL_PATTERN_SUBTITLE = "/localmovie/v1/signed/media/%s/subtitle.vtt?expires=%s&sig=%s";
@@ -84,16 +84,15 @@ public class SecurityService {
     }
 
     public SignedUrls generateSignedUrls(String mediaFileId, String userId) throws JsonProcessingException {
-        return generateSignedUrls(mediaFileId, userId, false, null);
+        return generateSignedUrls(mediaFileId, userId, false);
     }
 
-    public SignedUrls generateSignedUrls(String mediaFileId, String userId, boolean hasSubtitle, String streamContentType) throws JsonProcessingException {
+    public SignedUrls generateSignedUrls(String mediaFileId, String userId, boolean hasSubtitle) throws JsonProcessingException {
         SignedRequest mediaSignedRequest = generateSignedRequest(mediaFileId, null);
         SignedRequest positionSignedRequest = generateSignedRequest(mediaFileId, userId);
 
         SignedUrls.SignedUrlsBuilder builder = SignedUrls.builder()
                 .stream(formatUrl(URL_PATTERN_STREAM, mediaSignedRequest))
-                .streamContentType(streamContentType)
                 .poster(formatUrl(URL_PATTERN_POSTER, mediaSignedRequest))
                 .updatePosition(formatUpdatePositionUrl(positionSignedRequest));
 

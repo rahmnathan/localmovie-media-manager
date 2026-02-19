@@ -208,7 +208,7 @@ class SecurityServiceTest {
         SignedUrls urls = securityService.generateSignedUrls(mediaFileId, TEST_USER_ID);
 
         // Verify stream URL pattern (Base64 URL encoding allows = padding)
-        String streamPattern = "/localmovie/v1/signed/media/" + mediaFileId + "/stream\\?expires=\\d+&sig=[A-Za-z0-9_-]+=*";
+        String streamPattern = "/localmovie/v1/signed/media/" + mediaFileId + "/stream\\.mp4\\?expires=\\d+&sig=[A-Za-z0-9_-]+=*";
         assertTrue(Pattern.matches(streamPattern, urls.getStream()),
                 "Stream URL doesn't match expected pattern: " + urls.getStream());
 
