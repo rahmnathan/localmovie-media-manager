@@ -18,6 +18,8 @@ const ContinueCard = ({ mediaFile, playMedia }) => {
     const title = mediaFile?.media?.title || mediaFile?.fileName || 'Unknown';
     const resumePositionMs = getResumePositionMs(mediaFile);
     const progress = getProgressPercent(mediaFile);
+    const progressLabel = `${Math.round(progress)}%`;
+    const meta = mediaFile?.media?.releaseYear || mediaFile?.type || '';
 
     const handlePlay = () => {
         playMedia(mediaFile, resumePositionMs > 0);
@@ -25,7 +27,7 @@ const ContinueCard = ({ mediaFile, playMedia }) => {
 
     return (
         <button className="continue-rail__card" onClick={handlePlay}>
-            <div className="continue-rail__poster-wrap">
+            <div className="continue-rail__poster-wrap" aria-hidden="true">
                 <LazyLoadImage
                     onError={(e) => { e.target.onerror = null; e.target.src = 'noPicture.gif'; }}
                     src={buildPosterUri(mediaFile.mediaFileId)}
@@ -33,11 +35,16 @@ const ContinueCard = ({ mediaFile, playMedia }) => {
                     className="continue-rail__poster"
                     effect="opacity"
                 />
+            </div>
+            <div className="continue-rail__body">
+                <span className="continue-rail__eyebrow">Resume {progressLabel}</span>
+                <span className="continue-rail__title">{title}</span>
+                <span className="continue-rail__meta">{meta}</span>
                 <div className="continue-rail__progress">
                     <div className="continue-rail__progress-fill" style={{ width: `${progress}%` }} />
                 </div>
             </div>
-            <span className="continue-rail__title">{title}</span>
+            <span className="continue-rail__play" aria-hidden="true">▶</span>
         </button>
     );
 };
@@ -61,9 +68,6 @@ export const ContinueWatchingRail = ({ media, playMedia }) => {
 
     return (
         <section className="continue-rail" aria-label="Continue watching">
-            <div className="continue-rail__header">
-                <h2 className="continue-rail__heading">Continue Watching</h2>
-            </div>
             <div className="continue-rail__items">
                 {items.map((item) => (
                     <ContinueCard key={item.mediaFileId} mediaFile={item} playMedia={playMedia} />
