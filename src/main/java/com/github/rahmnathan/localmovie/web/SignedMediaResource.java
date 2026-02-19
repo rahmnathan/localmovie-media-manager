@@ -29,7 +29,7 @@ public class SignedMediaResource {
     private final SecurityService securityService;
     private final MediaSubtitleRepository subtitleRepository;
 
-    @GetMapping(value = "/{mediaFileId}/stream.mp4", produces = "video/mp4")
+    @GetMapping(value = {"/{mediaFileId}/stream", "/{mediaFileId}/stream.mp4"})
     public ResponseEntity<ResourceRegion> streamSecureVideo(@PathVariable String mediaFileId,
                                                             @RequestParam(value = "expires", defaultValue = "0") long expires,
                                                             @RequestParam(value = "sig") String signature,
