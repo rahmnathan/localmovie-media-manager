@@ -2,15 +2,14 @@ import React from 'react';
 import { Media } from './Media.jsx';
 import InfiniteScroll from "react-infinite-scroll-component";
 
-const mediaListStyle = {
-    margin: 10,
-    display: 'inline-block',
-    width: '97%',
-    paddingTop: 150,
-    textAlign: 'center'
-};
-
-export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore }) => {
+export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, topPadding = 150 }) => {
+    const mediaListStyle = {
+        margin: 10,
+        display: 'inline-block',
+        width: '97%',
+        paddingTop: topPadding,
+        textAlign: 'center'
+    };
     const mediaList = media.map(media =>
         <Media key={media.mediaFileId} media={media} navigateTo={navigateTo} playMedia={playMedia}/>
     );

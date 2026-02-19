@@ -1,13 +1,43 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { buildPosterUri } from './Media.jsx';
 import { DetailedMediaView } from './DetailedMediaView.jsx';
 import { UserPreferences } from './userPreferences.js';
 
-const RecommendationCard = ({ recommendation, playMedia }) => {
+const RECOMMENDATION_DISMISS_KEY = 'localmovies_recommendations_hidden';
+
+const loadDismissed = () => {
+    try {
+        return new Set(JSON.parse(localStorage.getItem(RECOMMENDATION_DISMISS_KEY) || '[]'));
+    } catch {
+        return new Set();
+    }
+};
+
+const saveDismissed = (ids) => {
+    localStorage.setItem(RECOMMENDATION_DISMISS_KEY, JSON.stringify(Array.from(ids)));
+};
+
+const buildConfidence = (media, reason) => {
+    const rating = Number.parseFloat(media?.imdbRating || '0');
+    const hasDetailedReason = (reason || '').length >= 40;
+    if (rating >= 7.8 && hasDetailedReason) return { label: 'High confidence', tone: 'high' };
+    if (rating >= 6.8 || hasDetailedReason) return { label: 'Medium confidence', tone: 'medium' };
+    return { label: 'Exploration pick', tone: 'low' };
+};
+
+const genreChips = (genre) => (genre || '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+const RecommendationCard = ({ recommendation, playMedia, onDismiss, onMoreLikeThis }) => {
     const mediaFile = recommendation.mediaFile;
     const media = mediaFile.media || {};
     const reason = recommendation.reason;
+    const confidence = buildConfidence(media, reason);
+    const genres = genreChips(media.genre);
 
     const [isFavorite, setIsFavorite] = useState(mediaFile.favorite || false);
     const [isDetailedViewOpen, setIsDetailedViewOpen] = useState(false);
@@ -103,6 +133,46 @@ const RecommendationCard = ({ recommendation, playMedia }) => {
                 {reason && (
                     <p className="recommendation-card__reason">{reason}</p>
                 )}
+
+                <div className="recommendation-card__chips">
+                    <span className={`recommendation-card__chip recommendation-card__chip--${confidence.tone}`}>
+                        {confidence.label}
+                    </span>
+                    {genres.map((genre) => (
+                        <button
+                            key={genre}
+                            className="recommendation-card__chip recommendation-card__chip--genre"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onMoreLikeThis?.(genre);
+                            }}
+                            title={`Show more ${genre}`}
+                        >
+                            {genre}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="recommendation-card__actions">
+                    <button
+                        className="recommendation-card__action-btn"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onMoreLikeThis?.(media.genre);
+                        }}
+                    >
+                        More like this
+                    </button>
+                    <button
+                        className="recommendation-card__action-btn recommendation-card__action-btn--dismiss"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onDismiss?.(mediaFile.mediaFileId);
+                        }}
+                    >
+                        Not interested
+                    </button>
+                </div>
             </div>
 
             <button
@@ -125,8 +195,22 @@ const RecommendationCard = ({ recommendation, playMedia }) => {
     );
 };
 
-export const RecommendationsList = ({ recommendations, playMedia, onRefresh, isLoading }) => {
-    if (!isLoading && (!recommendations || recommendations.length === 0)) {
+export const RecommendationsList = ({ recommendations, playMedia, onRefresh, isLoading, onMoreLikeThis }) => {
+    const [dismissedIds, setDismissedIds] = useState(loadDismissed);
+
+    const visibleRecommendations = useMemo(() => {
+        if (!recommendations) return [];
+        return recommendations.filter(rec => !dismissedIds.has(rec?.mediaFile?.mediaFileId));
+    }, [recommendations, dismissedIds]);
+
+    const dismissRecommendation = (mediaFileId) => {
+        const next = new Set(dismissedIds);
+        next.add(mediaFileId);
+        setDismissedIds(next);
+        saveDismissed(next);
+    };
+
+    if (!isLoading && (!visibleRecommendations || visibleRecommendations.length === 0)) {
         return (
             <div className="empty-state" role="status">
                 <h2>No recommendations yet</h2>
@@ -142,11 +226,13 @@ export const RecommendationsList = ({ recommendations, playMedia, onRefresh, isL
                 <p className="recommendations-list__subheading">Personalized picks based on what you've watched</p>
             </div>
             <div className="recommendations-list__items" role="list">
-                {recommendations.map((rec, index) => (
+                {visibleRecommendations.map((rec, index) => (
                     <RecommendationCard
                         key={rec.mediaFile?.mediaFileId || index}
                         recommendation={rec}
                         playMedia={playMedia}
+                        onDismiss={dismissRecommendation}
+                        onMoreLikeThis={onMoreLikeThis}
                     />
                 ))}
             </div>

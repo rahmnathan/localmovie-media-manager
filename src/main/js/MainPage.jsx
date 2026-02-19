@@ -2,6 +2,7 @@ import React, {useEffect, useState, useCallback} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { HistoryList } from './HistoryList.jsx';
 import { RecommendationsList } from './RecommendationsList.jsx';
+import { ContinueWatchingRail } from './ContinueWatchingRail.jsx';
 import { ControlBar } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
@@ -41,6 +42,7 @@ export function MainPage() {
 
     const [media, setMedia] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
+    const [continueWatching, setContinueWatching] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [navigationPath, setNavigationPath] = useState([{ name: 'Movies', parentId: null }]);
     const [navigationState, setNavigationState] = useState({
@@ -140,6 +142,25 @@ export function MainPage() {
         );
     }, []);
 
+    const fetchContinueWatching = useCallback(() => {
+        fetch('/localmovie/v1/media', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                type: HISTORY_TYPE,
+                page: 0,
+                pageSize: 20,
+                client: 'WEBAPP'
+            })
+        })
+            .then(response => response.ok ? response.json() : [])
+            .then(data => setContinueWatching(Array.isArray(data) ? data : []))
+            .catch(() => setContinueWatching([]));
+    }, []);
+
     useEffect(() => {
         let type = searchParams.get('type');
         let parentId = searchParams.get('parentId');
@@ -171,7 +192,11 @@ export function MainPage() {
         } else {
             fetchMedia(false, newState);
         }
-    }, [searchParams, fetchMedia, fetchRecommendations]);
+
+        if (type.toUpperCase() !== HISTORY_TYPE) {
+            fetchContinueWatching();
+        }
+    }, [searchParams, fetchMedia, fetchRecommendations, fetchContinueWatching]);
 
     const navigate = useNavigate();
 
@@ -320,6 +345,14 @@ export function MainPage() {
         search(navigationState.order, '', '', navigationState.type, navigationState.parentId);
     }, [search, navigationState.order, navigationState.type, navigationState.parentId]);
 
+    const showContinueWatching = !isHistoryView && !isRecommendationsView && continueWatching.length > 0;
+
+    const handleMoreLikeThis = useCallback((genreValue) => {
+        const firstGenre = genreValue?.split(',')?.[0]?.trim();
+        if (!firstGenre) return;
+        search(navigationState.order, firstGenre, '', 'MOVIES', null);
+    }, [search, navigationState.order]);
+
     return (
         <div style={layoutProps}>
             <ControlBar
@@ -332,6 +365,9 @@ export function MainPage() {
                 onClearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
             />
+            {showContinueWatching && (
+                <ContinueWatchingRail media={continueWatching} playMedia={playMedia} />
+            )}
             {showBreadcrumb && (
                 <Breadcrumb path={navigationPath} onNavigateBack={navigateBack} />
             )}
@@ -371,9 +407,21 @@ export function MainPage() {
             ) : isHistoryView ? (
                 <HistoryList media={displayMedia} playMedia={playMedia} />
             ) : isRecommendationsView ? (
-                <RecommendationsList recommendations={recommendations} playMedia={playMedia} isLoading={isInitialLoad} />
+                <RecommendationsList
+                    recommendations={recommendations}
+                    playMedia={playMedia}
+                    isLoading={isInitialLoad}
+                    onMoreLikeThis={handleMoreLikeThis}
+                />
             ) : (
-                <MediaList media={displayMedia} navigateTo={navigateTo} playMedia={playMedia} nextPage={nextPage} hasMore={hasMore}/>
+                <MediaList
+                    media={displayMedia}
+                    navigateTo={navigateTo}
+                    playMedia={playMedia}
+                    nextPage={nextPage}
+                    hasMore={hasMore}
+                    topPadding={showContinueWatching ? 20 : 150}
+                />
             )}
             <LoadingIndicator loadedCount={media.length} totalCount={totalCount} />
         </div>
