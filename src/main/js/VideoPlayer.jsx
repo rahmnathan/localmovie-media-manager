@@ -243,6 +243,7 @@ export function VideoPlayer() {
                         onDuration={(d) => setDuration(d)}
                         config={{
                             file: {
+                                forceVideo: true,
                                 tracks: signedUrls?.subtitle ? [
                                     {
                                         kind: 'subtitles',
