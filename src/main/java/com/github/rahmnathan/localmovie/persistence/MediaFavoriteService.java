@@ -108,7 +108,6 @@ public class MediaFavoriteService {
         return jpaQuery.from(qMediaFile)
                 .where(qMediaFile.mediaFileId.in(ids))
                 .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
-                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.parent).fetchJoin()
                 .orderBy(qMediaFile.fileName.asc())
                 .fetch();

@@ -36,7 +36,7 @@ export function VideoPlayer() {
         // Build URL with duration parameter if available
         const baseUrl = signedUrls.updatePosition.split('?')[0];
         const queryParams = signedUrls.updatePosition.split('?')[1] || '';
-        const durationParam = duration > 0 ? `&duration=${Math.round(duration * 1000)}` : '';
+        const durationParam = duration > 0 ? `&duration=${Math.round(duration)}` : '';
         const url = `${baseUrl}/${content.playedSeconds}?${queryParams}${durationParam}`;
 
         fetch(url, {

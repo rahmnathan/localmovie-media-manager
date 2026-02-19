@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -28,4 +29,12 @@ public interface MediaViewRepository extends JpaRepository<MediaView, Long> {
            "AND mv.updated > :since " +
            "ORDER BY mv.updated DESC")
     List<MediaView> findRecentByUserIdWithMedia(@Param("userId") String userId, @Param("since") LocalDateTime since);
+
+    @Query("SELECT mv FROM MediaView mv " +
+           "JOIN FETCH mv.mediaFile mf " +
+           "JOIN FETCH mv.mediaUser mu " +
+           "WHERE mf.mediaFileId IN :mediaFileIds " +
+           "AND mu.userId = :userId")
+    List<MediaView> findByMediaFileIdsAndUserId(@Param("mediaFileIds") Collection<String> mediaFileIds,
+                                                @Param("userId") String userId);
 }

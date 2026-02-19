@@ -33,6 +33,7 @@ public class MediaPersistenceService {
     private final MediaFileRepository fileRepository;
     private final MediaImageRepository mediaImageRepository;
     private final MediaViewService mediaViewService;
+    private final MediaViewRepository mediaViewRepository;
     private final MediaFavoriteService mediaFavoriteService;
     private final SecurityUtils securityUtils;
 
@@ -67,6 +68,16 @@ public class MediaPersistenceService {
 
     public Optional<MediaFile> getMediaFileByIdWithViews(String id) {
         return fileRepository.findByIdWithViews(id, securityUtils.getUsername());
+    }
+
+    public Optional<MediaFileDto> getMediaFileDtoById(String id) {
+        Optional<MediaFile> mediaFile = fileRepository.findByMediaFileId(id);
+        if (mediaFile.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, MediaView> userViews = findCurrentUserViewsByMediaFileIds(List.of(id));
+        return Optional.of(MediaFileTransformer.toMediaFileDto(mediaFile.get(), userViews.get(id)));
     }
 
     public boolean existsByPath(String path) {
@@ -155,15 +166,29 @@ public class MediaPersistenceService {
     }
 
     public List<MediaFileDto> getMediaFileDtos(MediaRequest request) {
+        List<MediaFile> mediaFiles = getMediaFiles(request);
         Set<String> favoriteIds = mediaFavoriteService.findAllFavoriteIdsForCurrentUser();
+        Map<String, MediaView> userViews = findCurrentUserViewsByMediaFileIds(
+                mediaFiles.stream().map(MediaFile::getMediaFileId).toList()
+        );
 
-        return getMediaFiles(request).stream()
+        return mediaFiles.stream()
                 .map(mediaFile -> {
-                    MediaFileDto dto = MediaFileTransformer.toMediaFileDto(mediaFile);
+                    MediaFileDto dto = MediaFileTransformer.toMediaFileDto(mediaFile, userViews.get(mediaFile.getMediaFileId()));
                     dto.setFavorite(favoriteIds.contains(mediaFile.getMediaFileId()));
                     return dto;
                 })
                 .toList();
+    }
+
+    public Map<String, MediaView> findCurrentUserViewsByMediaFileIds(List<String> mediaFileIds) {
+        if (mediaFileIds == null || mediaFileIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return mediaViewRepository.findByMediaFileIdsAndUserId(mediaFileIds, securityUtils.getUsername())
+                .stream()
+                .collect(HashMap::new, (map, view) -> map.put(view.getMediaFile().getMediaFileId(), view), HashMap::putAll);
     }
 
     @VisibleForTesting
@@ -242,7 +267,6 @@ public class MediaPersistenceService {
         return jpaQuery.from(qMediaFile)
                 .where(qMediaFile.mediaFileId.in(ids))
                 .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
-                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.parent).fetchJoin()
                 .orderBy(orderSpecifier, secondaryOrder)
                 .fetch();

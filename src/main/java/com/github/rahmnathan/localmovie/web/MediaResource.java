@@ -10,11 +10,13 @@ import com.github.rahmnathan.localmovie.media.recommendation.RecommendationServi
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.github.rahmnathan.localmovie.persistence.MediaViewService;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaRecommendation;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaView;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaSubtitleRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -55,8 +57,7 @@ public class MediaResource {
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received media request for id - {}", mediaFileId);
-        return persistenceService.getMediaFileByIdWithViews(mediaFileId)
-                .map(MediaFileTransformer::toMediaFileDto);
+        return persistenceService.getMediaFileDtoById(mediaFileId);
     }
 
     @PostMapping(value = "/count")
@@ -139,10 +140,16 @@ public class MediaResource {
         log.info("Getting recommendations for user - {}", userId);
 
         List<MediaRecommendation> recommendations = recommendationService.getRecommendationsForUser(userId);
+        Map<String, MediaView> userViews = persistenceService.findCurrentUserViewsByMediaFileIds(
+                recommendations.stream().map(rec -> rec.getMediaFile().getMediaFileId()).toList()
+        );
 
         return recommendations.stream()
                 .map(rec -> RecommendationDto.builder()
-                        .mediaFile(MediaFileTransformer.toMediaFileDto(rec.getMediaFile()))
+                        .mediaFile(MediaFileTransformer.toMediaFileDto(
+                                rec.getMediaFile(),
+                                userViews.get(rec.getMediaFile().getMediaFileId())
+                        ))
                         .reason(rec.getReason())
                         .rank(rec.getRank())
                         .build())

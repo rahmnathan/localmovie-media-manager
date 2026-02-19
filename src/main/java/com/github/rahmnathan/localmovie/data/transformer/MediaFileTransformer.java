@@ -9,7 +9,7 @@ import java.util.Set;
 @UtilityClass
 public class MediaFileTransformer {
 
-    public static MediaFileDto toMediaFileDto(MediaFile mediaFile) {
+    public static MediaFileDto toMediaFileDto(MediaFile mediaFile, MediaView selectedView) {
         MediaFileDto.MediaFileDtoBuilder builder = MediaFileDto.builder();
 
         builder.id(mediaFile.getId());
@@ -41,29 +41,15 @@ public class MediaFileTransformer {
             builder.media(mediaDto.build());
         }
 
-        Set<MediaView> mediaViews = mediaFile.getMediaViews();
-        if(mediaViews != null && !mediaViews.isEmpty()) {
-            MediaFileDto.MediaViewDto.MediaViewDtoBuilder mediaViewDto = MediaFileDto.MediaViewDto.builder();
-            MediaView mediaView = mediaViews.iterator().next();
-
-            mediaViewDto.id(mediaView.getId());
-            mediaViewDto.position(mediaView.getPosition());
-            mediaViewDto.duration(mediaView.getDuration());
-            mediaViewDto.created(mediaView.getCreated());
-            mediaViewDto.updated(mediaView.getUpdated());
-
-            MediaUser mediaUser = mediaView.getMediaUser();
-            if(mediaUser != null) {
-                MediaFileDto.MediaUserDto.MediaUserDtoBuilder mediaUserDto = MediaFileDto.MediaUserDto.builder();
-                mediaUserDto.id(mediaUser.getId());
-                mediaUserDto.created(mediaUser.getCreated());
-                mediaUserDto.updated(mediaUser.getUpdated());
-                mediaUserDto.userId(mediaUser.getUserId());
-
-                mediaViewDto.mediaUser(mediaUserDto.build());
+        MediaView mediaView = selectedView;
+        if (mediaView == null) {
+            Set<MediaView> mediaViews = mediaFile.getMediaViews();
+            if (mediaViews != null && !mediaViews.isEmpty()) {
+                mediaView = mediaViews.iterator().next();
             }
-
-            builder.mediaViews(Set.of(mediaViewDto.build()));
+        }
+        if (mediaView != null) {
+            builder.mediaViews(Set.of(toMediaViewDto(mediaView)));
         }
 
         // Build parent chain for episode context (episode -> season -> series)
@@ -73,6 +59,27 @@ public class MediaFileTransformer {
         }
 
         return builder.build();
+    }
+
+    private static MediaFileDto.MediaViewDto toMediaViewDto(MediaView mediaView) {
+        MediaFileDto.MediaViewDto.MediaViewDtoBuilder mediaViewDto = MediaFileDto.MediaViewDto.builder();
+        mediaViewDto.id(mediaView.getId());
+        mediaViewDto.position(mediaView.getPosition());
+        mediaViewDto.duration(mediaView.getDuration());
+        mediaViewDto.created(mediaView.getCreated());
+        mediaViewDto.updated(mediaView.getUpdated());
+
+        MediaUser mediaUser = mediaView.getMediaUser();
+        if (mediaUser != null) {
+            MediaFileDto.MediaUserDto.MediaUserDtoBuilder mediaUserDto = MediaFileDto.MediaUserDto.builder();
+            mediaUserDto.id(mediaUser.getId());
+            mediaUserDto.created(mediaUser.getCreated());
+            mediaUserDto.updated(mediaUser.getUpdated());
+            mediaUserDto.userId(mediaUser.getUserId());
+            mediaViewDto.mediaUser(mediaUserDto.build());
+        }
+
+        return mediaViewDto.build();
     }
 
     private static MediaFileDto.ParentMediaDto toParentMediaDto(MediaFile mediaFile) {

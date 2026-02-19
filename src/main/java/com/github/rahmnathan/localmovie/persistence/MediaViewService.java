@@ -28,6 +28,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MediaViewService {
+    private static final double MILLISECONDS_TO_SECONDS = 1000.0;
+    private static final double ASSUME_MILLISECONDS_THRESHOLD = 100_000.0;
+
     private final MediaFileRepository fileRepository;
     private final MediaViewRepository mediaViewRepository;
     private final MediaUserRepository userRepository;
@@ -48,7 +51,9 @@ public class MediaViewService {
 
         MediaFile mediaFile = mediaFileOptional.get();
         String userName = userId != null ? userId : securityUtils.getUsername();
-        log.info("Adding view for User: {} Path: {} Position: {} Duration: {}", userName, mediaFile.getPath(), position, duration);
+        Double normalizedPosition = normalizeToSeconds(position);
+        Double normalizedDuration = normalizeToSeconds(duration);
+        log.info("Adding view for User: {} Path: {} Position: {} Duration: {}", userName, mediaFile.getPath(), normalizedPosition, normalizedDuration);
 
         // Find existing view for this user
         Optional<MediaView> existingView = mediaFile.getMediaViews().stream()
@@ -57,16 +62,16 @@ public class MediaViewService {
 
         if (existingView.isEmpty()) {
             MediaUser mediaUser = userRepository.findByUserId(userName).orElse(new MediaUser(userName));
-            MediaView mediaView = new MediaView(mediaFile, mediaUser, position, duration);
+            MediaView mediaView = new MediaView(mediaFile, mediaUser, normalizedPosition, normalizedDuration);
             mediaFile.addMediaView(mediaView);
             mediaUser.addMediaView(mediaView);
             userRepository.save(mediaUser);
             mediaViewRepository.save(mediaView);
         } else {
             MediaView mediaView = existingView.get();
-            mediaView.setPosition(position);
-            if (duration != null && duration > 0) {
-                mediaView.setDuration(duration);
+            mediaView.setPosition(normalizedPosition);
+            if (normalizedDuration != null && normalizedDuration > 0) {
+                mediaView.setDuration(normalizedDuration);
             }
         }
 
@@ -119,10 +124,19 @@ public class MediaViewService {
         return jpaQuery.from(qMediaFile)
                 .where(qMediaFile.mediaFileId.in(ids))
                 .leftJoin(QMediaFile.mediaFile.media).fetchJoin()
-                .leftJoin(QMediaFile.mediaFile.mediaViews).fetchJoin()
                 .leftJoin(QMediaFile.mediaFile.parent).fetchJoin()
                 .orderBy(orderSpecifier, secondaryOrder)
                 .fetch();
+    }
+
+    private Double normalizeToSeconds(Double value) {
+        if (value == null || value <= 0) {
+            return value;
+        }
+        if (value > ASSUME_MILLISECONDS_THRESHOLD) {
+            return value / MILLISECONDS_TO_SECONDS;
+        }
+        return value;
     }
 
     @Transactional
