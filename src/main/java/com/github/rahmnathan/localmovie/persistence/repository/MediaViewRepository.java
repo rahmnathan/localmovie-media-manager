@@ -37,4 +37,17 @@ public interface MediaViewRepository extends JpaRepository<MediaView, Long> {
            "AND mu.userId = :userId")
     List<MediaView> findByMediaFileIdsAndUserId(@Param("mediaFileIds") Collection<String> mediaFileIds,
                                                 @Param("userId") String userId);
+
+    @Query("SELECT COUNT(mv) FROM MediaView mv " +
+           "WHERE mv.mediaUser.userId = :userId " +
+           "AND mv.updated > :since")
+    long countRecentByUserId(@Param("userId") String userId, @Param("since") LocalDateTime since);
+
+    @Query("SELECT mv.mediaFile.mediaFileId FROM MediaView mv " +
+           "WHERE mv.mediaUser.userId = :userId " +
+           "AND mv.updated > :since " +
+           "ORDER BY mv.updated DESC")
+    List<String> findRecentMediaFileIdsByUserId(@Param("userId") String userId,
+                                                 @Param("since") LocalDateTime since,
+                                                 org.springframework.data.domain.Pageable pageable);
 }

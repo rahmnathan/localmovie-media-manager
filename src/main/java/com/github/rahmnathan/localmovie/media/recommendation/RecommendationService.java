@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -153,11 +154,22 @@ public class RecommendationService {
     }
 
     private List<MediaFile> getCandidateMedia(Set<String> excludeIds) {
-        // Get movies and series that haven't been watched
-        // Use random selection to get diverse candidates rather than always picking highest-rated
-        // If excludeIds is empty, use a dummy value to avoid SQL issues
+        // Get movies and series that haven't been watched.
+        // We avoid ORDER BY RANDOM() because it full-sorts candidates and becomes expensive as the library grows.
+        // Instead, pick a random page over a deterministic indexed order.
         Set<String> safeExcludeIds = excludeIds.isEmpty() ? Set.of("__none__") : excludeIds;
-        return fileRepository.findRandomCandidatesForRecommendation(safeExcludeIds, PageRequest.of(0, MAX_CANDIDATES_FOR_PROMPT));
+        long candidateCount = fileRepository.countCandidatesForRecommendation(safeExcludeIds);
+        if (candidateCount <= 0) {
+            return List.of();
+        }
+
+        int totalPages = (int) Math.max(1, Math.ceil((double) candidateCount / MAX_CANDIDATES_FOR_PROMPT));
+        int page = ThreadLocalRandom.current().nextInt(totalPages);
+
+        return fileRepository.findCandidatesForRecommendationPage(
+                safeExcludeIds,
+                PageRequest.of(page, MAX_CANDIDATES_FOR_PROMPT)
+        );
     }
 
     private List<RecommendationResult> toRecommendationResults(List<RecommendationResponseParser.ParsedRecommendation> parsed) {

@@ -45,7 +45,7 @@ public class MediaFile implements Serializable {
     @Enumerated(value = EnumType.STRING)
     private MediaFileType mediaFileType;
 
-    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     private Set<MediaView> mediaViews;
 

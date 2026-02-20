@@ -32,14 +32,14 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
            "AND NOT EXISTS (SELECT 1 FROM SubtitleJob sj WHERE sj.mediaFile = mf AND sj.status IN ('QUEUED', 'RUNNING'))")
     List<MediaFile> findMediaFilesNeedingSubtitles();
 
-    @Query("SELECT mf FROM MediaFile mf " +
-           "JOIN FETCH mf.media m " +
+    @Query("SELECT COUNT(mf) FROM MediaFile mf " +
+           "JOIN mf.media m " +
            "WHERE mf.mediaFileType IN (com.github.rahmnathan.localmovie.data.MediaFileType.MOVIE, " +
            "                           com.github.rahmnathan.localmovie.data.MediaFileType.SERIES) " +
            "AND mf.mediaFileId NOT IN :excludeIds " +
            "AND m.title IS NOT NULL " +
-           "ORDER BY m.imdbRating DESC NULLS LAST")
-    List<MediaFile> findCandidatesForRecommendation(@Param("excludeIds") Set<String> excludeIds, Pageable pageable);
+           "AND m.genre IS NOT NULL")
+    long countCandidatesForRecommendation(@Param("excludeIds") Set<String> excludeIds);
 
     @Query("SELECT mf FROM MediaFile mf " +
            "JOIN FETCH mf.media m " +
@@ -48,6 +48,12 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
            "AND mf.mediaFileId NOT IN :excludeIds " +
            "AND m.title IS NOT NULL " +
            "AND m.genre IS NOT NULL " +
-           "ORDER BY RANDOM()")
-    List<MediaFile> findRandomCandidatesForRecommendation(@Param("excludeIds") Set<String> excludeIds, Pageable pageable);
+           "ORDER BY mf.id ASC")
+    List<MediaFile> findCandidatesForRecommendationPage(@Param("excludeIds") Set<String> excludeIds, Pageable pageable);
+
+    @Query("SELECT mf FROM MediaFile mf " +
+           "LEFT JOIN FETCH mf.media " +
+           "LEFT JOIN FETCH mf.parent " +
+           "WHERE mf.mediaFileId IN :mediaFileIds")
+    List<MediaFile> findByMediaFileIdInWithMediaAndParent(@Param("mediaFileIds") List<String> mediaFileIds);
 }
