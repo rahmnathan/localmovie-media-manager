@@ -1,5 +1,4 @@
 import React, { memo, useEffect, useState } from 'react';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { UserPreferences } from './userPreferences.js';
 import { DetailedMediaView } from './DetailedMediaView.jsx';
 
@@ -175,14 +174,14 @@ const MediaComponent = (props) => {
                 <span className="media-card__info-icon">ⓘ</span>
             </button>
             <div className="media-card__poster-container">
-                <LazyLoadImage
-                    onError={(e)=>{e.target.onerror = null; e.target.src="noPicture.gif"}}
+                <img
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'noPicture.gif'; }}
                     src={buildPosterUri(mediaFile.mediaFileId)}
                     alt={`${title} (${year}) poster`}
                     className="media-card__poster"
-                    scrollPosition={props.scrollPosition}
-                    effect="opacity"
-                    threshold={100}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                 />
                 {watchProgress && (
                     <div className="media-card__progress-bar">
