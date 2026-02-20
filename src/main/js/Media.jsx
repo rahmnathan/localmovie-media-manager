@@ -208,15 +208,17 @@ const MediaComponent = (props) => {
                     )}
                 </div>
             </div>
-            <DetailedMediaView
-                mediaFile={detailedMediaFile}
-                isOpen={isDetailedViewOpen}
-                onClose={() => setIsDetailedViewOpen(false)}
-                playMedia={props.playMedia}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-                isLoadingDetails={isLoadingDetails}
-            />
+            {isDetailedViewOpen && (
+                <DetailedMediaView
+                    mediaFile={detailedMediaFile}
+                    isOpen={isDetailedViewOpen}
+                    onClose={() => setIsDetailedViewOpen(false)}
+                    playMedia={props.playMedia}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
+                    isLoadingDetails={isLoadingDetails}
+                />
+            )}
         </div>
     );
 };
