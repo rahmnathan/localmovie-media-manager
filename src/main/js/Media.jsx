@@ -192,20 +192,20 @@ const MediaComponent = (props) => {
                         />
                     </div>
                 )}
-            </div>
-            <div className="media-card__description">
-                {parentContext && (
-                    <p className="media-card__parent-context">{parentContext}</p>
-                )}
-                <h3 className="media-card__title">{title}</h3>
-                <div className="media-card__meta">
-                    {year > 0 && <span className="media-card__year">{year}</span>}
-                    {rating && (
-                        <span className="media-card__rating">
-                            <img src={'imdb.png'} alt={'IMDB'} className="media-card__imdb-icon"/>
-                            {rating}
-                        </span>
+                <div className="media-card__overlay">
+                    {parentContext && (
+                        <p className="media-card__parent-context">{parentContext}</p>
                     )}
+                    <h3 className="media-card__title">{title}</h3>
+                    <div className="media-card__meta">
+                        {year > 0 && <span className="media-card__year">{year}</span>}
+                        {rating && (
+                            <span className="media-card__rating">
+                                <img src={'imdb.png'} alt={'IMDB'} className="media-card__imdb-icon"/>
+                                {rating}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
             {isDetailedViewOpen && (
