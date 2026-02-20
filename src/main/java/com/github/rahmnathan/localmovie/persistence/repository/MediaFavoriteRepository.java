@@ -20,6 +20,7 @@ public interface MediaFavoriteRepository extends JpaRepository<MediaFavorite, Lo
     @Modifying
     void deleteByMediaFileMediaFileIdAndMediaUserUserId(String mediaFileId, String userId);
 
-    @Query("SELECT mf.mediaFile.mediaFileId FROM MediaFavorite mf WHERE mf.mediaUser.userId = :userId")
-    Set<String> findAllMediaFileIdsByUserId(@Param("userId") String userId);
+    @Query("SELECT mf.mediaFile.mediaFileId FROM MediaFavorite mf " +
+            "WHERE mf.mediaUser.userId = :userId AND mf.mediaFile.mediaFileId IN :mediaFileIds")
+    Set<String> findMediaFileIdsByUserIdAndMediaFileIds(@Param("userId") String userId, @Param("mediaFileIds") Set<String> mediaFileIds);
 }

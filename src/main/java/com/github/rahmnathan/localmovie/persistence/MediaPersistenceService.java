@@ -167,14 +167,20 @@ public class MediaPersistenceService {
 
     public List<MediaFileDto> getMediaFileDtos(MediaRequest request) {
         List<MediaFile> mediaFiles = getMediaFiles(request);
-        Set<String> favoriteIds = mediaFavoriteService.findAllFavoriteIdsForCurrentUser();
+        Set<String> mediaFileIds = mediaFiles.stream().map(MediaFile::getMediaFileId).collect(HashSet::new, HashSet::add, HashSet::addAll);
+        Set<String> favoriteIds = mediaFavoriteService.findFavoriteIdsForCurrentUser(mediaFileIds);
         Map<String, MediaView> userViews = findCurrentUserViewsByMediaFileIds(
                 mediaFiles.stream().map(MediaFile::getMediaFileId).toList()
         );
+        boolean includeDetails = request.getIncludeDetails() == null || request.getIncludeDetails();
 
         return mediaFiles.stream()
                 .map(mediaFile -> {
-                    MediaFileDto dto = MediaFileTransformer.toMediaFileDto(mediaFile, userViews.get(mediaFile.getMediaFileId()));
+                    MediaFileDto dto = MediaFileTransformer.toMediaFileDto(
+                            mediaFile,
+                            userViews.get(mediaFile.getMediaFileId()),
+                            includeDetails
+                    );
                     dto.setFavorite(favoriteIds.contains(mediaFile.getMediaFileId()));
                     return dto;
                 })

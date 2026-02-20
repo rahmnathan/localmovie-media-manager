@@ -66,8 +66,14 @@ public class MediaFavoriteService {
         return mediaFavoriteRepository.existsByMediaFileMediaFileIdAndMediaUserUserId(id, securityUtils.getUsername());
     }
 
-    public Set<String> findAllFavoriteIdsForCurrentUser() {
-        return mediaFavoriteRepository.findAllMediaFileIdsByUserId(securityUtils.getUsername());
+    public Set<String> findFavoriteIdsForCurrentUser(Set<String> mediaFileIds) {
+        if (mediaFileIds == null || mediaFileIds.isEmpty()) {
+            return Set.of();
+        }
+        return mediaFavoriteRepository.findMediaFileIdsByUserIdAndMediaFileIds(
+                securityUtils.getUsername(),
+                mediaFileIds
+        );
     }
 
     public long countFavorites() {

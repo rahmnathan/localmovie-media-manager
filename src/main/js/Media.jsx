@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { UserPreferences } from './userPreferences.js';
 import { DetailedMediaView } from './DetailedMediaView.jsx';
@@ -37,6 +37,12 @@ const MediaComponent = (props) => {
 
     const [isFavorite, setIsFavorite] = useState(mediaFile.favorite || false);
     const [isDetailedViewOpen, setIsDetailedViewOpen] = useState(false);
+    const [detailedMediaFile, setDetailedMediaFile] = useState(mediaFile);
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+    useEffect(() => {
+        setDetailedMediaFile(mediaFile);
+    }, [mediaFile]);
 
     const selectMedia = (mediaFile) => {
         // If the media is streamable, it should be played
@@ -64,9 +70,29 @@ const MediaComponent = (props) => {
         }
     };
 
-    const openDetailedView = (event) => {
+    const openDetailedView = async (event) => {
         event.stopPropagation();
         setIsDetailedViewOpen(true);
+        const hasDetails = Boolean(detailedMediaFile?.media?.plot) || Boolean(detailedMediaFile?.media?.actors);
+        if (hasDetails) {
+            return;
+        }
+
+        setIsLoadingDetails(true);
+        try {
+            const response = await fetch(`/localmovie/v1/media/${encodeURIComponent(mediaFile.mediaFileId)}`);
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json();
+            if (data) {
+                setDetailedMediaFile(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch detailed media info', err);
+        } finally {
+            setIsLoadingDetails(false);
+        }
     };
 
     const handleKeyPress = (event) => {
@@ -183,12 +209,13 @@ const MediaComponent = (props) => {
                 </div>
             </div>
             <DetailedMediaView
-                mediaFile={mediaFile}
+                mediaFile={detailedMediaFile}
                 isOpen={isDetailedViewOpen}
                 onClose={() => setIsDetailedViewOpen(false)}
                 playMedia={props.playMedia}
                 isFavorite={isFavorite}
                 onToggleFavorite={toggleFavorite}
+                isLoadingDetails={isLoadingDetails}
             />
         </div>
     );

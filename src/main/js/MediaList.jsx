@@ -1,8 +1,9 @@
 import React from 'react';
 import { Media } from './Media.jsx';
 import InfiniteScroll from "react-infinite-scroll-component";
+import { SkeletonLoader } from './SkeletonCard.jsx';
 
-export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, topPadding = 150 }) => {
+export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, topPadding = 150, isLoadingMore = false }) => {
     const mediaListStyle = {
         margin: 10,
         display: 'inline-block',
@@ -20,7 +21,15 @@ export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, top
                 dataLength={media.length}
                 next={nextPage}
                 hasMore={hasMore}
-                loader={<p role="status" aria-live="polite">Loading more media...</p>}
+                loader={
+                    isLoadingMore ? (
+                        <div className="media-list__pagination-loader" role="status" aria-live="polite">
+                            <SkeletonLoader count={3} />
+                        </div>
+                    ) : (
+                        <p role="status" aria-live="polite">Loading more media...</p>
+                    )
+                }
                 endMessage={<p role="status">No more items to load.</p>}
             >
                 <div role="list" aria-label="Media items">

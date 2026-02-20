@@ -10,6 +10,10 @@ import java.util.Set;
 public class MediaFileTransformer {
 
     public static MediaFileDto toMediaFileDto(MediaFile mediaFile, MediaView selectedView) {
+        return toMediaFileDto(mediaFile, selectedView, true);
+    }
+
+    public static MediaFileDto toMediaFileDto(MediaFile mediaFile, MediaView selectedView, boolean includeDetails) {
         MediaFileDto.MediaFileDtoBuilder builder = MediaFileDto.builder();
 
         builder.id(mediaFile.getId());
@@ -29,14 +33,16 @@ public class MediaFileTransformer {
             mediaDto.mediaType(media.getMediaType());
             mediaDto.genre(media.getGenre());
             mediaDto.title(media.getTitle());
-            mediaDto.actors(media.getActors());
-            mediaDto.plot(media.getPlot());
             mediaDto.metaRating(media.getMetaRating());
             mediaDto.imdbRating(media.getImdbRating());
             mediaDto.created(media.getCreated());
             mediaDto.updated(media.getUpdated());
             mediaDto.releaseYear(media.getReleaseYear());
             mediaDto.number(media.getNumber());
+            if (includeDetails) {
+                mediaDto.actors(media.getActors());
+                mediaDto.plot(media.getPlot());
+            }
 
             builder.media(mediaDto.build());
         }

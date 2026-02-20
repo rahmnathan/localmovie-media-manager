@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { HistoryList } from './HistoryList.jsx';
 import { RecommendationsList } from './RecommendationsList.jsx';
@@ -12,6 +12,7 @@ import {UserPreferences} from "./userPreferences.js";
 const FAVORITES_TYPE = 'FAVORITES';
 const HISTORY_TYPE = 'HISTORY';
 const RECOMMENDATIONS_TYPE = 'RECOMMENDATIONS';
+const LIST_STATE_CACHE_KEY = 'mediaListStateCache';
 
 const layoutProps = {
     textAlign: 'center'
@@ -49,6 +50,7 @@ export function MainPage() {
         genre: '',
         order: UserPreferences.getSortPreference(),
         client: 'WEBAPP',
+        includeDetails: false,
         q: '',
         page: 0,
         pageSize: 50
@@ -56,6 +58,8 @@ export function MainPage() {
     const [searchParams] = useSearchParams();
     const [error, setError] = useState(null);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const restoredFromCacheRef = useRef(false);
 
     // Parse error to provide user-friendly message
     const getErrorMessage = (error, status) => {
@@ -79,6 +83,11 @@ export function MainPage() {
 
     const fetchMedia = useCallback((append = false, stateToUse = navigationState) => {
         setError(null);
+        if (!append) {
+            setIsInitialLoad(true);
+        } else {
+            setIsLoadingMore(true);
+        }
         trackPromise(
             fetch('/localmovie/v1/media', {
                 method: 'POST',
@@ -102,11 +111,13 @@ export function MainPage() {
                 .then(data => {
                     setMedia(prev => append ? prev.concat(data) : data);
                     setIsInitialLoad(false);
+                    setIsLoadingMore(false);
                 })
                 .catch(error => {
                     console.error('Failed to fetch media:', error);
                     setError(getErrorMessage(error, error.status));
                     setIsInitialLoad(false);
+                    setIsLoadingMore(false);
                 })
         );
     }, []);
@@ -160,10 +171,32 @@ export function MainPage() {
             q: q,
             page: 0,
             pageSize: 50,
-            client: 'WEBAPP'
+            client: 'WEBAPP',
+            includeDetails: false
         };
 
         setNavigationState(newState);
+
+        const currentSearch = window.location.search.substring(1);
+        const cachedState = sessionStorage.getItem(LIST_STATE_CACHE_KEY);
+        if (cachedState && !restoredFromCacheRef.current) {
+            try {
+                const parsed = JSON.parse(cachedState);
+                if (parsed.search === currentSearch && Array.isArray(parsed.media)) {
+                    setMedia(parsed.media);
+                    setTotalCount(parsed.totalCount || 0);
+                    setNavigationPath(parsed.navigationPath || [{ name: 'Movies', parentId: null }]);
+                    setNavigationState(parsed.navigationState || newState);
+                    setIsInitialLoad(false);
+                    restoredFromCacheRef.current = true;
+                    sessionStorage.removeItem(LIST_STATE_CACHE_KEY);
+                    return;
+                }
+            } catch (e) {
+                console.warn('Unable to restore cached media list state', e);
+            }
+            sessionStorage.removeItem(LIST_STATE_CACHE_KEY);
+        }
 
         // Recommendations use a different API endpoint
         if (type.toUpperCase() === RECOMMENDATIONS_TYPE) {
@@ -189,11 +222,18 @@ export function MainPage() {
         return totalCount !== media.length;
     }, [totalCount, media.length]);
 
-    const playMedia = useCallback((media, shouldResume = false) => {
+    const playMedia = useCallback((selectedMedia, shouldResume = false) => {
         // Save scroll position before navigating
         sessionStorage.setItem('mediaListScrollPosition', window.scrollY.toString());
-        navigate("/play/" + media.mediaFileId + (shouldResume ? "?resume=true" : ""));
-    }, [navigate]);
+        sessionStorage.setItem(LIST_STATE_CACHE_KEY, JSON.stringify({
+            search: window.location.search.substring(1),
+            media,
+            totalCount,
+            navigationPath,
+            navigationState
+        }));
+        navigate("/play/" + selectedMedia.mediaFileId + (shouldResume ? "?resume=true" : ""));
+    }, [navigate, media, totalCount, navigationPath, navigationState]);
 
     const nextPage = useCallback(() => {
         setNavigationState(prev => {
@@ -391,6 +431,7 @@ export function MainPage() {
                     playMedia={playMedia}
                     nextPage={nextPage}
                     hasMore={hasMore}
+                    isLoadingMore={isLoadingMore}
                 />
             )}
             <LoadingIndicator loadedCount={media.length} totalCount={totalCount} />

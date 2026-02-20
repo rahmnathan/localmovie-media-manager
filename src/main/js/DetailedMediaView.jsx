@@ -21,10 +21,10 @@ const formatRuntime = (seconds) => {
     return `${minutes}m`;
 };
 
-export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite }) => {
+export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite, isLoadingDetails = false }) => {
     if (!mediaFile) return null;
 
-    const media = mediaFile.media;
+    const media = mediaFile.media || {};
     const title = media.title || mediaFile.fileName;
     const year = media.releaseYear || '';
     const imdbRating = media.imdbRating || 'N/A';
@@ -37,8 +37,8 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
 
     // Check if media is playable
     const path = mediaFile.path;
-    const pathDepth = path.split("/").length;
-    const isPlayable = (path.includes("Movies") && pathDepth === MOVIE_DIRECTORY_DEPTH) ||
+    const pathDepth = path?.split("/")?.length || 0;
+    const isPlayable = (path?.includes("Movies") && pathDepth === MOVIE_DIRECTORY_DEPTH) ||
                        pathDepth === SERIES_EPISODE_DEPTH;
 
     // Check if user can resume and get runtime from views
@@ -147,7 +147,9 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
 
                         <div className="detailed-media-plot-section">
                             <h3 className="detailed-media-plot-title">Overview</h3>
-                            <p className="detailed-media-plot">{plot}</p>
+                            <p className="detailed-media-plot">
+                                {isLoadingDetails ? 'Loading details...' : plot}
+                            </p>
                         </div>
 
                         {isPlayable && (
