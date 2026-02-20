@@ -63,16 +63,16 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
     return (
         <Dialog open={isOpen} onClose={onClose} className="detailed-media-dialog">
             <div className="detailed-media-backdrop" onClick={onClose} />
-            <DialogPanel className="detailed-media-panel">
-                <button
-                    className="detailed-media-close"
-                    onClick={onClose}
-                    aria-label="Close detailed view"
-                >
-                    ✕
-                </button>
+            <DialogPanel className="detailed-media-panel" onClick={onClose}>
+                <div className="detailed-media-content" onClick={(e) => e.stopPropagation()}>
+                    <button
+                        className="detailed-media-close"
+                        onClick={onClose}
+                        aria-label="Close detailed view"
+                    >
+                        ✕
+                    </button>
 
-                <div className="detailed-media-content">
                     <div className="detailed-media-poster-container">
                         <img
                             src={buildPosterUri(mediaFile.mediaFileId)}
