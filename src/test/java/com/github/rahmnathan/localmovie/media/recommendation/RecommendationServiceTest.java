@@ -78,7 +78,8 @@ class RecommendationServiceTest {
         MediaFile c2 = mediaFile("c2", "Top Gun: Maverick", "Action, Drama", "8.3");
         MediaFile c3 = mediaFile("c3", "The Matrix", "Action, Sci-Fi", "8.7");
         MediaFile c4 = mediaFile("c4", "Blade Runner 2049", "Sci-Fi, Thriller", "8.0");
-        when(fileRepository.findRandomCandidatesForRecommendation(anySet(), any()))
+        when(fileRepository.countCandidatesForRecommendation(anySet())).thenReturn(4L);
+        when(fileRepository.findCandidatesForRecommendationPage(anySet(), any()))
                 .thenReturn(List.of(c1, c2, c3, c4));
 
         when(ollamaClient.generate(anyString())).thenReturn("""
@@ -117,7 +118,8 @@ class RecommendationServiceTest {
         MediaFile c3 = mediaFile("x3", "Heat", "Action, Crime", "8.3");
         MediaFile c4 = mediaFile("x4", "Interstellar", "Sci-Fi, Drama", "8.6");
         MediaFile c5 = mediaFile("x5", "Die Hard", "Action, Thriller", "8.2");
-        when(fileRepository.findRandomCandidatesForRecommendation(anySet(), any()))
+        when(fileRepository.countCandidatesForRecommendation(anySet())).thenReturn(5L);
+        when(fileRepository.findCandidatesForRecommendationPage(anySet(), any()))
                 .thenReturn(List.of(c1, c2, c3, c4, c5));
 
         when(ollamaClient.generate(anyString())).thenReturn("totally malformed response without ids");
@@ -139,7 +141,8 @@ class RecommendationServiceTest {
                 .mediaFileType(MediaFileType.MOVIE)
                 .media(null)
                 .build();
-        when(fileRepository.findRandomCandidatesForRecommendation(anySet(), any()))
+        when(fileRepository.countCandidatesForRecommendation(anySet())).thenReturn(1L);
+        when(fileRepository.findCandidatesForRecommendationPage(anySet(), any()))
                 .thenReturn(List.of(invalidCandidate));
 
         when(ollamaClient.generate(anyString())).thenReturn("not parseable");
