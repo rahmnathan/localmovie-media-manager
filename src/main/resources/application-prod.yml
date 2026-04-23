@@ -40,6 +40,8 @@ service:
     - "/opt/localmovie/4/LocalMedia"
     - "/opt/localmovie/5/LocalMedia"
   notificationsEnabled: false
+  conversion-service:
+    enabled: true
   # Secrets (stream.hmac.key, omdb.apiKey, opensubtitles.*) are provided via configmap from SOPS-encrypted secrets.yaml
   omdb:
     enabled: true

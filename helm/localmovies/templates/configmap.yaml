@@ -8,6 +8,8 @@ data:
       stream:
         hmac:
           key: {{ .Values.service.stream.hmac.key | quote }}
+      conversion-service:
+        enabled: true
       omdb:
         enabled: true
         apiKey: {{ .Values.service.omdb.apiKey | quote }}
