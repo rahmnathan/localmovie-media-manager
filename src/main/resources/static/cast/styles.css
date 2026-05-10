@@ -41,5 +41,5 @@ cast-media-player {
 }
 
 body.is-playing .status-badge {
-    opacity: 0.35;
+    display: none;
 }
