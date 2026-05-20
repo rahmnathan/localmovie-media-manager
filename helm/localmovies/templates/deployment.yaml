@@ -45,8 +45,8 @@ spec:
               mountPath: /workspace/secrets
               readOnly: true
               # media(number) is a required convention for video conversion
-            - name: media1
-              mountPath: /opt/localmovie/1/LocalMedia
+{{/*            - name: media1*/}}
+{{/*              mountPath: /opt/localmovie/1/LocalMedia*/}}
             - name: media2
               mountPath: /opt/localmovie/2/LocalMedia
             - name: media3
@@ -77,10 +77,10 @@ spec:
             failureThreshold: 100
             periodSeconds: 5
       volumes:
-        - name: media1
-          nfs:
-            server: 10.0.0.195
-            path: /LocalMedia1
+{{/*        - name: media1*/}}
+{{/*          nfs:*/}}
+{{/*            server: 10.0.0.195*/}}
+{{/*            path: /LocalMedia1*/}}
         - name: media2
           nfs:
             server: 10.0.0.195

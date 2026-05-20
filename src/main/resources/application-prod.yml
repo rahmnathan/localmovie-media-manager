@@ -34,7 +34,7 @@ service:
     enabled: true
     ffprobeLocation: "/usr/bin/ffprobe"
   mediaPaths:
-    - "/opt/localmovie/1/LocalMedia"
+#    - "/opt/localmovie/1/LocalMedia"
     - "/opt/localmovie/2/LocalMedia"
     - "/opt/localmovie/3/LocalMedia"
     - "/opt/localmovie/4/LocalMedia"
