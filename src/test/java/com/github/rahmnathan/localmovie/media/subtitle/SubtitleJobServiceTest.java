@@ -156,6 +156,46 @@ class SubtitleJobServiceTest {
     }
 
     @Test
+    void processSubtitleJobs_whenForced_doesNotSkipExistingSubtitle() throws DownloadQuotaExceededException {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+        when(subtitleProvider.hasDownloadsRemaining()).thenReturn(true);
+        when(subtitleJobRepository.countAllByStatus(SubtitleJobStatus.QUEUED)).thenReturn(1);
+        when(subtitleSyncService.isSyncEnabled()).thenReturn(false);
+
+        MediaFile mediaFile = mock(MediaFile.class);
+        when(mediaFile.getId()).thenReturn(1L);
+        when(mediaFile.getMediaFileId()).thenReturn("test-media-123");
+        when(subtitleRepository.existsByMediaFileIdAndLanguageCode(1L, "en")).thenReturn(true);
+
+        SubtitleJob job = SubtitleJob.builder()
+                .mediaFile(mediaFile)
+                .imdbId("tt1234567")
+                .status(SubtitleJobStatus.QUEUED)
+                .retryCount(0)
+                .forceRefresh(true)
+                .build();
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+                .thenReturn(List.of(job));
+
+        SubtitleResult subtitleResult = SubtitleResult.builder()
+                .content("WEBVTT")
+                .languageCode("en")
+                .format("vtt")
+                .opensubtitlesId("sub123")
+                .build();
+        when(subtitleProvider.fetchSubtitle("tt1234567")).thenReturn(Optional.of(subtitleResult));
+
+        subtitleJobService.processSubtitleJobs();
+
+        verify(subtitleProvider).fetchSubtitle("tt1234567");
+        verify(subtitleRepository).save(any());
+        verify(subtitleJobRepository, atLeast(2)).save(jobCaptor.capture());
+        SubtitleJob finalJob = jobCaptor.getAllValues().get(jobCaptor.getAllValues().size() - 1);
+        assertEquals(SubtitleJobStatus.SUCCEEDED, finalJob.getStatus());
+        assertEquals(SubtitleSyncStatus.SKIPPED, finalJob.getSyncStatus());
+    }
+
+    @Test
     void processSubtitleJobs_launchesAsyncSync_whenEnabled() throws DownloadQuotaExceededException {
         when(openSubtitlesConfig.isEnabled()).thenReturn(true);
         when(subtitleProvider.hasDownloadsRemaining()).thenReturn(true);
@@ -510,6 +550,7 @@ class SubtitleJobServiceTest {
         assertEquals(mediaFile, saved.getMediaFile());
         assertEquals("tt1234567", saved.getImdbId());
         assertEquals(SubtitleJobStatus.QUEUED, saved.getStatus());
+        assertTrue(saved.getForceRefresh());
     }
 
     @Test
@@ -532,6 +573,7 @@ class SubtitleJobServiceTest {
         assertEquals("tt1234567", saved.getImdbId());
         assertEquals(SubtitleJobStatus.QUEUED, saved.getStatus());
         assertEquals(0, saved.getRetryCount());
+        assertFalse(saved.getForceRefresh());
     }
 
     @Test

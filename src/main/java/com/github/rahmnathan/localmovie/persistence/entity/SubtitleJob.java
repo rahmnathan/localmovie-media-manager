@@ -58,6 +58,9 @@ public class SubtitleJob {
     @Column(name = "opensubtitles_id", length = 50)
     private String opensubtitlesId;
 
+    @Column(name = "force_refresh", nullable = false)
+    private Boolean forceRefresh;
+
     private LocalDateTime created;
     private LocalDateTime updated;
 
@@ -73,6 +76,9 @@ public class SubtitleJob {
         }
         if (status == null) {
             status = SubtitleJobStatus.QUEUED;
+        }
+        if (forceRefresh == null) {
+            forceRefresh = false;
         }
     }
 

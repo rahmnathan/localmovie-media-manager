@@ -232,7 +232,9 @@ public class SubtitleJobService {
 
         try {
             String defaultLanguage = "en";
-            if (mediaFileId != null && subtitleRepository.existsByMediaFileIdAndLanguageCode(mediaFileId, defaultLanguage)) {
+            if (!Boolean.TRUE.equals(job.getForceRefresh())
+                    && mediaFileId != null
+                    && subtitleRepository.existsByMediaFileIdAndLanguageCode(mediaFileId, defaultLanguage)) {
                 log.info("Subtitle already exists for MediaFile: {}, marking job as succeeded", mediaFileIdStr);
                 job.setStatus(SubtitleJobStatus.SUCCEEDED);
                 job.setErrorMessage(null);
@@ -390,6 +392,7 @@ public class SubtitleJobService {
                 .imdbId(imdbId)
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(0)
+                .forceRefresh(force)
                 .build();
 
         subtitleJobRepository.save(job);

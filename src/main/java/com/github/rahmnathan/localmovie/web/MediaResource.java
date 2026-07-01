@@ -7,7 +7,6 @@ import com.github.rahmnathan.localmovie.data.SignedUrls;
 import com.github.rahmnathan.localmovie.data.transformer.MediaFileTransformer;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import com.github.rahmnathan.localmovie.media.recommendation.RecommendationService;
-import com.github.rahmnathan.localmovie.media.subtitle.SubtitleJobService;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 
 import java.util.List;
@@ -23,7 +22,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +40,6 @@ public class MediaResource {
     private final MediaSubtitleRepository subtitleRepository;
     private final MediaViewService mediaViewService;
     private final RecommendationService recommendationService;
-    private final SubtitleJobService subtitleJobService;
 
     @PostMapping(produces= MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public List<MediaFileDto> getMedia(@RequestBody @Valid MediaRequest mediaRequest, HttpServletResponse response) {
@@ -111,32 +108,6 @@ public class MediaResource {
                 .header("Cache-Control", "public, max-age=86400") // Cache for 24 hours
                 .header("Content-Type", "image/jpeg")
                 .body(image);
-    }
-
-    @PostMapping(path = "/{mediaFileId}/subtitles/sync")
-    public ResponseEntity<Void> syncSubtitles(@PathVariable("mediaFileId") String mediaFileId) {
-        log.info("Manually queueing subtitle sync - {}", mediaFileId);
-
-        Optional<MediaFile> mediaFile = persistenceService.findByMediaFileId(mediaFileId);
-        if (mediaFile.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        if (!Boolean.TRUE.equals(mediaFile.get().getStreamable()) || mediaFile.get().getMedia() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        String imdbId = mediaFile.get().getMedia().getImdbId();
-        if (imdbId == null || imdbId.isBlank()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        boolean queued = subtitleJobService.queueSubtitleFetch(mediaFile.get(), imdbId, true);
-        if (!queued) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-
-        return ResponseEntity.accepted().build();
     }
 
     @PostMapping(path = "/{mediaFileId}/favorite")
