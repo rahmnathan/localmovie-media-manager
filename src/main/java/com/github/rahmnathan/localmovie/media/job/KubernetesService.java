@@ -33,7 +33,6 @@ public class KubernetesService {
     private static final String JOB_NAME = "job-name";
     private static final String JOB_ID_LABEL = "jobId";
 
-    private static final Pattern HANDBRAKE_ETA_PATTERN = Pattern.compile("(\\d{2})h(\\d{2})m(?:(\\d{2})s)?");
     private static final Pattern FFMPEG_DURATION_PATTERN = Pattern.compile("Duration:\\s*(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?)");
     private static final Pattern FFMPEG_PROGRESS_TIME_PATTERN = Pattern.compile("(?m)^out_time=(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?)");
     private static final Pattern FFMPEG_STATS_TIME_PATTERN = Pattern.compile("time=(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?)");
@@ -122,11 +121,6 @@ public class KubernetesService {
     }
 
     Optional<Duration> parseETA(String podLog, Long durationSeconds) {
-        Optional<Duration> handbrakeEta = parseHandbrakeETA(podLog);
-        if (handbrakeEta.isPresent()) {
-            return handbrakeEta;
-        }
-
         Optional<Duration> totalDuration = Optional.ofNullable(durationSeconds)
                 .filter(value -> value > 0)
                 .map(Duration::ofSeconds)
@@ -148,23 +142,6 @@ public class KubernetesService {
         }
 
         return Optional.of(Duration.ofSeconds(Math.round(remainingMediaSeconds / speed.get())));
-    }
-
-    private Optional<Duration> parseHandbrakeETA(String podLog) {
-        // Example pod log: "ETA 01h25m15s)"
-        Matcher etaMatcher = HANDBRAKE_ETA_PATTERN.matcher(podLog);
-        if (etaMatcher.find()) {
-            String eta = etaMatcher.group();
-            log.debug("Found Handbrake ETA in logs ({}). Recording metric.", eta);
-
-            long hours = Long.parseLong(etaMatcher.group(1));
-            long minutes = Long.parseLong(etaMatcher.group(2));
-            long seconds = etaMatcher.group(3) == null ? 0 : Long.parseLong(etaMatcher.group(3));
-
-            return Optional.of(Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds));
-        }
-
-        return Optional.empty();
     }
 
     private Optional<Duration> parseFfmpegEncodedDuration(String podLog) {

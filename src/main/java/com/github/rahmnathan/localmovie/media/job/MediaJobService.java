@@ -1,7 +1,6 @@
 package com.github.rahmnathan.localmovie.media.job;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
-import com.github.rahmnathan.localmovie.data.EncoderType;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
@@ -14,7 +13,6 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,31 +42,20 @@ public class MediaJobService {
     private final MediaEventService mediaEventService;
     private final MeterRegistry meterRegistry;
     private final ServiceConfig serviceConfig;
-    private final VideoConverter videoConverter;
+    private final FfmpegVideoConverter videoConverter;
 
     public MediaJobService(MediaJobRepository mediaJobRepository,
                            KubernetesService kubernetesService,
                            MediaEventService mediaEventService,
                            MeterRegistry meterRegistry,
                            ServiceConfig serviceConfig,
-                           @Qualifier("handbrakeVideoConverter") VideoConverter handbrakeConverter,
-                           @Qualifier("ffmpegVideoConverter") VideoConverter ffmpegConverter) {
+                           FfmpegVideoConverter videoConverter) {
         this.mediaJobRepository = mediaJobRepository;
         this.kubernetesService = kubernetesService;
         this.mediaEventService = mediaEventService;
         this.meterRegistry = meterRegistry;
         this.serviceConfig = serviceConfig;
-
-        // Select video converter based on configuration (default to HANDBRAKE for backwards compatibility)
-        String encoderConfig = Optional.ofNullable(serviceConfig.getConversionService())
-                .map(ServiceConfig.ConversionServiceConfig::getEncoder)
-                .orElse("HANDBRAKE");
-        EncoderType encoderType = EncoderType.valueOf(encoderConfig.toUpperCase());
-        this.videoConverter = switch (encoderType) {
-            case FFMPEG -> ffmpegConverter;
-            case HANDBRAKE -> handbrakeConverter;
-        };
-        log.info("Using {} video converter", encoderType);
+        this.videoConverter = videoConverter;
     }
 
     @EventListener(ApplicationReadyEvent.class)

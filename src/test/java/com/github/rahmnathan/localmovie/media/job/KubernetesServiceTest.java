@@ -14,13 +14,6 @@ class KubernetesServiceTest {
     private final KubernetesService kubernetesService = new KubernetesService(mock(KubernetesClient.class));
 
     @Test
-    void parsesHandbrakeEta() {
-        Optional<Duration> eta = kubernetesService.parseETA("Encoding: task 1 of 1, 42.00 % (ETA 01h25m15s)", null);
-
-        assertThat(eta).contains(Duration.ofHours(1).plusMinutes(25).plusSeconds(15));
-    }
-
-    @Test
     void parsesFfmpegProgressEta() {
         String podLog = """
                 frame=100

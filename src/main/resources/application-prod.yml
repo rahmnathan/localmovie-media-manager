@@ -41,7 +41,6 @@ service:
   notificationsEnabled: false
   conversion-service:
     enabled: true
-    encoder: FFMPEG
   # Secrets (stream.hmac.key, omdb.apiKey, opensubtitles.*) are provided via configmap from SOPS-encrypted secrets.yaml
   omdb:
     enabled: true

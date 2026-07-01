@@ -34,7 +34,6 @@ service:
     updateLimit: 201
   conversion-service:
     enabled: false
-    encoder: HANDBRAKE
 spring:
   jpa:
     hibernate:

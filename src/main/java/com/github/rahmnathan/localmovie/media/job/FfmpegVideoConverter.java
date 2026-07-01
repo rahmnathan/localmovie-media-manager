@@ -25,15 +25,14 @@ import java.util.*;
  * - Container: MP4 with faststart for streaming
  */
 @Slf4j
-@Component("ffmpegVideoConverter")
+@Component
 @RequiredArgsConstructor
-public class FfmpegVideoConverter implements VideoConverter {
+public class FfmpegVideoConverter {
 
     private static final String JOB_ID_LABEL = "jobId";
 
     private final KubernetesClient kubernetesClient;
 
-    @Override
     public void launchVideoConverter(File inputFile, File outputFile) throws IOException {
         String namespace = getNamespace();
 

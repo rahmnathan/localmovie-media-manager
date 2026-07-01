@@ -29,7 +29,6 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     public static final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
     private static final Set<String> PRODUCED_OUTPUT_STATUSES = Set.of(MediaJobStatus.SUCCEEDED.name());
-    private static final String HANDBRAKE_PRESET = "Chromecast 1080p60 Surround";
 
     private final MediaJobRepository mediaJobRepository;
     private final MediaEventService eventService;
@@ -96,7 +95,6 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                 .inputFile(path.getAbsolutePath())
                 .outputFile(path.getDestinationPath())
                 .jobId(jobId)
-                .handbrakePreset(HANDBRAKE_PRESET)
                 .status(MediaJobStatus.QUEUED.name())
                 .build();
 

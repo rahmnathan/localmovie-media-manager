@@ -34,11 +34,8 @@ class MediaJobServiceTest extends BaseIntegrationTest {
     @MockitoBean
     MediaEventService mediaEventService;
 
-    @MockitoBean(name = "handbrakeVideoConverter")
-    VideoConverter handbrakeVideoConverter;
-
-    @MockitoBean(name = "ffmpegVideoConverter")
-    VideoConverter ffmpegVideoConverter;
+    @MockitoBean
+    FfmpegVideoConverter ffmpegVideoConverter;
 
     private final MediaJobService mediaJobService;
     private final MediaJobRepository jobRepository;
@@ -61,7 +58,6 @@ class MediaJobServiceTest extends BaseIntegrationTest {
                 .inputFile("input-path")
                 .outputFile("output-path")
                 .jobId("job-id")
-                .handbrakePreset("preset")
                 .status(MediaJobStatus.QUEUED.name())
                 .build();
 
@@ -70,7 +66,7 @@ class MediaJobServiceTest extends BaseIntegrationTest {
         mediaJobService.scanQueuedJobs();
 
         ArgumentCaptor<File> outputCaptor = ArgumentCaptor.forClass(File.class);
-        verify(handbrakeVideoConverter).launchVideoConverter(any(), outputCaptor.capture());
+        verify(ffmpegVideoConverter).launchVideoConverter(any(), outputCaptor.capture());
         assertEquals("output-path.partial~", outputCaptor.getValue().getPath());
     }
 
@@ -82,12 +78,11 @@ class MediaJobServiceTest extends BaseIntegrationTest {
                 .inputFile("input-path")
                 .outputFile(finalOutputFile.toString())
                 .jobId("failed-launch-job")
-                .handbrakePreset("preset")
-                .status(MediaJobStatus.QUEUED.name())
+                                .status(MediaJobStatus.QUEUED.name())
                 .build();
         jobRepository.save(mediaJob);
         doThrow(new IOException("Could not find localmovies pod"))
-                .when(handbrakeVideoConverter).launchVideoConverter(any(), any());
+                .when(ffmpegVideoConverter).launchVideoConverter(any(), any());
 
         mediaJobService.scanQueuedJobs();
 
@@ -111,8 +106,7 @@ class MediaJobServiceTest extends BaseIntegrationTest {
                 .inputFile(inputFile.toString())
                 .outputFile(finalOutputFile.toString())
                 .jobId("job-id")
-                .handbrakePreset("preset")
-                .status(MediaJobStatus.RUNNING.name())
+                                .status(MediaJobStatus.RUNNING.name())
                 .build();
 
         jobRepository.save(mediaJob);
@@ -132,8 +126,7 @@ class MediaJobServiceTest extends BaseIntegrationTest {
                 .inputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
                 .outputFile("/tmp/LocalMedia/localmovies-test-input-file.txt")
                 .jobId("job-id2")
-                .handbrakePreset("preset")
-                .status(MediaJobStatus.RUNNING.name())
+                                .status(MediaJobStatus.RUNNING.name())
                 .build();
 
         jobRepository.save(mediaJob);

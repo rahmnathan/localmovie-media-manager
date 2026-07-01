@@ -37,7 +37,6 @@ service:
     updateLimit: 201
   conversion-service:
     enabled: false
-    encoder: HANDBRAKE  # HANDBRAKE or FFMPEG
 
 spring:
 #  output:

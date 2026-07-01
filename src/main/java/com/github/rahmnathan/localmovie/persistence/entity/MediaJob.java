@@ -20,7 +20,6 @@ public class MediaJob {
     @SequenceGenerator(name="media_file_sequence_generator", sequenceName="MEDIA_FILE_SEQUENCE")
     private Long id;
 
-    private String handbrakePreset;
     private String outputFile;
     private String inputFile;
     private String status;
