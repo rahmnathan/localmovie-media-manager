@@ -57,7 +57,7 @@ public class ServiceConfig {
         private boolean enabled;
         private boolean syncEnabled;
         @NotBlank
-        private String syncImage = "smacke/ffsubsync:latest";
+        private String syncImage = "ghcr.io/smacke/ffsubsync:latest";
         @Min(1)
         private int syncTimeoutSeconds = 300;
         @Min(1)

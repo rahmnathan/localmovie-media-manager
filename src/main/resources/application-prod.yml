@@ -48,7 +48,7 @@ service:
   opensubtitles:
     enabled: true
     syncEnabled: true
-    syncImage: smacke/ffsubsync:latest
+    syncImage: ghcr.io/smacke/ffsubsync:latest
     syncTimeoutSeconds: 1200
     syncMaxOffsetSeconds: 120
     staleRunningJobTimeoutMinutes: 60
