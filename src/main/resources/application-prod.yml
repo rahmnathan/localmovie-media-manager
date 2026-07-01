@@ -49,9 +49,9 @@ service:
     enabled: true
     syncEnabled: true
     syncImage: ghcr.io/smacke/ffsubsync:latest
-    syncTimeoutSeconds: 1200
-    syncMaxOffsetSeconds: 120
-    staleRunningJobTimeoutMinutes: 60
+    syncTimeoutSeconds: 300
+    syncMaxOffsetSeconds: 180
+    staleRunningJobTimeoutMinutes: 20
   ollama:
     enabled: true
     base-url: http://open-webui-ollama.open-webui.svc.cluster.local:11434
