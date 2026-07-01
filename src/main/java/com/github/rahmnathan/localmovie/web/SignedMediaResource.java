@@ -52,11 +52,12 @@ public class SignedMediaResource {
 
     @GetMapping(path = "/{mediaFileId}/poster")
     public ResponseEntity<byte[]> getPoster(@PathVariable String mediaFileId,
-                                            @RequestParam(value = "expires", defaultValue = "0") long expires,
-                                            @RequestParam(value = "sig") String signature) {
+                                            @RequestParam(value = "expires", required = false) Long expires,
+                                            @RequestParam(value = "sig", required = false) String signature) {
         log.info("Streaming poster - {}", mediaFileId);
 
-        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
+        if ((expires != null || signature != null)
+                && (expires == null || signature == null || !securityService.authorizedRequest(mediaFileId, expires, signature))) {
             log.warn("Unauthorized poster request for id.");
             return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
         }
