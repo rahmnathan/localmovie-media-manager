@@ -12,7 +12,6 @@ service:
   directoryMonitor:
     enabled: true
     concurrentConversionLimit: 3
-    ffprobeLocation: "/usr/bin/ffprobe"
   mediaPaths: "/media/nathan/LocalMedia/"
   notificationsEnabled: false
   stream:
