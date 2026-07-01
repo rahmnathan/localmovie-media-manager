@@ -491,6 +491,28 @@ class SubtitleJobServiceTest {
     }
 
     @Test
+    void queueSubtitleFetch_whenForced_queuesEvenIfSubtitleExists() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+
+        MediaFile mediaFile = mock(MediaFile.class);
+        when(mediaFile.getId()).thenReturn(1L);
+        when(mediaFile.getMediaFileId()).thenReturn("media-123");
+        when(subtitleJobRepository.existsByMediaFileIdAndStatusIn(eq(1L), any()))
+                .thenReturn(false);
+        when(subtitleRepository.existsByMediaFileIdAndLanguageCode(1L, "en"))
+                .thenReturn(true);
+
+        boolean queued = subtitleJobService.queueSubtitleFetch(mediaFile, "tt1234567", true);
+
+        assertTrue(queued);
+        verify(subtitleJobRepository).save(jobCaptor.capture());
+        SubtitleJob saved = jobCaptor.getValue();
+        assertEquals(mediaFile, saved.getMediaFile());
+        assertEquals("tt1234567", saved.getImdbId());
+        assertEquals(SubtitleJobStatus.QUEUED, saved.getStatus());
+    }
+
+    @Test
     void queueSubtitleFetch_createsJob() {
         when(openSubtitlesConfig.isEnabled()).thenReturn(true);
 

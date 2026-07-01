@@ -26,7 +26,7 @@ service:
     enabled: false
     syncEnabled: false
     syncImage: "smacke/ffsubsync:latest"
-    syncTimeoutSeconds: 300
+    syncTimeoutSeconds: 1200
     syncMaxOffsetSeconds: 120
     staleRunningJobTimeoutMinutes: 60
   repository:

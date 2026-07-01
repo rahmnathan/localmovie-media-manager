@@ -359,8 +359,12 @@ public class SubtitleJobService {
     }
 
     public void queueSubtitleFetch(MediaFile mediaFile, String imdbId) {
+        queueSubtitleFetch(mediaFile, imdbId, false);
+    }
+
+    public boolean queueSubtitleFetch(MediaFile mediaFile, String imdbId, boolean force) {
         if (!serviceConfig.getOpensubtitles().isEnabled()) {
-            return;
+            return false;
         }
 
         // Check if job already exists or subtitle already fetched
@@ -370,15 +374,15 @@ public class SubtitleJobService {
 
         if (jobExists) {
             log.debug("Subtitle job already queued for MediaFile: {}", mediaFile.getMediaFileId());
-            return;
+            return false;
         }
 
         boolean hasSubtitle = subtitleRepository.existsByMediaFileIdAndLanguageCode(
                 mediaFile.getId(), "en");
 
-        if (hasSubtitle) {
+        if (hasSubtitle && !force) {
             log.debug("Subtitle already exists for MediaFile: {}", mediaFile.getMediaFileId());
-            return;
+            return false;
         }
 
         SubtitleJob job = SubtitleJob.builder()
@@ -391,6 +395,7 @@ public class SubtitleJobService {
         subtitleJobRepository.save(job);
         log.info("Queued subtitle fetch for MediaFile: {} with IMDB ID: {}",
                 mediaFile.getMediaFileId(), imdbId);
+        return true;
     }
 
     /**

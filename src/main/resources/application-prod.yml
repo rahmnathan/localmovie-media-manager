@@ -49,7 +49,7 @@ service:
     enabled: true
     syncEnabled: true
     syncImage: smacke/ffsubsync:latest
-    syncTimeoutSeconds: 300
+    syncTimeoutSeconds: 1200
     syncMaxOffsetSeconds: 120
     staleRunningJobTimeoutMinutes: 60
   ollama:
