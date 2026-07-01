@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -138,6 +140,14 @@ public class MediaJobService {
             if (jobStatus.get() == MediaJobStatus.SUCCEEDED) {
                 log.info("Found completed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
+                File stagingOutputFile = getStagingOutputFile(mediaJob);
+                if (!stagingOutputFile.exists()) {
+                    log.warn("Conversion succeeded but staging output file does not exist: {}", stagingOutputFile);
+                    mediaJob.setStatus(MediaJobStatus.FAILED.name());
+                    continue;
+                }
+
+                Files.move(stagingOutputFile.toPath(), Path.of(mediaJob.getOutputFile()), StandardCopyOption.REPLACE_EXISTING);
                 File inputFile = new File(mediaJob.getInputFile());
                 if(inputFile.exists()) {
                     Files.delete(inputFile.toPath());
@@ -150,9 +160,9 @@ public class MediaJobService {
             } else if (jobStatus.get() == MediaJobStatus.FAILED) {
                 log.warn("Found failed job for input file: {}", mediaJob.getInputFile());
                 kubernetesService.deleteJob(mediaJob.getJobId());
-                File outputFile = new File(mediaJob.getOutputFile());
-                if(outputFile.exists()) {
-                    Files.delete(outputFile.toPath());
+                File stagingOutputFile = getStagingOutputFile(mediaJob);
+                if(stagingOutputFile.exists()) {
+                    Files.delete(stagingOutputFile.toPath());
                 }
             }
         }
@@ -187,12 +197,16 @@ public class MediaJobService {
         log.info("Launching video conversion for jobId: {}", mediaJob.getJobId());
 
         File inputFile = new File(mediaJob.getInputFile());
-        File outputFile = new File(mediaJob.getOutputFile());
+        File outputFile = getStagingOutputFile(mediaJob);
 
         if (Files.exists(outputFile.toPath())) {
             Files.delete(outputFile.toPath());
         }
 
         videoConverter.launchVideoConverter(inputFile, outputFile);
+    }
+
+    private File getStagingOutputFile(MediaJob mediaJob) {
+        return new File(mediaJob.getOutputFile() + ".partial~");
     }
 }

@@ -2,7 +2,9 @@ package com.github.rahmnathan.localmovie.media.subtitle;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.SubtitleJobStatus;
+import com.github.rahmnathan.localmovie.data.SubtitleSyncStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.entity.MediaSubtitle;
 import com.github.rahmnathan.localmovie.persistence.entity.SubtitleJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaSubtitleRepository;
 import com.github.rahmnathan.localmovie.persistence.repository.SubtitleJobRepository;
@@ -38,6 +40,8 @@ class SubtitleJobServiceTest {
     @Mock
     private SubtitleProvider subtitleProvider;
     @Mock
+    private SubtitleSyncService subtitleSyncService;
+    @Mock
     private MeterRegistry meterRegistry;
     @Mock
     private ServiceConfig serviceConfig;
@@ -59,9 +63,15 @@ class SubtitleJobServiceTest {
                 subtitleJobRepository,
                 subtitleRepository,
                 subtitleProvider,
+                subtitleSyncService,
                 meterRegistry,
                 serviceConfig
         );
+        when(openSubtitlesConfig.getStaleRunningJobTimeoutMinutes()).thenReturn(60);
+        when(subtitleJobRepository.findAllByStatusAndUpdatedBefore(eq(SubtitleJobStatus.RUNNING), any()))
+                .thenReturn(List.of());
+        // Default: sync disabled
+        when(subtitleSyncService.isSyncEnabled()).thenReturn(false);
     }
 
     @Test
@@ -81,17 +91,38 @@ class SubtitleJobServiceTest {
 
         subtitleJobService.processSubtitleJobs();
 
-        verify(subtitleJobRepository, never()).findAllByStatusOrderByCreatedAsc(any());
+        verify(subtitleJobRepository, never()).findTop5ByStatusOrderByCreatedAsc(any());
     }
 
     @Test
-    void processSubtitleJobs_processesQueuedJobs() throws DownloadQuotaExceededException {
+    void processSubtitleJobs_requeuesStaleRunningJobs() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+        when(subtitleProvider.hasDownloadsRemaining()).thenReturn(false);
+
+        SubtitleJob staleJob = SubtitleJob.builder()
+                .status(SubtitleJobStatus.RUNNING)
+                .retryCount(0)
+                .build();
+        when(subtitleJobRepository.findAllByStatusAndUpdatedBefore(eq(SubtitleJobStatus.RUNNING), any()))
+                .thenReturn(List.of(staleJob));
+
+        subtitleJobService.processSubtitleJobs();
+
+        assertEquals(SubtitleJobStatus.QUEUED, staleJob.getStatus());
+        assertEquals("Re-queued after stale RUNNING state", staleJob.getErrorMessage());
+        verify(subtitleJobRepository).saveAll(List.of(staleJob));
+    }
+
+    @Test
+    void processSubtitleJobs_processesQueuedJobs_syncDisabled() throws DownloadQuotaExceededException {
         when(openSubtitlesConfig.isEnabled()).thenReturn(true);
         when(subtitleProvider.hasDownloadsRemaining()).thenReturn(true);
         when(subtitleJobRepository.countAllByStatus(SubtitleJobStatus.QUEUED)).thenReturn(1);
+        when(subtitleSyncService.isSyncEnabled()).thenReturn(false);
 
         MediaFile mediaFile = mock(MediaFile.class);
         when(mediaFile.getMediaFileId()).thenReturn("test-media-123");
+        when(mediaFile.getAbsolutePath()).thenReturn("/media/LocalMedia/Movies/test.mkv");
 
         SubtitleJob job = SubtitleJob.builder()
                 .mediaFile(mediaFile)
@@ -99,7 +130,7 @@ class SubtitleJobServiceTest {
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(0)
                 .build();
-        when(subtitleJobRepository.findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
                 .thenReturn(List.of(job));
 
         SubtitleResult subtitleResult = SubtitleResult.builder()
@@ -115,10 +146,165 @@ class SubtitleJobServiceTest {
         verify(subtitleRepository).save(any());
         verify(subtitleJobRepository, atLeast(2)).save(jobCaptor.capture());
 
-        // Verify the job ends up in SUCCEEDED status
+        // Verify the job ends up in SUCCEEDED status with sync skipped
         List<SubtitleJob> savedJobs = jobCaptor.getAllValues();
         SubtitleJob finalJob = savedJobs.get(savedJobs.size() - 1);
         assertEquals(SubtitleJobStatus.SUCCEEDED, finalJob.getStatus());
+        assertEquals(SubtitleSyncStatus.SKIPPED, finalJob.getSyncStatus());
+    }
+
+    @Test
+    void processSubtitleJobs_launchesAsyncSync_whenEnabled() throws DownloadQuotaExceededException {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+        when(subtitleProvider.hasDownloadsRemaining()).thenReturn(true);
+        when(subtitleJobRepository.countAllByStatus(SubtitleJobStatus.QUEUED)).thenReturn(1);
+        when(subtitleSyncService.isSyncEnabled()).thenReturn(true);
+
+        MediaFile mediaFile = mock(MediaFile.class);
+        when(mediaFile.getMediaFileId()).thenReturn("test-media-123");
+        when(mediaFile.getAbsolutePath()).thenReturn("/media/LocalMedia/Movies/test.mkv");
+
+        SubtitleJob job = SubtitleJob.builder()
+                .mediaFile(mediaFile)
+                .imdbId("tt1234567")
+                .status(SubtitleJobStatus.QUEUED)
+                .retryCount(0)
+                .build();
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+                .thenReturn(List.of(job));
+
+        SubtitleResult subtitleResult = SubtitleResult.builder()
+                .content("WEBVTT")
+                .languageCode("en")
+                .format("vtt")
+                .opensubtitlesId("sub123")
+                .build();
+        when(subtitleProvider.fetchSubtitle("tt1234567")).thenReturn(Optional.of(subtitleResult));
+        when(subtitleSyncService.launchSyncJob("/media/LocalMedia/Movies/test.mkv", "WEBVTT"))
+                .thenReturn(Optional.of(new SubtitleSyncService.SyncJobInfo("sync-job-123", "/tmp/sync")));
+
+        subtitleJobService.processSubtitleJobs();
+
+        // Should NOT save subtitle yet - waiting for sync
+        verify(subtitleRepository, never()).save(any());
+        verify(subtitleJobRepository, atLeast(2)).save(jobCaptor.capture());
+
+        // Verify the job is in RUNNING status with sync running
+        List<SubtitleJob> savedJobs = jobCaptor.getAllValues();
+        SubtitleJob finalJob = savedJobs.get(savedJobs.size() - 1);
+        assertEquals(SubtitleJobStatus.RUNNING, finalJob.getStatus());
+        assertEquals(SubtitleSyncStatus.RUNNING, finalJob.getSyncStatus());
+        assertEquals("sync-job-123", finalJob.getSyncJobName());
+        assertEquals("/tmp/sync", finalJob.getSyncTempDir());
+        assertEquals("WEBVTT", finalJob.getUnsyncedContent());
+    }
+
+    @Test
+    void processSyncJobs_completesSuccessfulSync() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+
+        MediaFile mediaFile = mock(MediaFile.class);
+        when(mediaFile.getMediaFileId()).thenReturn("test-media-123");
+
+        SubtitleJob job = SubtitleJob.builder()
+                .mediaFile(mediaFile)
+                .imdbId("tt1234567")
+                .status(SubtitleJobStatus.RUNNING)
+                .syncStatus(SubtitleSyncStatus.RUNNING)
+                .syncJobName("sync-job-123")
+                .syncTempDir("/tmp/sync")
+                .unsyncedContent("original WEBVTT")
+                .retryCount(0)
+                .build();
+        when(subtitleJobRepository.findAllBySyncStatus(SubtitleSyncStatus.RUNNING))
+                .thenReturn(List.of(job));
+
+        when(subtitleSyncService.checkSyncJobStatus("sync-job-123")).thenReturn(SubtitleSyncStatus.SUCCEEDED);
+        when(subtitleSyncService.collectSyncResult("sync-job-123", "/tmp/sync"))
+                .thenReturn(Optional.of("synced WEBVTT"));
+
+        subtitleJobService.processSyncJobs();
+
+        // Verify subtitle saved with synced content
+        ArgumentCaptor<MediaSubtitle> subtitleCaptor = ArgumentCaptor.forClass(MediaSubtitle.class);
+        verify(subtitleRepository).save(subtitleCaptor.capture());
+        assertEquals("synced WEBVTT", subtitleCaptor.getValue().getSubtitleContent());
+
+        // Verify job marked as succeeded
+        verify(subtitleJobRepository).save(jobCaptor.capture());
+        SubtitleJob savedJob = jobCaptor.getValue();
+        assertEquals(SubtitleJobStatus.SUCCEEDED, savedJob.getStatus());
+        assertEquals(SubtitleSyncStatus.SUCCEEDED, savedJob.getSyncStatus());
+        assertNull(savedJob.getUnsyncedContent()); // Cleared to save space
+
+        // Verify cleanup called
+        verify(subtitleSyncService).cleanupSyncJob("sync-job-123", "/tmp/sync");
+    }
+
+    @Test
+    void processSyncJobs_fallsBackToUnsyncedOnFailure() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+
+        MediaFile mediaFile = mock(MediaFile.class);
+        when(mediaFile.getMediaFileId()).thenReturn("test-media-123");
+
+        SubtitleJob job = SubtitleJob.builder()
+                .mediaFile(mediaFile)
+                .imdbId("tt1234567")
+                .status(SubtitleJobStatus.RUNNING)
+                .syncStatus(SubtitleSyncStatus.RUNNING)
+                .syncJobName("sync-job-123")
+                .syncTempDir("/tmp/sync")
+                .unsyncedContent("original WEBVTT")
+                .retryCount(0)
+                .build();
+        when(subtitleJobRepository.findAllBySyncStatus(SubtitleSyncStatus.RUNNING))
+                .thenReturn(List.of(job));
+
+        when(subtitleSyncService.checkSyncJobStatus("sync-job-123")).thenReturn(SubtitleSyncStatus.FAILED);
+        when(subtitleSyncService.getSyncJobLog("sync-job-123")).thenReturn("ffsubsync error");
+
+        subtitleJobService.processSyncJobs();
+
+        // Verify subtitle saved with UNSYNCED content (fallback)
+        ArgumentCaptor<MediaSubtitle> subtitleCaptor = ArgumentCaptor.forClass(MediaSubtitle.class);
+        verify(subtitleRepository).save(subtitleCaptor.capture());
+        assertEquals("original WEBVTT", subtitleCaptor.getValue().getSubtitleContent());
+
+        // Verify job marked as succeeded (we still got a subtitle)
+        verify(subtitleJobRepository).save(jobCaptor.capture());
+        SubtitleJob savedJob = jobCaptor.getValue();
+        assertEquals(SubtitleJobStatus.SUCCEEDED, savedJob.getStatus());
+        assertEquals(SubtitleSyncStatus.FAILED, savedJob.getSyncStatus());
+        assertTrue(savedJob.getErrorMessage().contains("Sync failed"));
+
+        // Verify cleanup called
+        verify(subtitleSyncService).cleanupSyncJob("sync-job-123", "/tmp/sync");
+    }
+
+    @Test
+    void processSyncJobs_skipsStillRunningJobs() {
+        when(openSubtitlesConfig.isEnabled()).thenReturn(true);
+
+        MediaFile mediaFile = mock(MediaFile.class);
+
+        SubtitleJob job = SubtitleJob.builder()
+                .mediaFile(mediaFile)
+                .syncStatus(SubtitleSyncStatus.RUNNING)
+                .syncJobName("sync-job-123")
+                .syncTempDir("/tmp/sync")
+                .build();
+        when(subtitleJobRepository.findAllBySyncStatus(SubtitleSyncStatus.RUNNING))
+                .thenReturn(List.of(job));
+
+        when(subtitleSyncService.checkSyncJobStatus("sync-job-123")).thenReturn(SubtitleSyncStatus.RUNNING);
+
+        subtitleJobService.processSyncJobs();
+
+        // Should not save anything, job still running
+        verify(subtitleRepository, never()).save(any());
+        verify(subtitleJobRepository, never()).save(any());
+        verify(subtitleSyncService, never()).cleanupSyncJob(any(), any());
     }
 
     @Test
@@ -136,7 +322,7 @@ class SubtitleJobServiceTest {
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(0)
                 .build();
-        when(subtitleJobRepository.findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
                 .thenReturn(List.of(job));
 
         when(subtitleProvider.fetchSubtitle("tt1234567")).thenReturn(Optional.empty());
@@ -163,7 +349,7 @@ class SubtitleJobServiceTest {
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(0)
                 .build();
-        when(subtitleJobRepository.findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
                 .thenReturn(List.of(job));
 
         when(subtitleProvider.fetchSubtitle("tt1234567"))
@@ -191,7 +377,7 @@ class SubtitleJobServiceTest {
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(0)
                 .build();
-        when(subtitleJobRepository.findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
                 .thenReturn(List.of(job));
 
         subtitleJobService.processSubtitleJobs();
@@ -217,7 +403,7 @@ class SubtitleJobServiceTest {
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(0)
                 .build();
-        when(subtitleJobRepository.findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
                 .thenReturn(List.of(job));
 
         when(subtitleProvider.fetchSubtitle("tt1234567"))
@@ -247,7 +433,7 @@ class SubtitleJobServiceTest {
                 .status(SubtitleJobStatus.QUEUED)
                 .retryCount(2) // Already at max - 1
                 .build();
-        when(subtitleJobRepository.findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
+        when(subtitleJobRepository.findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED))
                 .thenReturn(List.of(job));
 
         when(subtitleProvider.fetchSubtitle("tt1234567"))

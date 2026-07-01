@@ -1,15 +1,20 @@
 package com.github.rahmnathan.localmovie.config;
 
 import com.github.rahmnathan.localmovie.data.Duration;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 @Data
 @Configuration
+@Validated
 @ConfigurationProperties(prefix = "service")
 public class ServiceConfig {
     private MediaEventMonitorConfig directoryMonitor;
@@ -19,6 +24,7 @@ public class ServiceConfig {
     private Set<String> mediaPaths;
     private String jedisHost;
     private OmdbConfig omdb;
+    @Valid
     private OpenSubtitlesConfig opensubtitles;
     private OllamaConfig ollama;
     private boolean forceConvert;
@@ -31,7 +37,6 @@ public class ServiceConfig {
 
     @Data
     public static class MediaEventMonitorConfig {
-        private String ffprobeLocation = "/usr/bin/ffprobe";
         private int concurrentConversionLimit = 3;
     }
 
@@ -50,6 +55,15 @@ public class ServiceConfig {
     @Data
     public static class OpenSubtitlesConfig {
         private boolean enabled;
+        private boolean syncEnabled;
+        @NotBlank
+        private String syncImage = "smacke/ffsubsync:latest";
+        @Min(1)
+        private int syncTimeoutSeconds = 300;
+        @Min(1)
+        private int syncMaxOffsetSeconds = 120;
+        @Min(1)
+        private int staleRunningJobTimeoutMinutes = 60;
         private String apiKey;
         private String username;
         private String password;

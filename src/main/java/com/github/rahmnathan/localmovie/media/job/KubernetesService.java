@@ -32,7 +32,11 @@ public class KubernetesService {
     private static final String JOB_NAME = "job-name";
     private static final String JOB_ID_LABEL = "jobId";
 
-    private static final Pattern ETA_PATTERN = Pattern.compile("\\d\\dh\\d\\d");
+    private static final Pattern HANDBRAKE_ETA_PATTERN = Pattern.compile("(\\d{2})h(\\d{2})m(?:(\\d{2})s)?");
+    private static final Pattern FFMPEG_DURATION_PATTERN = Pattern.compile("Duration:\\s*(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?)");
+    private static final Pattern FFMPEG_PROGRESS_TIME_PATTERN = Pattern.compile("(?m)^out_time=(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?)");
+    private static final Pattern FFMPEG_STATS_TIME_PATTERN = Pattern.compile("time=(\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?)");
+    private static final Pattern FFMPEG_SPEED_PATTERN = Pattern.compile("(?m)(?:^|\\s)speed=\\s*([0-9.]+)x");
 
     public Optional<MediaJobStatus> getJobStatus(String jobId) throws IOException {
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
@@ -76,6 +80,10 @@ public class KubernetesService {
     }
 
     public Optional<Duration> getETA(String jobId) throws IOException {
+        return getETA(jobId, null);
+    }
+
+    public Optional<Duration> getETA(String jobId, Long durationSeconds) throws IOException {
         String namespace = getNamespace();
 
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
@@ -99,7 +107,9 @@ public class KubernetesService {
                     .inNamespace(namespace)
                     .withLabel(JOB_NAME, jobName)
                     .list().getItems().stream()
-                    .filter(pod -> pod.getStatus().getPhase().equalsIgnoreCase("running"))
+                    .filter(pod -> "running".equalsIgnoreCase(Optional.ofNullable(pod.getStatus())
+                            .map(status -> status.getPhase())
+                            .orElse(null)))
                     .findAny();
 
             if (podOptional.isEmpty()) {
@@ -112,30 +122,110 @@ public class KubernetesService {
             String podLog = client.pods()
                     .inNamespace(namespace)
                     .withName(podName)
-                    .tailingLines(1)
                     .getLog();
 
-            // Extracting hours and minutes from log statement.
-            // Example pod log: "ETA 01h25m15s)"
-            Matcher etaMatcher = ETA_PATTERN.matcher(podLog);
-            if (etaMatcher.find()) {
-                String eta = etaMatcher.group();
-                log.debug("Found Handbrake ETA in logs ({}). Recording metric.", eta);
+            return parseETA(podLog, durationSeconds);
+        }
+    }
 
-                String[] time = eta.split("h");
-                int minutesRemaining = (Integer.parseInt(time[0]) * 60) + Integer.parseInt(time[1]);
+    Optional<Duration> parseETA(String podLog, Long durationSeconds) {
+        Optional<Duration> handbrakeEta = parseHandbrakeETA(podLog);
+        if (handbrakeEta.isPresent()) {
+            return handbrakeEta;
+        }
 
-                return Optional.of(Duration.ofMinutes(minutesRemaining));
-            }
+        Optional<Duration> totalDuration = Optional.ofNullable(durationSeconds)
+                .filter(value -> value > 0)
+                .map(Duration::ofSeconds)
+                .or(() -> parseFfmpegTotalDuration(podLog));
+
+        if (totalDuration.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<Duration> encodedDuration = parseFfmpegEncodedDuration(podLog);
+        Optional<Double> speed = parseFfmpegSpeed(podLog);
+        if (encodedDuration.isEmpty() || speed.isEmpty() || speed.get() <= 0) {
+            return Optional.empty();
+        }
+
+        long remainingMediaSeconds = totalDuration.get().toSeconds() - encodedDuration.get().toSeconds();
+        if (remainingMediaSeconds <= 0) {
+            return Optional.of(Duration.ZERO);
+        }
+
+        return Optional.of(Duration.ofSeconds(Math.round(remainingMediaSeconds / speed.get())));
+    }
+
+    private Optional<Duration> parseHandbrakeETA(String podLog) {
+        // Example pod log: "ETA 01h25m15s)"
+        Matcher etaMatcher = HANDBRAKE_ETA_PATTERN.matcher(podLog);
+        if (etaMatcher.find()) {
+            String eta = etaMatcher.group();
+            log.debug("Found Handbrake ETA in logs ({}). Recording metric.", eta);
+
+            long hours = Long.parseLong(etaMatcher.group(1));
+            long minutes = Long.parseLong(etaMatcher.group(2));
+            long seconds = etaMatcher.group(3) == null ? 0 : Long.parseLong(etaMatcher.group(3));
+
+            return Optional.of(Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds));
         }
 
         return Optional.empty();
     }
 
+    private Optional<Duration> parseFfmpegEncodedDuration(String podLog) {
+        Matcher progressMatcher = FFMPEG_PROGRESS_TIME_PATTERN.matcher(podLog);
+        String encodedTime = null;
+        while (progressMatcher.find()) {
+            encodedTime = progressMatcher.group(1);
+        }
+
+        if (encodedTime == null) {
+            Matcher statsMatcher = FFMPEG_STATS_TIME_PATTERN.matcher(podLog);
+            while (statsMatcher.find()) {
+                encodedTime = statsMatcher.group(1);
+            }
+        }
+
+        return encodedTime == null ? Optional.empty() : Optional.of(parseTimestamp(encodedTime));
+    }
+
+    private Optional<Duration> parseFfmpegTotalDuration(String podLog) {
+        Matcher durationMatcher = FFMPEG_DURATION_PATTERN.matcher(podLog);
+        return durationMatcher.find() ? Optional.of(parseTimestamp(durationMatcher.group(1))) : Optional.empty();
+    }
+
+    private Optional<Double> parseFfmpegSpeed(String podLog) {
+        Matcher speedMatcher = FFMPEG_SPEED_PATTERN.matcher(podLog);
+        Double speed = null;
+        while (speedMatcher.find()) {
+            speed = Double.parseDouble(speedMatcher.group(1));
+        }
+
+        return Optional.ofNullable(speed);
+    }
+
+    private Duration parseTimestamp(String timestamp) {
+        String[] timeAndFraction = timestamp.split("\\.", 2);
+        String[] time = timeAndFraction[0].split(":");
+
+        Duration duration = Duration.ofHours(Long.parseLong(time[0]))
+                .plusMinutes(Long.parseLong(time[1]))
+                .plusSeconds(Long.parseLong(time[2]));
+
+        if (timeAndFraction.length == 2) {
+            String nanos = (timeAndFraction[1] + "000000000").substring(0, 9);
+            duration = duration.plusNanos(Long.parseLong(nanos));
+        }
+
+        return duration;
+    }
+
     private String getNamespace() throws IOException {
         Path namespaceFile = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
         if (namespaceFile.toFile().exists()) {
-            return Files.readString(namespaceFile);
+            return Files.readString(namespaceFile).trim();
         }
 
         return "localmovies";

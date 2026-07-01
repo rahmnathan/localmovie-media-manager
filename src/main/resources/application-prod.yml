@@ -32,7 +32,6 @@ service:
   directoryMonitor:
     concurrentConversionLimit: 2
     enabled: true
-    ffprobeLocation: "/usr/bin/ffprobe"
   mediaPaths:
     - "/opt/localmovie/1/LocalMedia"
     - "/opt/localmovie/2/LocalMedia"
@@ -48,6 +47,11 @@ service:
     enabled: true
   opensubtitles:
     enabled: true
+    syncEnabled: true
+    syncImage: smacke/ffsubsync:latest
+    syncTimeoutSeconds: 300
+    syncMaxOffsetSeconds: 120
+    staleRunningJobTimeoutMinutes: 60
   ollama:
     enabled: true
     base-url: http://open-webui-ollama.open-webui.svc.cluster.local:11434

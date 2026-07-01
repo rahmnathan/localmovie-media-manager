@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.persistence.entity;
 
 import com.github.rahmnathan.localmovie.data.SubtitleJobStatus;
+import com.github.rahmnathan.localmovie.data.SubtitleSyncStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +40,23 @@ public class SubtitleJob {
 
     @Column(name = "error_message", length = 500)
     private String errorMessage;
+
+    // Sync-related fields for async subtitle synchronization
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sync_status", length = 20)
+    private SubtitleSyncStatus syncStatus;
+
+    @Column(name = "sync_job_name", length = 100)
+    private String syncJobName;
+
+    @Column(name = "sync_temp_dir", length = 500)
+    private String syncTempDir;
+
+    @Column(name = "unsynced_content", columnDefinition = "TEXT")
+    private String unsyncedContent;
+
+    @Column(name = "opensubtitles_id", length = 50)
+    private String opensubtitlesId;
 
     private LocalDateTime created;
     private LocalDateTime updated;

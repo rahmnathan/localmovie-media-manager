@@ -51,8 +51,8 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
         }
 
         try {
-            if (absolutePath.endsWith("partial~") || isActiveConversion(file)) {
-                log.info("File {} is currently being converted. Skipping event.", absolutePath);
+            if (absolutePath.endsWith("partial~") || MediaJobArtifacts.isSubtitleSyncArtifact(file) || isActiveConversion(file)) {
+                log.info("File {} is currently managed by a background media job. Skipping event.", absolutePath);
                 return;
             }
 

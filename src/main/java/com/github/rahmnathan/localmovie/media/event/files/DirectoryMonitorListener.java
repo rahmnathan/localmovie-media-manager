@@ -1,5 +1,6 @@
 package com.github.rahmnathan.localmovie.media.event.files;
 
+import com.github.rahmnathan.localmovie.media.event.MediaJobArtifacts;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
@@ -31,6 +32,11 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onDirectoryCreate(File file) {
+        if (MediaJobArtifacts.isSubtitleSyncArtifact(file)) {
+            logger.debug("Ignoring background media job artifact directory {}", file);
+            return;
+        }
+
         notifyObservers(ENTRY_CREATE, file);
         monitor.addObserver(new FileAlterationObserver(file));
     }
@@ -42,11 +48,21 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onDirectoryDelete(File file) {
+        if (MediaJobArtifacts.isSubtitleSyncArtifact(file)) {
+            logger.debug("Ignoring background media job artifact directory deletion {}", file);
+            return;
+        }
+
         notifyObservers(ENTRY_DELETE, file);
     }
 
     @Override
     public void onFileCreate(File file) {
+        if (MediaJobArtifacts.isSubtitleSyncArtifact(file)) {
+            logger.debug("Ignoring background media job artifact file {}", file);
+            return;
+        }
+
         notifyObservers(ENTRY_CREATE, file);
     }
 
@@ -57,6 +73,11 @@ public class DirectoryMonitorListener implements FileAlterationListener {
 
     @Override
     public void onFileDelete(File file) {
+        if (MediaJobArtifacts.isSubtitleSyncArtifact(file)) {
+            logger.debug("Ignoring background media job artifact file deletion {}", file);
+            return;
+        }
+
         notifyObservers(ENTRY_DELETE, file);
     }
 

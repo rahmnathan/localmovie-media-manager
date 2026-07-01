@@ -12,7 +12,6 @@ service:
   directoryMonitor:
     enabled: false
     concurrentConversionLimit: 3
-    ffprobeLocation: "/usr/bin/ffprobe"
   jedisHost: stub
   mediaPaths: "src/test/resources/LocalMedia/"
   notificationsEnabled: false
@@ -21,6 +20,11 @@ service:
     enabled: false
   opensubtitles:
     enabled: false
+    syncEnabled: false
+    syncImage: "smacke/ffsubsync:latest"
+    syncTimeoutSeconds: 300
+    syncMaxOffsetSeconds: 120
+    staleRunningJobTimeoutMinutes: 60
     apiKey: ""
     username: ""
     password: ""
@@ -28,6 +32,9 @@ service:
     enabled: true
     updateFrequencyDays: 4
     updateLimit: 201
+  conversion-service:
+    enabled: false
+    encoder: HANDBRAKE
 spring:
   jpa:
     hibernate:

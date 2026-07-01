@@ -26,14 +26,14 @@ public class HandbrakeVideoConverter implements VideoConverter {
     @Override
     public void launchVideoConverter(File inputFile, File outputFile) throws IOException {
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+            String namespace = getNamespace();
 
-            Optional<Pod> localmoviesPodOptional = client.pods().list().getItems().stream()
-                    .filter(pod -> "localmovies".equalsIgnoreCase(pod.getMetadata().getLabels().get("app")))
+            Optional<Pod> localmoviesPodOptional = client.pods().inNamespace(namespace).list().getItems().stream()
+                    .filter(pod -> "localmovies".equalsIgnoreCase(labelValue(pod, "app")))
                     .findAny();
 
             if (localmoviesPodOptional.isEmpty()) {
-                log.warn("Could not find localmovies pod to copy volume mounts from");
-                return;
+                throw new IOException("Could not find localmovies pod to copy volume mounts from");
             }
 
             String podName = "handbrake-" + UUID.randomUUID();
@@ -60,12 +60,10 @@ public class HandbrakeVideoConverter implements VideoConverter {
             List<VolumeMount> volumeMounts = localmoviesPodOptional.get().getSpec().getContainers().stream()
                     .filter(container -> "localmovies".equalsIgnoreCase(container.getName()))
                     .findAny()
-                    .get()
+                    .orElseThrow(() -> new IOException("Could not find localmovies container to copy volume mounts from"))
                     .getVolumeMounts().stream()
                     .filter(volumeMount -> volumeMount.getName().startsWith("media"))
                     .toList();
-
-            String namespace = getNamespace();
 
             ResourceRequirements resources = new ResourceRequirements(
                     new ArrayList<>(),
@@ -109,9 +107,17 @@ public class HandbrakeVideoConverter implements VideoConverter {
     private String getNamespace() throws IOException {
         Path namespaceFile = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
         if (namespaceFile.toFile().exists()) {
-            return Files.readString(namespaceFile);
+            return Files.readString(namespaceFile).trim();
         }
         return "localmovies";
+    }
+
+    private String labelValue(Pod pod, String label) {
+        if (pod.getMetadata() == null || pod.getMetadata().getLabels() == null) {
+            return null;
+        }
+
+        return pod.getMetadata().getLabels().get(label);
     }
 
     private String transformPath(String path) {

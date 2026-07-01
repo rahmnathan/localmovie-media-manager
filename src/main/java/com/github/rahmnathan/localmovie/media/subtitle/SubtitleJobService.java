@@ -2,6 +2,7 @@ package com.github.rahmnathan.localmovie.media.subtitle;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
 import com.github.rahmnathan.localmovie.data.SubtitleJobStatus;
+import com.github.rahmnathan.localmovie.data.SubtitleSyncStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaSubtitle;
 import com.github.rahmnathan.localmovie.persistence.entity.SubtitleJob;
@@ -17,6 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -31,17 +33,16 @@ import static com.github.rahmnathan.localmovie.web.filter.LoggingFilter.X_CORREL
 @AllArgsConstructor
 public class SubtitleJobService {
     private static final int MAX_RETRY_COUNT = 3;
-    private static final int BATCH_SIZE = 5;
 
     private final SubtitleJobRepository subtitleJobRepository;
     private final MediaSubtitleRepository subtitleRepository;
     private final SubtitleProvider subtitleProvider;
+    private final SubtitleSyncService subtitleSyncService;
     private final MeterRegistry meterRegistry;
     private final ServiceConfig serviceConfig;
 
     @Scheduled(fixedDelay = 60000L)
-    @SchedulerLock(name = "process-subtitle-jobs-lock")
-    @Transactional
+    @SchedulerLock(name = "process-subtitle-jobs-lock", lockAtMostFor = "PT30M")
     public void processSubtitleJobs() {
         if (!serviceConfig.getOpensubtitles().isEnabled()) {
             return;
@@ -51,6 +52,8 @@ public class SubtitleJobService {
         MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
 
         try {
+            requeueStaleRunningJobs();
+
             // Check if we have downloads remaining before processing
             if (!subtitleProvider.hasDownloadsRemaining()) {
                 log.info("OpenSubtitles download quota exhausted, skipping job processing");
@@ -63,10 +66,7 @@ public class SubtitleJobService {
             }
 
             List<SubtitleJob> jobs = subtitleJobRepository
-                    .findAllByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED)
-                    .stream()
-                    .limit(BATCH_SIZE)
-                    .toList();
+                    .findTop5ByStatusOrderByCreatedAsc(SubtitleJobStatus.QUEUED);
 
             for (SubtitleJob job : jobs) {
                 if (!subtitleProvider.hasDownloadsRemaining()) {
@@ -80,6 +80,133 @@ public class SubtitleJobService {
             meterRegistry.timer("localmovies.subtitle-jobs.process")
                     .record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
         }
+    }
+
+    /**
+     * Scheduled task to check sync job status and complete jobs that have finished syncing.
+     */
+    @Scheduled(fixedDelay = 30000L)
+    @SchedulerLock(name = "process-subtitle-sync-jobs-lock", lockAtMostFor = "PT10M")
+    public void processSyncJobs() {
+        if (!serviceConfig.getOpensubtitles().isEnabled()) {
+            return;
+        }
+
+        long startTime = System.currentTimeMillis();
+        MDC.put(X_CORRELATION_ID, UUID.randomUUID().toString());
+
+        try {
+            List<SubtitleJob> syncingJobs = subtitleJobRepository.findAllBySyncStatus(SubtitleSyncStatus.RUNNING);
+
+            if (!syncingJobs.isEmpty()) {
+                log.info("Found {} jobs with running sync", syncingJobs.size());
+            }
+
+            for (SubtitleJob job : syncingJobs) {
+                processSyncJob(job);
+            }
+        } finally {
+            MDC.clear();
+            meterRegistry.timer("localmovies.subtitle-sync-jobs.process")
+                    .record(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void processSyncJob(SubtitleJob job) {
+        String jobName = job.getSyncJobName();
+        String tempDir = job.getSyncTempDir();
+
+        SubtitleSyncStatus syncStatus = subtitleSyncService.checkSyncJobStatus(jobName);
+
+        if (syncStatus == SubtitleSyncStatus.RUNNING) {
+            // Check if sync has timed out
+            LocalDateTime syncTimeout = LocalDateTime.now()
+                    .minusSeconds(serviceConfig.getOpensubtitles().getSyncTimeoutSeconds());
+            if (job.getUpdated() != null && job.getUpdated().isBefore(syncTimeout)) {
+                log.warn("Sync job {} timed out for MediaFile: {}, using unsynced subtitle",
+                        jobName, job.getMediaFile().getMediaFileId());
+                syncStatus = SubtitleSyncStatus.FAILED;
+                job.setErrorMessage("Sync timed out after " + serviceConfig.getOpensubtitles().getSyncTimeoutSeconds() + " seconds");
+            } else {
+                // Still running within timeout, check again next cycle
+                return;
+            }
+        }
+
+        MediaFile mediaFile = job.getMediaFile();
+        String subtitleContent;
+
+        if (syncStatus == SubtitleSyncStatus.SUCCEEDED) {
+            Optional<String> syncedContent = subtitleSyncService.collectSyncResult(jobName, tempDir);
+            if (syncedContent.isPresent()) {
+                subtitleContent = syncedContent.get();
+                job.setSyncStatus(SubtitleSyncStatus.SUCCEEDED);
+                log.info("Subtitle sync succeeded for MediaFile: {}", mediaFile.getMediaFileId());
+            } else {
+                // Sync job succeeded but couldn't read output, use original
+                subtitleContent = job.getUnsyncedContent();
+                job.setSyncStatus(SubtitleSyncStatus.FAILED);
+                job.setErrorMessage("Sync succeeded but could not read output file");
+                log.warn("Sync succeeded but could not read output for MediaFile: {}, using unsynced subtitle",
+                        mediaFile.getMediaFileId());
+            }
+        } else {
+            // Sync failed or timed out, use original unsynced content
+            subtitleContent = job.getUnsyncedContent();
+            job.setSyncStatus(SubtitleSyncStatus.FAILED);
+            if (job.getErrorMessage() == null) {
+                String podLog = subtitleSyncService.getSyncJobLog(jobName);
+                job.setErrorMessage(truncate("Sync failed: " + podLog, 500));
+            }
+            log.warn("Subtitle sync failed for MediaFile: {}, using unsynced subtitle. Error: {}",
+                    mediaFile.getMediaFileId(), job.getErrorMessage());
+        }
+
+        // Persist the subtitle (synced or unsynced)
+        SubtitleResult subtitle = SubtitleResult.builder()
+                .content(subtitleContent)
+                .languageCode("en")
+                .format("vtt")
+                .opensubtitlesId(job.getOpensubtitlesId())
+                .build();
+        upsertSubtitle(mediaFile, subtitle);
+
+        // Mark job as succeeded (we got a subtitle either way)
+        job.setStatus(SubtitleJobStatus.SUCCEEDED);
+        job.setUnsyncedContent(null); // Clear to save space
+        job.setOpensubtitlesId(null); // Clear since it's now in MediaSubtitle
+        subtitleJobRepository.save(job);
+
+        // Cleanup Kubernetes resources
+        subtitleSyncService.cleanupSyncJob(jobName, tempDir);
+
+        log.info("Completed subtitle job for MediaFile: {}", mediaFile.getMediaFileId());
+    }
+
+    private void requeueStaleRunningJobs() {
+        LocalDateTime staleBefore = LocalDateTime.now()
+                .minusMinutes(serviceConfig.getOpensubtitles().getStaleRunningJobTimeoutMinutes());
+        List<SubtitleJob> staleJobs = subtitleJobRepository
+                .findAllByStatusAndUpdatedBefore(SubtitleJobStatus.RUNNING, staleBefore);
+
+        if (staleJobs.isEmpty()) {
+            return;
+        }
+
+        log.warn("Re-queuing {} stale subtitle jobs that were left RUNNING before {}", staleJobs.size(), staleBefore);
+        staleJobs.forEach(job -> {
+            job.setStatus(SubtitleJobStatus.QUEUED);
+            job.setErrorMessage("Re-queued after stale RUNNING state");
+            // Clean up any orphaned sync jobs
+            if (job.getSyncJobName() != null) {
+                subtitleSyncService.cleanupSyncJob(job.getSyncJobName(), job.getSyncTempDir());
+                job.setSyncStatus(null);
+                job.setSyncJobName(null);
+                job.setSyncTempDir(null);
+                job.setUnsyncedContent(null);
+            }
+        });
+        subtitleJobRepository.saveAll(staleJobs);
     }
 
     private void processJob(SubtitleJob job) {
@@ -120,17 +247,47 @@ public class SubtitleJobService {
                 return;
             }
 
-            if (result.isPresent()) {
-                SubtitleResult subtitle = result.get();
-                upsertSubtitle(mediaFile, subtitle);
-                job.setStatus(SubtitleJobStatus.SUCCEEDED);
-                job.setErrorMessage(null);
-                log.info("Successfully fetched subtitle for MediaFile: {}", mediaFile.getMediaFileId());
-            } else {
+            if (result.isEmpty()) {
                 job.setStatus(SubtitleJobStatus.NOT_FOUND);
                 job.setErrorMessage("Subtitle not found on OpenSubtitles");
+                subtitleJobRepository.save(job);
+                return;
             }
 
+            SubtitleResult subtitle = result.get();
+            log.info("Successfully fetched subtitle for MediaFile: {}", mediaFile.getMediaFileId());
+
+            // Check if sync is enabled and launch async sync
+            if (subtitleSyncService.isSyncEnabled()) {
+                Optional<SubtitleSyncService.SyncJobInfo> syncInfo =
+                        subtitleSyncService.launchSyncJob(mediaFile.getAbsolutePath(), subtitle.getContent());
+
+                if (syncInfo.isPresent()) {
+                    // Sync job launched, save state and wait for completion
+                    job.setSyncStatus(SubtitleSyncStatus.RUNNING);
+                    job.setSyncJobName(syncInfo.get().jobName());
+                    job.setSyncTempDir(syncInfo.get().tempDir());
+                    job.setUnsyncedContent(subtitle.getContent());
+                    job.setOpensubtitlesId(subtitle.getOpensubtitlesId());
+                    // Keep status as RUNNING - processSyncJobs will complete it
+                    subtitleJobRepository.save(job);
+                    log.info("Launched subtitle sync job {} for MediaFile: {}",
+                            syncInfo.get().jobName(), mediaFile.getMediaFileId());
+                    return;
+                } else {
+                    // Sync launch failed, continue without sync
+                    log.warn("Failed to launch sync job for MediaFile: {}, saving unsynced subtitle",
+                            mediaFile.getMediaFileId());
+                    job.setSyncStatus(SubtitleSyncStatus.FAILED);
+                }
+            } else {
+                job.setSyncStatus(SubtitleSyncStatus.SKIPPED);
+            }
+
+            // No sync or sync launch failed - persist subtitle directly
+            upsertSubtitle(mediaFile, subtitle);
+            job.setStatus(SubtitleJobStatus.SUCCEEDED);
+            job.setErrorMessage(null);
             subtitleJobRepository.save(job);
 
         } catch (Exception e) {
