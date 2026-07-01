@@ -52,6 +52,7 @@ public class MediaResource {
 
         log.info("Loading media files for webapp.");
         List<MediaFileDto> mediaFiles = persistenceService.getMediaFileDtos(mediaRequest);
+        mediaFiles.forEach(this::addSignedPosterUrl);
         log.info("Returning media list. Size: {}", mediaFiles.size());
         return mediaFiles;
     }
@@ -59,7 +60,8 @@ public class MediaResource {
     @GetMapping(value = "/{mediaFileId}", produces= MediaType.APPLICATION_JSON_VALUE)
     public Optional<MediaFileDto> getMedia(@PathVariable("mediaFileId") String mediaFileId) {
         log.info("Received media request for id - {}", mediaFileId);
-        return persistenceService.getMediaFileDtoById(mediaFileId);
+        return persistenceService.getMediaFileDtoById(mediaFileId)
+                .map(this::addSignedPosterUrl);
     }
 
     @PostMapping(value = "/count")
@@ -147,15 +149,24 @@ public class MediaResource {
         );
 
         return recommendations.stream()
-                .map(rec -> RecommendationDto.builder()
-                        .mediaFile(MediaFileTransformer.toMediaFileDto(
-                                rec.getMediaFile(),
-                                userViews.get(rec.getMediaFile().getMediaFileId())
-                        ))
-                        .reason(rec.getReason())
-                        .rank(rec.getRank())
-                        .build())
+                .map(rec -> {
+                    MediaFileDto mediaFile = MediaFileTransformer.toMediaFileDto(
+                            rec.getMediaFile(),
+                            userViews.get(rec.getMediaFile().getMediaFileId())
+                    );
+                    addSignedPosterUrl(mediaFile);
+                    return RecommendationDto.builder()
+                            .mediaFile(mediaFile)
+                            .reason(rec.getReason())
+                            .rank(rec.getRank())
+                            .build();
+                })
                 .toList();
+    }
+
+    private MediaFileDto addSignedPosterUrl(MediaFileDto mediaFile) {
+        mediaFile.setSignedUrls(securityService.generateSignedPosterUrl(mediaFile.getMediaFileId()));
+        return mediaFile;
     }
 
     private void handleDemoUser(MediaRequest mediaRequest) {

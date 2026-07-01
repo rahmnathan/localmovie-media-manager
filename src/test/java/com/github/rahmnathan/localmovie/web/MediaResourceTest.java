@@ -29,6 +29,10 @@ class MediaResourceTest extends BaseIntegrationTest {
     void getMediaTest() throws Exception {
         List<MediaFileDto> mediaFileList = mediaResource.getMedia(buildRequest(), new MockHttpServletResponse());
         assertFalse(mediaFileList.isEmpty());
+        assertNotNull(mediaFileList.get(0).getSignedUrls());
+        assertNotNull(mediaFileList.get(0).getSignedUrls().getPoster());
+        assertTrue(mediaFileList.get(0).getSignedUrls().getPoster().contains("/localmovie/v1/signed/media/"));
+        assertTrue(mediaFileList.get(0).getSignedUrls().getPoster().contains("sig="));
     }
 
     @Test
