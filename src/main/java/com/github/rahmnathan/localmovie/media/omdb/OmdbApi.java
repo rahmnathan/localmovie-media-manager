@@ -13,7 +13,7 @@ public interface OmdbApi {
 
     @GET
     @Retry(name = "omdb")
-    @CircuitBreaker(name = "omdb-client")
+    @CircuitBreaker(name = "omdb")
     @Produces(MediaType.APPLICATION_JSON)
     OmdbResponse getMedia(@QueryParam("t") String title,
                           @QueryParam("y") String year,
@@ -22,7 +22,7 @@ public interface OmdbApi {
 
     @GET
     @Retry(name = "omdb")
-    @CircuitBreaker(name = "omdb-client")
+    @CircuitBreaker(name = "omdb")
     @Produces(MediaType.APPLICATION_JSON)
     OmdbResponse getEpisode(@QueryParam("t") String seriesTitle,
                             @QueryParam("Season") Integer seasonNumber,

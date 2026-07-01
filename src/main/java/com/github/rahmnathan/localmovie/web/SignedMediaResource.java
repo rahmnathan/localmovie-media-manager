@@ -51,8 +51,16 @@ public class SignedMediaResource {
     }
 
     @GetMapping(path = "/{mediaFileId}/poster")
-    public ResponseEntity<byte[]> getPoster(@PathVariable String mediaFileId) {
+    public ResponseEntity<byte[]> getPoster(@PathVariable String mediaFileId,
+                                            @RequestParam(value = "expires", defaultValue = "0") long expires,
+                                            @RequestParam(value = "sig") String signature) {
         log.info("Streaming poster - {}", mediaFileId);
+
+        if (!securityService.authorizedRequest(mediaFileId, expires, signature)) {
+            log.warn("Unauthorized poster request for id.");
+            return ResponseEntity.status(HttpStatusCodes.STATUS_CODE_UNAUTHORIZED).build();
+        }
+
         byte[] image = persistenceService.getMediaImageById(mediaFileId);
         if (image == null) {
             return ResponseEntity.notFound().build();

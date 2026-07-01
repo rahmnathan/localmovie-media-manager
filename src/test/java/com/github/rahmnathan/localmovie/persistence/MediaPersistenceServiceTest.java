@@ -1,6 +1,5 @@
 package com.github.rahmnathan.localmovie.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rahmnathan.localmovie.BaseIntegrationTest;
 import com.github.rahmnathan.localmovie.data.MediaPath;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
@@ -10,9 +9,6 @@ import com.github.rahmnathan.localmovie.persistence.entity.MediaFileEvent;
 import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +18,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Import(MediaPersistenceServiceTest.TestConfig.class)
 class MediaPersistenceServiceTest extends BaseIntegrationTest {
 
     private final MediaPersistenceService mediaPersistenceService;
@@ -230,11 +225,4 @@ class MediaPersistenceServiceTest extends BaseIntegrationTest {
         assertFalse(dtos.isEmpty());
     }
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        ObjectMapper objectMapper() {
-            return new ObjectMapper();
-        }
-    }
 }

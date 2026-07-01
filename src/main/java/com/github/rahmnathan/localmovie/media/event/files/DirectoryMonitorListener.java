@@ -38,7 +38,9 @@ public class DirectoryMonitorListener implements FileAlterationListener {
         }
 
         notifyObservers(ENTRY_CREATE, file);
-        monitor.addObserver(new FileAlterationObserver(file));
+        FileAlterationObserver observer = new FileAlterationObserver(file);
+        observer.addListener(this);
+        monitor.addObserver(observer);
     }
 
     @Override

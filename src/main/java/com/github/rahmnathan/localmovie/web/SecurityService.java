@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 
@@ -59,7 +61,11 @@ public class SecurityService {
 
         try {
             String generatedSignature = generateSignature(signedRequest);
-            return generatedSignature.equals(signature) && ZonedDateTime.now().toEpochSecond() < expires;
+            return signature != null &&
+                    MessageDigest.isEqual(
+                            generatedSignature.getBytes(StandardCharsets.UTF_8),
+                            signature.getBytes(StandardCharsets.UTF_8)) &&
+                    ZonedDateTime.now().toEpochSecond() < expires;
         } catch (JsonProcessingException e) {
             log.error("Failed generating hmac signature.", e);
             return false;

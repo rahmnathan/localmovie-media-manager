@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
-public interface MediaJobRepository extends CrudRepository<MediaJob, String> {
+public interface MediaJobRepository extends CrudRepository<MediaJob, Long> {
     int countAllByStatus(String status);
     List<MediaJob> findAllByStatusOrderByCreatedAsc(String status);
     List<MediaJob> findAllByOutputFile(String outputFile);

@@ -7,13 +7,11 @@ import com.github.rahmnathan.localmovie.data.MediaRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class MediaResourceTest extends BaseIntegrationTest {
     private final MediaResource mediaResource;
 

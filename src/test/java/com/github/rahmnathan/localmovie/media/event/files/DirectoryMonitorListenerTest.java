@@ -8,6 +8,7 @@ import java.io.File;
 import java.nio.file.StandardWatchEventKinds;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +49,8 @@ class DirectoryMonitorListenerTest {
 
         verify(observer, timeout(1000))
                 .directoryModified(StandardWatchEventKinds.ENTRY_CREATE, directory);
-        verify(monitor).addObserver(any(FileAlterationObserver.class));
+        var observerCaptor = org.mockito.ArgumentCaptor.forClass(FileAlterationObserver.class);
+        verify(monitor).addObserver(observerCaptor.capture());
+        assertTrue(observerCaptor.getValue().getListeners().iterator().hasNext());
     }
 }
