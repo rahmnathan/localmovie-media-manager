@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +49,7 @@ public class SubtitleSyncService {
 
     private final ServiceConfig serviceConfig;
     private final MeterRegistry meterRegistry;
+    private final KubernetesClient kubernetesClient;
 
     @EventListener(ApplicationReadyEvent.class)
     public void cleanupStaleSyncArtifacts() {
@@ -102,10 +102,8 @@ public class SubtitleSyncService {
 
             Files.writeString(inputFile, subtitleContent, StandardCharsets.UTF_8);
 
-            try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-                String namespace = getNamespace();
-                createSyncJob(client, namespace, jobName, videoFile, inputFile, outputFile);
-            }
+            String namespace = getNamespace();
+            createSyncJob(kubernetesClient, namespace, jobName, videoFile, inputFile, outputFile);
 
             log.info("Launched subtitle sync job {} for video: {}", jobName, videoPath);
             return Optional.of(new SyncJobInfo(jobName, tempDir.toString()));
@@ -128,9 +126,9 @@ public class SubtitleSyncService {
      * @return The current sync status
      */
     public SubtitleSyncStatus checkSyncJobStatus(String jobName) {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+        try {
             String namespace = getNamespace();
-            Job job = client.batch().v1().jobs().inNamespace(namespace).withName(jobName).get();
+            Job job = kubernetesClient.batch().v1().jobs().inNamespace(namespace).withName(jobName).get();
 
             if (job == null) {
                 log.warn("Sync job not found: {}", jobName);
@@ -196,9 +194,9 @@ public class SubtitleSyncService {
      */
     public void cleanupSyncJob(String jobName, String tempDir) {
         // Delete Kubernetes job
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+        try {
             String namespace = getNamespace();
-            client.batch().v1().jobs().inNamespace(namespace).withName(jobName).delete();
+            kubernetesClient.batch().v1().jobs().inNamespace(namespace).withName(jobName).delete();
             log.debug("Deleted sync job: {}", jobName);
         } catch (Exception e) {
             log.warn("Failed to delete sync job: {}", jobName, e);
@@ -214,16 +212,16 @@ public class SubtitleSyncService {
      * Get pod logs for a sync job (useful for debugging failures).
      */
     public String getSyncJobLog(String jobName) {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+        try {
             String namespace = getNamespace();
-            return client.pods()
+            return kubernetesClient.pods()
                     .inNamespace(namespace)
                     .withLabel(JOB_NAME_LABEL, jobName)
                     .list()
                     .getItems()
                     .stream()
                     .findAny()
-                    .map(pod -> client.pods().inNamespace(namespace).withName(pod.getMetadata().getName()).getLog())
+                    .map(pod -> kubernetesClient.pods().inNamespace(namespace).withName(pod.getMetadata().getName()).getLog())
                     .orElse("");
         } catch (Exception e) {
             log.warn("Failed to get pod log for job: {}", jobName, e);
@@ -233,7 +231,7 @@ public class SubtitleSyncService {
 
     private void createSyncJob(KubernetesClient client, String namespace, String jobName,
                                Path videoFile, Path inputFile, Path outputFile) throws IOException {
-        Optional<Pod> localmoviesPodOptional = client.pods().inNamespace(namespace).list().getItems().stream()
+        Optional<Pod> localmoviesPodOptional = kubernetesClient.pods().inNamespace(namespace).list().getItems().stream()
                 .filter(pod -> "localmovies".equalsIgnoreCase(labelValue(pod, APP_LABEL)))
                 .findAny();
 
@@ -295,7 +293,7 @@ public class SubtitleSyncService {
                 .build();
 
         log.info("Creating subtitle sync job with name: {}", jobName);
-        client.batch().v1().jobs().inNamespace(namespace).resource(job).create();
+        kubernetesClient.batch().v1().jobs().inNamespace(namespace).resource(job).create();
     }
 
     private String getNamespace() throws IOException {

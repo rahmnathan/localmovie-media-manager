@@ -1,19 +1,15 @@
 package com.github.rahmnathan.localmovie.media.job;
 
-import com.github.rahmnathan.localmovie.TestContainersConfiguration;
+import com.github.rahmnathan.localmovie.BaseIntegrationTest;
 import com.github.rahmnathan.localmovie.media.MediaInitializer;
 import com.github.rahmnathan.localmovie.media.event.MediaEventService;
 import com.github.rahmnathan.localmovie.data.MediaJobStatus;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaJob;
 import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,10 +26,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
-@Import(TestContainersConfiguration.class)
-class MediaJobServiceTest {
+class MediaJobServiceTest extends BaseIntegrationTest {
 
     @MockitoBean
     KubernetesService kubernetesService;

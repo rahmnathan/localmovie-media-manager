@@ -28,6 +28,7 @@ import static com.github.rahmnathan.localmovie.web.filter.LoggingFilter.X_CORREL
 public class MediaEventMonitor implements DirectoryMonitorObserver {
 
     public static final Set<String> ACTIVE_STATUSES = Set.of(MediaJobStatus.QUEUED.name(), MediaJobStatus.RUNNING.name());
+    private static final Set<String> PRODUCED_OUTPUT_STATUSES = Set.of(MediaJobStatus.SUCCEEDED.name());
     private static final String HANDBRAKE_PRESET = "Chromecast 1080p60 Surround";
 
     private final MediaJobRepository mediaJobRepository;
@@ -59,6 +60,11 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
             MediaPath path = MediaPath.parse(file);
 
             if (event == StandardWatchEventKinds.ENTRY_CREATE && !path.isIgnore()) {
+                if (isProducedConversionOutput(file)) {
+                    log.info("File {} was produced by a completed conversion job. Skipping create event.", absolutePath);
+                    return;
+                }
+
                 waitForWriteComplete(file);
                 if (path.isStreamable() && serviceConfig.getConversionService().isEnabled()) {
                     Path outputPath = Paths.get(path.getDestinationPath());
@@ -72,6 +78,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
                     eventService.handleCreateEvent(path);
                 }
             } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
+                clearProducedConversionOutput(file);
                 eventService.handleDeleteEvent(path);
             }
         } finally {
@@ -97,8 +104,23 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
     }
 
     private boolean isActiveConversion(File file) {
-        return mediaJobRepository.existsByOutputFileAndStatusIn(file.toString(), ACTIVE_STATUSES) ||
-                mediaJobRepository.existsByInputFileAndStatusIn(file.toString(), ACTIVE_STATUSES);
+        String filePath = file.toString();
+        return mediaJobRepository.existsByOutputFileAndStatusIn(filePath, ACTIVE_STATUSES) ||
+                mediaJobRepository.existsByInputFileAndStatusIn(filePath, ACTIVE_STATUSES);
+    }
+
+    private boolean isProducedConversionOutput(File file) {
+        return mediaJobRepository.existsByOutputFileAndStatusIn(file.toString(), PRODUCED_OUTPUT_STATUSES);
+    }
+
+    private void clearProducedConversionOutput(File file) {
+        var completedOutputJobs = mediaJobRepository.findAllByOutputFile(file.toString()).stream()
+                .filter(job -> MediaJobStatus.SUCCEEDED.name().equals(job.getStatus()))
+                .toList();
+        if (!completedOutputJobs.isEmpty()) {
+            log.info("Clearing completed conversion output history for deleted file: {}", file);
+            mediaJobRepository.deleteAll(completedOutputJobs);
+        }
     }
 
     private void waitForWriteComplete(File file) {

@@ -5,8 +5,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +25,10 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class KubernetesService {
+
+    private final KubernetesClient kubernetesClient;
 
     private static final String JOB_NAME = "job-name";
     private static final String JOB_ID_LABEL = "jobId";
@@ -39,43 +40,38 @@ public class KubernetesService {
     private static final Pattern FFMPEG_SPEED_PATTERN = Pattern.compile("(?m)(?:^|\\s)speed=\\s*([0-9.]+)x");
 
     public Optional<MediaJobStatus> getJobStatus(String jobId) throws IOException {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+        Optional<JobStatus> jobStatusOptional = kubernetesClient.batch().v1().jobs().inNamespace(getNamespace())
+                .withLabel(JOB_ID_LABEL, jobId).list().getItems()
+                .stream()
+                .findFirst()
+                .map(Job::getStatus);
 
-            Optional<JobStatus> jobStatusOptional = client.batch().v1().jobs().inNamespace(getNamespace())
-                    .withLabel(JOB_ID_LABEL, jobId).list().getItems()
-                    .stream()
-                    .findFirst()
-                    .map(Job::getStatus);
+        if (jobStatusOptional.isPresent()) {
 
-            if (jobStatusOptional.isPresent()) {
+            JobStatus jobStatus = jobStatusOptional.get();
 
-                JobStatus jobStatus = jobStatusOptional.get();
-
-                if (jobStatus.getSucceeded() != null && jobStatus.getSucceeded() > 0) {
-                    return Optional.of(MediaJobStatus.SUCCEEDED);
-                } else if (jobStatus.getFailed() != null && jobStatus.getFailed() > 0) {
-                    return Optional.of(MediaJobStatus.FAILED);
-                } else if (jobStatus.getActive() != null && jobStatus.getActive() > 0) {
-                    return Optional.of(MediaJobStatus.RUNNING);
-                }
+            if (jobStatus.getSucceeded() != null && jobStatus.getSucceeded() > 0) {
+                return Optional.of(MediaJobStatus.SUCCEEDED);
+            } else if (jobStatus.getFailed() != null && jobStatus.getFailed() > 0) {
+                return Optional.of(MediaJobStatus.FAILED);
+            } else if (jobStatus.getActive() != null && jobStatus.getActive() > 0) {
+                return Optional.of(MediaJobStatus.RUNNING);
             }
-
-            return Optional.empty();
         }
+
+        return Optional.empty();
     }
 
     public void deleteJob(String jobId) throws IOException {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            Optional<Job> jobOptional = client.batch().v1().jobs()
-                    .inNamespace(getNamespace())
-                    .withLabel(JOB_ID_LABEL, jobId).list().getItems().stream()
-                    .findAny();
+        Optional<Job> jobOptional = kubernetesClient.batch().v1().jobs()
+                .inNamespace(getNamespace())
+                .withLabel(JOB_ID_LABEL, jobId).list().getItems().stream()
+                .findAny();
 
-            if(jobOptional.isPresent()) {
-                client.batch().v1().jobs().inNamespace(getNamespace()).resource(jobOptional.get()).delete();
-            } else {
-                log.warn("No kubernetes job found for jobId: {}", jobId);
-            }
+        if(jobOptional.isPresent()) {
+            kubernetesClient.batch().v1().jobs().inNamespace(getNamespace()).resource(jobOptional.get()).delete();
+        } else {
+            log.warn("No kubernetes job found for jobId: {}", jobId);
         }
     }
 
@@ -86,46 +82,43 @@ public class KubernetesService {
     public Optional<Duration> getETA(String jobId, Long durationSeconds) throws IOException {
         String namespace = getNamespace();
 
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+        // Lookup job by jobId
+        List<Job> jobList = kubernetesClient.batch().v1().jobs()
+                .inNamespace(namespace)
+                .withLabel(JOB_ID_LABEL, jobId)
+                .list()
+                .getItems();
 
-            // Lookup job by jobId
-            List<Job> jobList = client.batch().v1().jobs()
-                    .inNamespace(namespace)
-                    .withLabel(JOB_ID_LABEL, jobId)
-                    .list()
-                    .getItems();
-
-            if (jobList.isEmpty()) {
-                log.warn("No Kubernetes jobs for jobId: {}", jobId);
-                return Optional.empty();
-            }
-
-            String jobName = jobList.getFirst().getMetadata().getName();
-
-            // Find running pod associated with job
-            Optional<Pod> podOptional = client.pods()
-                    .inNamespace(namespace)
-                    .withLabel(JOB_NAME, jobName)
-                    .list().getItems().stream()
-                    .filter(pod -> "running".equalsIgnoreCase(Optional.ofNullable(pod.getStatus())
-                            .map(status -> status.getPhase())
-                            .orElse(null)))
-                    .findAny();
-
-            if (podOptional.isEmpty()) {
-                log.warn("No running pod for jobId: {}", jobId);
-                return Optional.empty();
-            }
-
-            String podName = podOptional.get().getMetadata().getName();
-
-            String podLog = client.pods()
-                    .inNamespace(namespace)
-                    .withName(podName)
-                    .getLog();
-
-            return parseETA(podLog, durationSeconds);
+        if (jobList.isEmpty()) {
+            log.warn("No Kubernetes jobs for jobId: {}", jobId);
+            return Optional.empty();
         }
+
+        String jobName = jobList.getFirst().getMetadata().getName();
+
+        // Find running pod associated with job
+        Optional<Pod> podOptional = kubernetesClient.pods()
+                .inNamespace(namespace)
+                .withLabel(JOB_NAME, jobName)
+                .list().getItems().stream()
+                .filter(pod -> "running".equalsIgnoreCase(Optional.ofNullable(pod.getStatus())
+                        .map(status -> status.getPhase())
+                        .orElse(null)))
+                .findAny();
+
+        if (podOptional.isEmpty()) {
+            log.warn("No running pod for jobId: {}", jobId);
+            return Optional.empty();
+        }
+
+        String podName = podOptional.get().getMetadata().getName();
+
+        String podLog = kubernetesClient.pods()
+                .inNamespace(namespace)
+                .withName(podName)
+                .getLog();
+
+        return parseETA(podLog, durationSeconds);
     }
 
     Optional<Duration> parseETA(String podLog, Long durationSeconds) {

@@ -1,15 +1,17 @@
 package com.github.rahmnathan.localmovie.media.job;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class KubernetesServiceTest {
 
-    private final KubernetesService kubernetesService = new KubernetesService();
+    private final KubernetesService kubernetesService = new KubernetesService(mock(KubernetesClient.class));
 
     @Test
     void parsesHandbrakeEta() {
