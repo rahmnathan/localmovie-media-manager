@@ -102,8 +102,12 @@ public class SubtitleSyncService {
             Path inputFile = tempDir.resolve("input.vtt");
             Path outputFile = tempDir.resolve("output.vtt");
 
+            var filePermissions = PosixFilePermissions.fromString("rw-rw-rw-");
             Files.writeString(inputFile, subtitleContent, StandardCharsets.UTF_8);
-            Files.setPosixFilePermissions(inputFile, PosixFilePermissions.fromString("rw-rw-rw-"));
+            Files.setPosixFilePermissions(inputFile, filePermissions);
+            // Pre-create output file with write permissions for the sync job
+            Files.createFile(outputFile);
+            Files.setPosixFilePermissions(outputFile, filePermissions);
 
             String namespace = getNamespace();
             createSyncJob(kubernetesClient, namespace, jobName, videoFile, inputFile, outputFile);
