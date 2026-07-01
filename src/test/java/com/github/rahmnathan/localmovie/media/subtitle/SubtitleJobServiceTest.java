@@ -72,6 +72,8 @@ class SubtitleJobServiceTest {
                 .thenReturn(List.of());
         // Default: sync disabled
         when(subtitleSyncService.isSyncEnabled()).thenReturn(false);
+        // Return the same job when saving (to handle version updates)
+        when(subtitleJobRepository.save(any(SubtitleJob.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test

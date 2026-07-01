@@ -220,7 +220,7 @@ public class SubtitleJobService {
 
     private void processJob(SubtitleJob job) {
         job.setStatus(SubtitleJobStatus.RUNNING);
-        subtitleJobRepository.save(job);
+        job = subtitleJobRepository.save(job);
 
         try {
             MediaFile mediaFile = job.getMediaFile();
