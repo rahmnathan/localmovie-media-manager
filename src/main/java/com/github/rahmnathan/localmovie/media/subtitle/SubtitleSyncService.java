@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -96,11 +97,13 @@ public class SubtitleSyncService {
             }
 
             String jobName = "subtitle-sync-" + UUID.randomUUID().toString().substring(0, 8);
-            tempDir = Files.createTempDirectory(videoFile.getParent(), SUBTITLE_SYNC_TEMP_PREFIX + jobName + "-");
+            var dirPermissions = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx"));
+            tempDir = Files.createTempDirectory(videoFile.getParent(), SUBTITLE_SYNC_TEMP_PREFIX + jobName + "-", dirPermissions);
             Path inputFile = tempDir.resolve("input.vtt");
             Path outputFile = tempDir.resolve("output.vtt");
 
             Files.writeString(inputFile, subtitleContent, StandardCharsets.UTF_8);
+            Files.setPosixFilePermissions(inputFile, PosixFilePermissions.fromString("rw-rw-rw-"));
 
             String namespace = getNamespace();
             createSyncJob(kubernetesClient, namespace, jobName, videoFile, inputFile, outputFile);

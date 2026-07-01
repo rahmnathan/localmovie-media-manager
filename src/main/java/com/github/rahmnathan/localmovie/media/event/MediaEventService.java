@@ -41,7 +41,7 @@ public class MediaEventService {
             }
         }
 
-        notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getParentPath());
+        notificationHandler.sendPushNotifications(mediaFile.getMedia().getTitle(), mediaFile.getMediaFileId());
     }
 
     public void handleDeleteEvent(MediaPath path) {

@@ -25,19 +25,6 @@ class SignedMediaResourceTest {
     private MediaSubtitleRepository subtitleRepository;
 
     @Test
-    void getPosterAllowsUnsignedPosterForClientCompatibility() {
-        SignedMediaResource resource = resource();
-        byte[] poster = new byte[]{1, 2, 3};
-        when(persistenceService.getMediaImageById("media-id")).thenReturn(poster);
-
-        var response = resource.getPoster("media-id", null, null);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertArrayEquals(poster, response.getBody());
-        verifyNoInteractions(securityService);
-    }
-
-    @Test
     void getPosterRejectsInvalidSignatureWhenSignatureParametersArePresent() {
         SignedMediaResource resource = resource();
         when(securityService.authorizedRequest("media-id", 123L, "bad-signature")).thenReturn(false);

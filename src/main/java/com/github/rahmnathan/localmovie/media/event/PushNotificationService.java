@@ -1,6 +1,7 @@
 package com.github.rahmnathan.localmovie.media.event;
 
 import com.github.rahmnathan.localmovie.config.ServiceConfig;
+import com.github.rahmnathan.localmovie.web.SecurityService;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -16,16 +17,19 @@ import org.springframework.stereotype.Service;
 public class PushNotificationService {
     private static final String MOVIE_TOPIC = "movies";
     private final ServiceConfig serviceConfig;
+    private final SecurityService securityService;
     private FirebaseMessaging firebaseApp;
 
-    void sendPushNotifications(String title, String path) {
+    void sendPushNotifications(String title, String mediaFileId) {
         if (serviceConfig.isNotificationsEnabled()) {
-            log.info("Sending notification of new movie: {} to {} clients", path, MOVIE_TOPIC);
+            log.info("Sending notification of new movie: {} to {} clients", title, MOVIE_TOPIC);
+
+            String signedPosterUrl = securityService.generateSignedPosterUrl(mediaFileId).getPoster();
 
             Message msg = Message.builder()
                     .setTopic(MOVIE_TOPIC)
                     .putData("title", "New Movie!")
-                    .putData("path", path)
+                    .putData("posterUrl", signedPosterUrl)
                     .putData("body", title)
                     .setNotification(Notification.builder()
                             .setBody(title)
