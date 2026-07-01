@@ -38,6 +38,7 @@ public class ServiceConfig {
     @Data
     public static class ConversionServiceConfig {
         private boolean enabled;
+        private String encoder = "HANDBRAKE";
     }
 
     @Data

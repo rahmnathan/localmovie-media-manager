@@ -34,6 +34,12 @@ class MediaJobServiceTest {
     @MockitoBean
     MediaEventService mediaEventService;
 
+    @MockitoBean(name = "handbrakeVideoConverter")
+    VideoConverter handbrakeVideoConverter;
+
+    @MockitoBean(name = "ffmpegVideoConverter")
+    VideoConverter ffmpegVideoConverter;
+
     private final MediaJobService mediaJobService;
     private final MediaJobRepository jobRepository;
 
@@ -63,7 +69,7 @@ class MediaJobServiceTest {
 
         mediaJobService.scanQueuedJobs();
 
-        verify(kubernetesService).launchVideoConverter(any(), any());
+        verify(handbrakeVideoConverter).launchVideoConverter(any(), any());
     }
 
     @Test
