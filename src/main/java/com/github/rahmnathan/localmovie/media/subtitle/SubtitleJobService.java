@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,71 +117,79 @@ public class SubtitleJobService {
         String jobName = job.getSyncJobName();
         String tempDir = job.getSyncTempDir();
 
-        SubtitleSyncStatus syncStatus = subtitleSyncService.checkSyncJobStatus(jobName);
+        try {
+            SubtitleSyncStatus syncStatus = subtitleSyncService.checkSyncJobStatus(jobName);
 
-        if (syncStatus == SubtitleSyncStatus.RUNNING) {
-            // Check if sync has timed out
-            LocalDateTime syncTimeout = LocalDateTime.now()
-                    .minusSeconds(serviceConfig.getOpensubtitles().getSyncTimeoutSeconds());
-            if (job.getUpdated() != null && job.getUpdated().isBefore(syncTimeout)) {
-                log.warn("Sync job {} timed out for MediaFile: {}, using unsynced subtitle",
-                        jobName, job.getMediaFile().getMediaFileId());
-                syncStatus = SubtitleSyncStatus.FAILED;
-                job.setErrorMessage("Sync timed out after " + serviceConfig.getOpensubtitles().getSyncTimeoutSeconds() + " seconds");
-            } else {
-                // Still running within timeout, check again next cycle
-                return;
+            if (syncStatus == SubtitleSyncStatus.RUNNING) {
+                // Check if sync has timed out
+                LocalDateTime syncTimeout = LocalDateTime.now()
+                        .minusSeconds(serviceConfig.getOpensubtitles().getSyncTimeoutSeconds());
+                if (job.getUpdated() != null && job.getUpdated().isBefore(syncTimeout)) {
+                    log.warn("Sync job {} timed out for MediaFile: {}, using unsynced subtitle",
+                            jobName, job.getMediaFile().getMediaFileId());
+                    syncStatus = SubtitleSyncStatus.FAILED;
+                    job.setErrorMessage("Sync timed out after " + serviceConfig.getOpensubtitles().getSyncTimeoutSeconds() + " seconds");
+                } else {
+                    // Still running within timeout, check again next cycle
+                    return;
+                }
             }
-        }
 
-        MediaFile mediaFile = job.getMediaFile();
-        String subtitleContent;
+            MediaFile mediaFile = job.getMediaFile();
+            String subtitleContent;
 
-        if (syncStatus == SubtitleSyncStatus.SUCCEEDED) {
-            Optional<String> syncedContent = subtitleSyncService.collectSyncResult(jobName, tempDir);
-            if (syncedContent.isPresent()) {
-                subtitleContent = syncedContent.get();
-                job.setSyncStatus(SubtitleSyncStatus.SUCCEEDED);
-                log.info("Subtitle sync succeeded for MediaFile: {}", mediaFile.getMediaFileId());
+            if (syncStatus == SubtitleSyncStatus.SUCCEEDED) {
+                Optional<String> syncedContent = subtitleSyncService.collectSyncResult(jobName, tempDir);
+                if (syncedContent.isPresent()) {
+                    subtitleContent = syncedContent.get();
+                    job.setSyncStatus(SubtitleSyncStatus.SUCCEEDED);
+                    log.info("Subtitle sync succeeded for MediaFile: {}", mediaFile.getMediaFileId());
+                } else {
+                    // Sync job succeeded but couldn't read output, use original
+                    subtitleContent = job.getUnsyncedContent();
+                    job.setSyncStatus(SubtitleSyncStatus.FAILED);
+                    job.setErrorMessage("Sync succeeded but could not read output file");
+                    log.warn("Sync succeeded but could not read output for MediaFile: {}, using unsynced subtitle",
+                            mediaFile.getMediaFileId());
+                }
             } else {
-                // Sync job succeeded but couldn't read output, use original
+                // Sync failed or timed out, use original unsynced content
                 subtitleContent = job.getUnsyncedContent();
                 job.setSyncStatus(SubtitleSyncStatus.FAILED);
-                job.setErrorMessage("Sync succeeded but could not read output file");
-                log.warn("Sync succeeded but could not read output for MediaFile: {}, using unsynced subtitle",
-                        mediaFile.getMediaFileId());
+                if (job.getErrorMessage() == null) {
+                    String podLog = subtitleSyncService.getSyncJobLog(jobName);
+                    job.setErrorMessage(truncate("Sync failed: " + podLog, 500));
+                }
+                log.warn("Subtitle sync failed for MediaFile: {}, using unsynced subtitle. Error: {}",
+                        mediaFile.getMediaFileId(), job.getErrorMessage());
             }
-        } else {
-            // Sync failed or timed out, use original unsynced content
-            subtitleContent = job.getUnsyncedContent();
-            job.setSyncStatus(SubtitleSyncStatus.FAILED);
-            if (job.getErrorMessage() == null) {
-                String podLog = subtitleSyncService.getSyncJobLog(jobName);
-                job.setErrorMessage(truncate("Sync failed: " + podLog, 500));
-            }
-            log.warn("Subtitle sync failed for MediaFile: {}, using unsynced subtitle. Error: {}",
-                    mediaFile.getMediaFileId(), job.getErrorMessage());
+
+            // Persist the subtitle (synced or unsynced)
+            SubtitleResult subtitle = SubtitleResult.builder()
+                    .content(subtitleContent)
+                    .languageCode("en")
+                    .format("vtt")
+                    .opensubtitlesId(job.getOpensubtitlesId())
+                    .build();
+            upsertSubtitle(mediaFile, subtitle);
+
+            // Mark job as succeeded (we got a subtitle either way)
+            job.setStatus(SubtitleJobStatus.SUCCEEDED);
+            job.setUnsyncedContent(null); // Clear to save space
+            job.setOpensubtitlesId(null); // Clear since it's now in MediaSubtitle
+            subtitleJobRepository.save(job);
+
+            // Cleanup Kubernetes resources
+            subtitleSyncService.cleanupSyncJob(jobName, tempDir);
+
+            log.info("Completed subtitle job for MediaFile: {}", mediaFile.getMediaFileId());
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            log.warn("Optimistic locking failure for sync job {}, skipping (will be retried)", jobName);
+        } catch (Exception e) {
+            log.error("Failed to process sync job {} for MediaFile: {}",
+                    jobName, job.getMediaFile().getMediaFileId(), e);
         }
-
-        // Persist the subtitle (synced or unsynced)
-        SubtitleResult subtitle = SubtitleResult.builder()
-                .content(subtitleContent)
-                .languageCode("en")
-                .format("vtt")
-                .opensubtitlesId(job.getOpensubtitlesId())
-                .build();
-        upsertSubtitle(mediaFile, subtitle);
-
-        // Mark job as succeeded (we got a subtitle either way)
-        job.setStatus(SubtitleJobStatus.SUCCEEDED);
-        job.setUnsyncedContent(null); // Clear to save space
-        job.setOpensubtitlesId(null); // Clear since it's now in MediaSubtitle
-        subtitleJobRepository.save(job);
-
-        // Cleanup Kubernetes resources
-        subtitleSyncService.cleanupSyncJob(jobName, tempDir);
-
-        log.info("Completed subtitle job for MediaFile: {}", mediaFile.getMediaFileId());
     }
 
     private void requeueStaleRunningJobs() {
@@ -290,6 +299,10 @@ public class SubtitleJobService {
             job.setErrorMessage(null);
             subtitleJobRepository.save(job);
 
+        } catch (ObjectOptimisticLockingFailureException e) {
+            // Job was modified by another process (e.g., requeueStaleRunningJobs), skip it
+            log.warn("Optimistic locking failure for subtitle job {}, skipping (will be retried)",
+                    job.getMediaFile().getMediaFileId());
         } catch (Exception e) {
             log.error("Failed to process subtitle job for MediaFile: {}",
                     job.getMediaFile().getMediaFileId(), e);
@@ -303,7 +316,12 @@ public class SubtitleJobService {
                 job.setStatus(SubtitleJobStatus.QUEUED);
             }
 
-            subtitleJobRepository.save(job);
+            try {
+                subtitleJobRepository.save(job);
+            } catch (ObjectOptimisticLockingFailureException ole) {
+                log.warn("Optimistic locking failure while saving error state for job {}, skipping",
+                        job.getMediaFile().getMediaFileId());
+            }
         }
     }
 
