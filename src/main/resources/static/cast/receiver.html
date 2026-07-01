@@ -6,6 +6,7 @@
     <script type="text/javascript"
         src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js">
     </script>
+    <script type="text/javascript" src="/cast/subtitle-offset.js"></script>
 </head>
 <body>
     <cast-media-player></cast-media-player>
@@ -57,6 +58,11 @@
                 lastSavedPositionSec = -1;
                 updateUiState('Loading', 'is-idle');
 
+                // Clear subtitle cache when loading new media
+                if (window.SubtitleOffset) {
+                    window.SubtitleOffset.clearCache();
+                }
+
                 var url = getUpdatePositionUrl(request);
                 if (url) {
                     currentUpdatePositionUrl = url;
@@ -69,6 +75,28 @@
                 return request;
             }
         );
+
+        // Custom namespace for LocalMovies app messages
+        var CAST_NAMESPACE = 'urn:x-cast:com.nathanrahm.localmovies';
+
+        // Set up custom message handler before starting
+        context.addCustomMessageListener(CAST_NAMESPACE, function(event) {
+            console.log('Received custom message:', event.data);
+            try {
+                var message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (message.type === 'SET_SUBTITLE_OFFSET') {
+                    var offsetSeconds = message.offsetSeconds || 0;
+                    console.log('Setting subtitle offset to:', offsetSeconds, 'seconds');
+                    if (window.SubtitleOffset) {
+                        window.SubtitleOffset.applyOffset(playerManager, offsetSeconds);
+                    } else {
+                        console.error('SubtitleOffset module not loaded');
+                    }
+                }
+            } catch (e) {
+                console.error('Error handling custom message:', e);
+            }
+        });
 
         context.start();
 
