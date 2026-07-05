@@ -1,0 +1,28 @@
+# Gateway API HTTPRoute - replaces ingress.yaml after migration to Envoy Gateway
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: localmovies
+spec:
+  parentRefs:
+    - name: main-gateway
+      namespace: envoy-gateway-system
+  hostnames:
+    - movies.nathanrahm.com
+  rules:
+    # Block /actuator (return 404 - no backend)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /actuator
+      # No backendRefs = 404
+
+    # Default route
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: localmovies
+          port: 8080
