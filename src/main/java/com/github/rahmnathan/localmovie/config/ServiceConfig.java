@@ -49,6 +49,7 @@ public class ServiceConfig {
     public static class OmdbConfig {
         private boolean enabled;
         private String apiKey;
+        private long retryDelayMs = 3600000L; // 1 hour default
     }
 
     @Data

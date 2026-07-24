@@ -32,6 +32,13 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
            "AND NOT EXISTS (SELECT 1 FROM SubtitleJob sj WHERE sj.mediaFile = mf AND sj.status IN ('QUEUED', 'RUNNING'))")
     List<MediaFile> findMediaFilesNeedingSubtitles();
 
+    @Query("SELECT mf FROM MediaFile mf " +
+           "JOIN FETCH mf.media m " +
+           "WHERE mf.streamable = true " +
+           "AND m.imdbId IS NULL " +
+           "ORDER BY mf.created DESC")
+    List<MediaFile> findStreamableMediaFilesMissingImdbId(Pageable pageable);
+
     @Query("SELECT COUNT(mf) FROM MediaFile mf " +
            "JOIN mf.media m " +
            "WHERE mf.mediaFileType IN (com.github.rahmnathan.localmovie.data.MediaFileType.MOVIE, " +
