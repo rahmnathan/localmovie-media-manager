@@ -47,15 +47,8 @@ public class MediaFileTransformer {
             builder.media(mediaDto.build());
         }
 
-        MediaView mediaView = selectedView;
-        if (mediaView == null) {
-            Set<MediaView> mediaViews = mediaFile.getMediaViews();
-            if (mediaViews != null && !mediaViews.isEmpty()) {
-                mediaView = mediaViews.iterator().next();
-            }
-        }
-        if (mediaView != null) {
-            builder.mediaViews(Set.of(toMediaViewDto(mediaView)));
+        if (selectedView != null) {
+            builder.mediaViews(Set.of(toMediaViewDto(selectedView)));
         }
 
         // Build parent chain for episode context (episode -> season -> series)

@@ -45,6 +45,7 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
     const mediaViews = mediaFile.mediaViews;
     const canResume = mediaViews?.length > 0 && (mediaViews[0]?.position || 0) > 0;
     const runtime = mediaViews?.length > 0 ? formatRuntime(mediaViews[0]?.duration) : null;
+    const resumePosition = canResume ? formatRuntime(mediaViews[0]?.position) : null;
 
     const handlePlay = () => {
         if (playMedia) {
@@ -165,7 +166,7 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
                                         className="detailed-media-btn detailed-media-btn--secondary"
                                         onClick={handleResume}
                                     >
-                                        ⏯ Resume
+                                        ⏯ Resume{resumePosition ? ` at ${resumePosition}` : ''}
                                     </button>
                                 )}
                             </div>
