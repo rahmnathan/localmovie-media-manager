@@ -63,6 +63,11 @@ class SecurityConfig {
                     oauth2.bearerTokenResolver(resolver);
                 })
                 .oauth2Login(Customizer.withDefaults())
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID"))
                 .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();

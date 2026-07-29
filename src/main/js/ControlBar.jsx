@@ -48,6 +48,10 @@ const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled
         localStorage.setItem(AUTOPLAY_KEY, String(newValue));
     };
 
+    const handleLogout = () => {
+        window.location.href = '/logout';
+    };
+
     return (
         <div className="settings-dropdown" ref={dropdownRef}>
             <div className="settings-dropdown__header">Settings</div>
@@ -62,6 +66,13 @@ const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled
                     <span className="settings-dropdown__toggle-knob" />
                 </button>
             </label>
+            <div className="settings-dropdown__divider" />
+            <button
+                className="settings-dropdown__logout"
+                onClick={handleLogout}
+            >
+                Logout
+            </button>
         </div>
     );
 };
