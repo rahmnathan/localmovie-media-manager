@@ -27,6 +27,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
@@ -40,6 +45,8 @@ public class MediaAdminResource {
             MediaJobStatus.QUEUED.name(),
             MediaJobStatus.RUNNING.name()
     );
+    private static final int MAX_POSTER_WIDTH = 500;
+    private static final int MAX_POSTER_HEIGHT = 750;
 
     private final MediaUpdateService updateService;
     private final ServiceConfig serviceConfig;
@@ -289,7 +296,8 @@ public class MediaAdminResource {
         }
 
         try {
-            byte[] imageBytes = file.getBytes();
+            byte[] imageBytes = resizeImage(file.getBytes());
+            log.info("Resized poster for {} - final size: {} bytes", mediaFileId, imageBytes.length);
 
             MediaImage existingImage = media.getImage();
             if (existingImage != null) {
@@ -304,9 +312,45 @@ public class MediaAdminResource {
 
             return ResponseEntity.ok().build();
         } catch (IOException e) {
-            log.error("Failed to read poster file for {}", mediaFileId, e);
+            log.error("Failed to process poster file for {}", mediaFileId, e);
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    private byte[] resizeImage(byte[] originalBytes) throws IOException {
+        BufferedImage original = ImageIO.read(new ByteArrayInputStream(originalBytes));
+        if (original == null) {
+            throw new IOException("Unable to read image");
+        }
+
+        int originalWidth = original.getWidth();
+        int originalHeight = original.getHeight();
+
+        // If already small enough, return original
+        if (originalWidth <= MAX_POSTER_WIDTH && originalHeight <= MAX_POSTER_HEIGHT) {
+            return originalBytes;
+        }
+
+        // Calculate new dimensions maintaining aspect ratio
+        double widthRatio = (double) MAX_POSTER_WIDTH / originalWidth;
+        double heightRatio = (double) MAX_POSTER_HEIGHT / originalHeight;
+        double ratio = Math.min(widthRatio, heightRatio);
+
+        int newWidth = (int) (originalWidth * ratio);
+        int newHeight = (int) (originalHeight * ratio);
+
+        // Create resized image
+        BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resized.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.drawImage(original, 0, 0, newWidth, newHeight, null);
+        g.dispose();
+
+        // Write to JPEG with good quality
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        ImageIO.write(resized, "jpg", output);
+        return output.toByteArray();
     }
 
     @Data
