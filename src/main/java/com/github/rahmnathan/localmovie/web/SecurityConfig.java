@@ -82,8 +82,8 @@ class SecurityConfig {
                                         "/swagger-ui/**",
                                         "/swagger-ui.html")
                                 .permitAll()
-//                                .requestMatchers("/admin/**")
-//                                .hasRole("movie-admin")
+                                .requestMatchers("/admin/**")
+                                .hasRole("movie-admin")
                                 .anyRequest()
                                 .authenticated())
                 .oauth2ResourceServer(oauth2 -> {

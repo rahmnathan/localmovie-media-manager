@@ -16,6 +16,7 @@ public interface MediaFileRepository extends CrudRepository<MediaFile, String> {
     Optional<MediaFile> findByPath(String path);
     boolean existsByPath(String path);
     void deleteByPath(String path);
+    void deleteByPathStartingWith(String pathPrefix);
     Optional<MediaFile> findByMediaFileId(String id);
 
     @Query(value = "select m1 from MediaFile m1 " +

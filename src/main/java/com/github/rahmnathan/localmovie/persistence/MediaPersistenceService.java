@@ -62,6 +62,13 @@ public class MediaPersistenceService {
         fileRepository.deleteByPath(path);
     }
 
+    @Transactional
+    public void deleteAllByRelativePathPrefix(String pathPrefix) {
+        // Delete by prefix to handle directory renames - all children should be deleted too
+        eventRepository.deleteAllByRelativePathStartingWith(pathPrefix);
+        fileRepository.deleteByPathStartingWith(pathPrefix);
+    }
+
     public Optional<MediaFile> findByMediaFileId(String id) {
         return fileRepository.findByMediaFileId(id);
     }

@@ -47,8 +47,13 @@ public class MediaEventService {
     public void handleDeleteEvent(MediaPath path) {
         String relativePath = path.getRelativePath();
         if (persistenceService.existsByPath(relativePath)) {
-            log.info("Removing media from database.");
+            log.info("Removing media from database - path: {}", relativePath);
+            // Delete the exact path
             persistenceService.deleteAllByRelativePath(relativePath);
+            // Also delete children (path + "/") to handle directory renames - this ensures
+            // all children (seasons, episodes) are deleted when a series folder is removed
+            // Using "/" suffix prevents matching "ShowName Extended" when deleting "ShowName"
+            persistenceService.deleteAllByRelativePathPrefix(relativePath + "/");
         }
 
         MediaFileEvent event = new MediaFileEvent(MediaEventType.ENTRY_DELETE.getMovieEventString(), relativePath);
