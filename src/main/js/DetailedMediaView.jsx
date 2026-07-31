@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { buildPosterUri } from './Media.jsx';
 
@@ -23,6 +23,9 @@ const formatRuntime = (seconds) => {
 
 export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite, isLoadingDetails = false, adminModeEnabled = false }) => {
     const [adminActionStatus, setAdminActionStatus] = useState(null);
+    const [isEditingMetadata, setIsEditingMetadata] = useState(false);
+    const [metadataForm, setMetadataForm] = useState({});
+    const posterInputRef = useRef(null);
 
     if (!mediaFile) return null;
 
@@ -99,6 +102,91 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
             }
         } catch (err) {
             setAdminActionStatus({ type: 'error', message: 'Network error' });
+        }
+        setTimeout(() => setAdminActionStatus(null), 3000);
+    };
+
+    const handleReconvert = async () => {
+        setAdminActionStatus({ type: 'loading', message: 'Queueing reconversion...' });
+        try {
+            const response = await fetch(`/admin/v1/media/${mediaFile.mediaFileId}/reconvert`, {
+                method: 'POST'
+            });
+            if (response.status === 202) {
+                setAdminActionStatus({ type: 'success', message: 'Reconversion queued' });
+            } else if (response.status === 400) {
+                setAdminActionStatus({ type: 'error', message: 'Media not eligible for reconversion' });
+            } else if (response.status === 409) {
+                setAdminActionStatus({ type: 'error', message: 'Conversion already in progress' });
+            } else {
+                setAdminActionStatus({ type: 'error', message: 'Failed to queue reconversion' });
+            }
+        } catch (err) {
+            setAdminActionStatus({ type: 'error', message: 'Network error' });
+        }
+        setTimeout(() => setAdminActionStatus(null), 3000);
+    };
+
+    const openMetadataEditor = () => {
+        setMetadataForm({
+            title: media.title || '',
+            releaseYear: media.releaseYear || '',
+            genre: media.genre || '',
+            plot: media.plot || '',
+            actors: media.actors || '',
+            imdbRating: media.imdbRating || '',
+            metaRating: media.metaRating || ''
+        });
+        setIsEditingMetadata(true);
+    };
+
+    const handleMetadataChange = (field, value) => {
+        setMetadataForm(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSaveMetadata = async () => {
+        setAdminActionStatus({ type: 'loading', message: 'Saving metadata...' });
+        setIsEditingMetadata(false);
+        try {
+            const response = await fetch(`/admin/v1/media/${mediaFile.mediaFileId}/metadata`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(metadataForm)
+            });
+            if (response.ok) {
+                setAdminActionStatus({ type: 'success', message: 'Metadata saved' });
+            } else {
+                setAdminActionStatus({ type: 'error', message: 'Failed to save metadata' });
+            }
+        } catch (err) {
+            setAdminActionStatus({ type: 'error', message: 'Network error' });
+        }
+        setTimeout(() => setAdminActionStatus(null), 3000);
+    };
+
+    const handlePosterUpload = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setAdminActionStatus({ type: 'loading', message: 'Uploading poster...' });
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch(`/admin/v1/media/${mediaFile.mediaFileId}/poster`, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                setAdminActionStatus({ type: 'success', message: 'Poster uploaded' });
+            } else {
+                setAdminActionStatus({ type: 'error', message: 'Failed to upload poster' });
+            }
+        } catch (err) {
+            setAdminActionStatus({ type: 'error', message: 'Network error' });
+        }
+        // Reset file input
+        if (posterInputRef.current) {
+            posterInputRef.current.value = '';
         }
         setTimeout(() => setAdminActionStatus(null), 3000);
     };
@@ -236,6 +324,120 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
                                         disabled={adminActionStatus?.type === 'loading'}
                                     >
                                         Refresh Metadata
+                                    </button>
+                                    <button
+                                        className="detailed-media-admin__btn"
+                                        onClick={handleReconvert}
+                                        disabled={adminActionStatus?.type === 'loading'}
+                                    >
+                                        Reconvert
+                                    </button>
+                                    <button
+                                        className="detailed-media-admin__btn"
+                                        onClick={openMetadataEditor}
+                                        disabled={adminActionStatus?.type === 'loading'}
+                                    >
+                                        Edit Metadata
+                                    </button>
+                                    <button
+                                        className="detailed-media-admin__btn"
+                                        onClick={() => posterInputRef.current?.click()}
+                                        disabled={adminActionStatus?.type === 'loading'}
+                                    >
+                                        Upload Poster
+                                    </button>
+                                    <input
+                                        ref={posterInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePosterUpload}
+                                        style={{ display: 'none' }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {isEditingMetadata && (
+                            <div className="detailed-media-metadata-editor">
+                                <div className="detailed-media-metadata-editor__header">
+                                    <h3>Edit Metadata</h3>
+                                    <button
+                                        className="detailed-media-metadata-editor__close"
+                                        onClick={() => setIsEditingMetadata(false)}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="detailed-media-metadata-editor__form">
+                                    <label className="detailed-media-metadata-editor__field">
+                                        <span>Title</span>
+                                        <input
+                                            type="text"
+                                            value={metadataForm.title}
+                                            onChange={(e) => handleMetadataChange('title', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="detailed-media-metadata-editor__field">
+                                        <span>Year</span>
+                                        <input
+                                            type="text"
+                                            value={metadataForm.releaseYear}
+                                            onChange={(e) => handleMetadataChange('releaseYear', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="detailed-media-metadata-editor__field">
+                                        <span>Genre</span>
+                                        <input
+                                            type="text"
+                                            value={metadataForm.genre}
+                                            onChange={(e) => handleMetadataChange('genre', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="detailed-media-metadata-editor__field">
+                                        <span>IMDB Rating</span>
+                                        <input
+                                            type="text"
+                                            value={metadataForm.imdbRating}
+                                            onChange={(e) => handleMetadataChange('imdbRating', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="detailed-media-metadata-editor__field">
+                                        <span>Metacritic</span>
+                                        <input
+                                            type="text"
+                                            value={metadataForm.metaRating}
+                                            onChange={(e) => handleMetadataChange('metaRating', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="detailed-media-metadata-editor__field">
+                                        <span>Cast</span>
+                                        <input
+                                            type="text"
+                                            value={metadataForm.actors}
+                                            onChange={(e) => handleMetadataChange('actors', e.target.value)}
+                                        />
+                                    </label>
+                                    <label className="detailed-media-metadata-editor__field detailed-media-metadata-editor__field--full">
+                                        <span>Plot</span>
+                                        <textarea
+                                            value={metadataForm.plot}
+                                            onChange={(e) => handleMetadataChange('plot', e.target.value)}
+                                            rows={4}
+                                        />
+                                    </label>
+                                </div>
+                                <div className="detailed-media-metadata-editor__buttons">
+                                    <button
+                                        className="detailed-media-btn detailed-media-btn--secondary"
+                                        onClick={() => setIsEditingMetadata(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="detailed-media-btn detailed-media-btn--primary"
+                                        onClick={handleSaveMetadata}
+                                    >
+                                        Save
                                     </button>
                                 </div>
                             </div>

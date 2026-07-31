@@ -7,6 +7,7 @@ import com.github.rahmnathan.localmovie.media.subtitle.SubtitleJobService;
 import com.github.rahmnathan.localmovie.persistence.MediaPersistenceService;
 import com.github.rahmnathan.localmovie.persistence.entity.Media;
 import com.github.rahmnathan.localmovie.persistence.entity.MediaFile;
+import com.github.rahmnathan.localmovie.persistence.repository.MediaJobRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,6 +33,8 @@ class MediaAdminResourceTest {
     private MediaPersistenceService persistenceService;
     @Mock
     private SubtitleJobService subtitleJobService;
+    @Mock
+    private MediaJobRepository mediaJobRepository;
 
     @Test
     void syncSubtitlesQueuesForcedSubtitleJob() {
@@ -65,6 +68,7 @@ class MediaAdminResourceTest {
                 serviceConfig,
                 recommendationJobService,
                 persistenceService,
-                subtitleJobService);
+                subtitleJobService,
+                mediaJobRepository);
     }
 }
