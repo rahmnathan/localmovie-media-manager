@@ -2,7 +2,7 @@ import React, {useEffect, useState, useCallback, useRef} from 'react';
 import { MediaList } from './MediaList.jsx';
 import { HistoryList } from './HistoryList.jsx';
 import { RecommendationsList } from './RecommendationsList.jsx';
-import { ControlBar } from './ControlBar.jsx';
+import { ControlBar, getAdminModeEnabled } from './ControlBar.jsx';
 import { trackPromise } from 'react-promise-tracker';
 import {createSearchParams, useNavigate, useSearchParams} from 'react-router-dom';
 import {LoadingIndicator} from "./LoadingIndicator.jsx";
@@ -59,6 +59,7 @@ export function MainPage() {
     const [error, setError] = useState(null);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [adminModeEnabled, setAdminModeEnabled] = useState(getAdminModeEnabled);
     const restoredFromCacheRef = useRef(false);
 
     // Parse error to provide user-friendly message
@@ -378,6 +379,7 @@ export function MainPage() {
                 setType={setType}
                 onClearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
+                onAdminModeChange={setAdminModeEnabled}
             />
             {showBreadcrumb && (
                 <Breadcrumb path={navigationPath} onNavigateBack={navigateBack} />
@@ -416,13 +418,14 @@ export function MainPage() {
                     </p>
                 </div>
             ) : isHistoryView ? (
-                <HistoryList media={displayMedia} playMedia={playMedia} />
+                <HistoryList media={displayMedia} playMedia={playMedia} adminModeEnabled={adminModeEnabled} />
             ) : isRecommendationsView ? (
                 <RecommendationsList
                     recommendations={recommendations}
                     playMedia={playMedia}
                     isLoading={isInitialLoad}
                     onMoreLikeThis={handleMoreLikeThis}
+                    adminModeEnabled={adminModeEnabled}
                 />
             ) : (
                 <MediaList
@@ -432,6 +435,7 @@ export function MainPage() {
                     nextPage={nextPage}
                     hasMore={hasMore}
                     isLoadingMore={isLoadingMore}
+                    adminModeEnabled={adminModeEnabled}
                 />
             )}
             <LoadingIndicator loadedCount={media.length} totalCount={totalCount} />

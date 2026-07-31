@@ -216,6 +216,7 @@ const MediaComponent = (props) => {
                     isFavorite={isFavorite}
                     onToggleFavorite={toggleFavorite}
                     isLoadingDetails={isLoadingDetails}
+                    adminModeEnabled={props.adminModeEnabled}
                 />
             )}
         </div>

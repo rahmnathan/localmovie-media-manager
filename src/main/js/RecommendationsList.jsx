@@ -32,7 +32,7 @@ const genreChips = (genre) => (genre || '')
     .filter(Boolean)
     .slice(0, 2);
 
-const RecommendationCard = ({ recommendation, playMedia, onDismiss, onMoreLikeThis }) => {
+const RecommendationCard = ({ recommendation, playMedia, onDismiss, onMoreLikeThis, adminModeEnabled = false }) => {
     const mediaFile = recommendation.mediaFile;
     const media = mediaFile.media || {};
     const reason = recommendation.reason;
@@ -190,12 +190,13 @@ const RecommendationCard = ({ recommendation, playMedia, onDismiss, onMoreLikeTh
                 playMedia={playMedia}
                 isFavorite={isFavorite}
                 onToggleFavorite={toggleFavorite}
+                adminModeEnabled={adminModeEnabled}
             />
         </div>
     );
 };
 
-export const RecommendationsList = ({ recommendations, playMedia, onRefresh, isLoading, onMoreLikeThis }) => {
+export const RecommendationsList = ({ recommendations, playMedia, onRefresh, isLoading, onMoreLikeThis, adminModeEnabled = false }) => {
     const [dismissedIds, setDismissedIds] = useState(loadDismissed);
 
     const visibleRecommendations = useMemo(() => {
@@ -233,6 +234,7 @@ export const RecommendationsList = ({ recommendations, playMedia, onRefresh, isL
                         playMedia={playMedia}
                         onDismiss={dismissRecommendation}
                         onMoreLikeThis={onMoreLikeThis}
+                        adminModeEnabled={adminModeEnabled}
                     />
                 ))}
             </div>

@@ -15,13 +15,23 @@ const controlBarStyle = {
 };
 
 const AUTOPLAY_KEY = 'localmovies_autoplay_enabled';
+const ADMIN_MODE_KEY = 'localmovies_admin_mode';
 
 export const getAutoplayEnabled = () => {
     const stored = localStorage.getItem(AUTOPLAY_KEY);
     return stored === null ? true : stored === 'true'; // Default to true
 };
 
-const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled }) => {
+export const getAdminModeEnabled = () => {
+    const stored = localStorage.getItem(ADMIN_MODE_KEY);
+    return stored === 'true';
+};
+
+export const setAdminModeEnabled = (enabled) => {
+    localStorage.setItem(ADMIN_MODE_KEY, String(enabled));
+};
+
+const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled, isAdmin, adminModeEnabled, setAdminModeEnabled }) => {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -48,6 +58,12 @@ const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled
         localStorage.setItem(AUTOPLAY_KEY, String(newValue));
     };
 
+    const toggleAdminMode = () => {
+        const newValue = !adminModeEnabled;
+        setAdminModeEnabled(newValue);
+        localStorage.setItem(ADMIN_MODE_KEY, String(newValue));
+    };
+
     const handleLogout = () => {
         window.location.href = '/logout';
     };
@@ -66,6 +82,22 @@ const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled
                     <span className="settings-dropdown__toggle-knob" />
                 </button>
             </label>
+            {isAdmin && (
+                <>
+                    <div className="settings-dropdown__divider" />
+                    <label className="settings-dropdown__item">
+                        <span className="settings-dropdown__label">Admin Mode</span>
+                        <button
+                            className={`settings-dropdown__toggle ${adminModeEnabled ? 'settings-dropdown__toggle--on' : ''}`}
+                            onClick={toggleAdminMode}
+                            role="switch"
+                            aria-checked={adminModeEnabled}
+                        >
+                            <span className="settings-dropdown__toggle-knob" />
+                        </button>
+                    </label>
+                </>
+            )}
             <div className="settings-dropdown__divider" />
             <button
                 className="settings-dropdown__logout"
@@ -77,9 +109,38 @@ const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled
     );
 };
 
-export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNavigate, setType, onClearFilters, hasActiveFilters }) => {
+export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNavigate, setType, onClearFilters, hasActiveFilters, onAdminModeChange }) => {
     const [showSettings, setShowSettings] = useState(false);
     const [autoplayEnabled, setAutoplayEnabled] = useState(getAutoplayEnabled);
+    const [adminModeEnabled, setAdminModeEnabled] = useState(getAdminModeEnabled);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        // Fetch user info to check for admin role
+        fetch('/localmovie/v1/user/me')
+            .then(res => res.json())
+            .then(data => {
+                const hasAdminRole = data.roles?.some(role =>
+                    role === 'ROLE_movie-admin' || role === 'movie-admin'
+                );
+                setIsAdmin(hasAdminRole);
+                // If not admin, ensure admin mode is disabled
+                if (!hasAdminRole && adminModeEnabled) {
+                    setAdminModeEnabled(false);
+                    localStorage.setItem(ADMIN_MODE_KEY, 'false');
+                }
+            })
+            .catch(err => {
+                console.error('Failed to fetch user info:', err);
+                setIsAdmin(false);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (onAdminModeChange) {
+            onAdminModeChange(adminModeEnabled && isAdmin);
+        }
+    }, [adminModeEnabled, isAdmin, onAdminModeChange]);
 
     return (
         <nav style={controlBarStyle} aria-label="Media filters and controls">
@@ -112,6 +173,9 @@ export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNa
                             onClose={() => setShowSettings(false)}
                             autoplayEnabled={autoplayEnabled}
                             setAutoplayEnabled={setAutoplayEnabled}
+                            isAdmin={isAdmin}
+                            adminModeEnabled={adminModeEnabled}
+                            setAdminModeEnabled={setAdminModeEnabled}
                         />
                     </div>
                 </div>

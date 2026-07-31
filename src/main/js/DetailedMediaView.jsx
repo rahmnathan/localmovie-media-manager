@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { buildPosterUri } from './Media.jsx';
 
@@ -21,7 +21,9 @@ const formatRuntime = (seconds) => {
     return `${minutes}m`;
 };
 
-export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite, isLoadingDetails = false }) => {
+export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFavorite = false, onToggleFavorite, isLoadingDetails = false, adminModeEnabled = false }) => {
+    const [adminActionStatus, setAdminActionStatus] = useState(null);
+
     if (!mediaFile) return null;
 
     const media = mediaFile.media || {};
@@ -59,6 +61,46 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
             playMedia(mediaFile, true);
         }
         onClose();
+    };
+
+    const handleSyncSubtitles = async () => {
+        setAdminActionStatus({ type: 'loading', message: 'Syncing subtitles...' });
+        try {
+            const response = await fetch(`/admin/v1/media/${mediaFile.mediaFileId}/subtitles/sync`, {
+                method: 'POST'
+            });
+            if (response.status === 202) {
+                setAdminActionStatus({ type: 'success', message: 'Subtitle sync queued' });
+            } else if (response.status === 400) {
+                setAdminActionStatus({ type: 'error', message: 'Media not eligible for subtitles' });
+            } else if (response.status === 409) {
+                setAdminActionStatus({ type: 'error', message: 'Sync already in progress' });
+            } else {
+                setAdminActionStatus({ type: 'error', message: 'Failed to sync subtitles' });
+            }
+        } catch (err) {
+            setAdminActionStatus({ type: 'error', message: 'Network error' });
+        }
+        setTimeout(() => setAdminActionStatus(null), 3000);
+    };
+
+    const handleRefreshMetadata = async () => {
+        setAdminActionStatus({ type: 'loading', message: 'Refreshing metadata...' });
+        try {
+            const response = await fetch(`/admin/v1/media/${mediaFile.mediaFileId}/metadata/refresh`, {
+                method: 'POST'
+            });
+            if (response.status === 202) {
+                setAdminActionStatus({ type: 'success', message: 'Metadata refresh triggered' });
+            } else if (response.status === 404) {
+                setAdminActionStatus({ type: 'error', message: 'Media not found' });
+            } else {
+                setAdminActionStatus({ type: 'error', message: 'Failed to refresh metadata' });
+            }
+        } catch (err) {
+            setAdminActionStatus({ type: 'error', message: 'Network error' });
+        }
+        setTimeout(() => setAdminActionStatus(null), 3000);
     };
 
     return (
@@ -169,6 +211,33 @@ export const DetailedMediaView = ({ mediaFile, isOpen, onClose, playMedia, isFav
                                         ⏯ Resume{resumePosition ? ` at ${resumePosition}` : ''}
                                     </button>
                                 )}
+                            </div>
+                        )}
+
+                        {adminModeEnabled && (
+                            <div className="detailed-media-admin">
+                                <div className="detailed-media-admin__header">Admin Actions</div>
+                                {adminActionStatus && (
+                                    <div className={`detailed-media-admin__status detailed-media-admin__status--${adminActionStatus.type}`}>
+                                        {adminActionStatus.message}
+                                    </div>
+                                )}
+                                <div className="detailed-media-admin__actions">
+                                    <button
+                                        className="detailed-media-admin__btn"
+                                        onClick={handleSyncSubtitles}
+                                        disabled={adminActionStatus?.type === 'loading'}
+                                    >
+                                        Sync Subtitles
+                                    </button>
+                                    <button
+                                        className="detailed-media-admin__btn"
+                                        onClick={handleRefreshMetadata}
+                                        disabled={adminActionStatus?.type === 'loading'}
+                                    >
+                                        Refresh Metadata
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

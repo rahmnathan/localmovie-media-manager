@@ -95,4 +95,31 @@ public class MediaAdminResource {
 
         return ResponseEntity.accepted().build();
     }
+
+    @Operation(
+            summary = "Refresh metadata",
+            description = "Refreshes metadata for the given media file from external sources (OMDB/TMDB).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Metadata refresh triggered"),
+            @ApiResponse(responseCode = "404", description = "Media file not found")
+    })
+    @PostMapping(path = "/media/{mediaFileId}/metadata/refresh")
+    public ResponseEntity<Void> refreshMetadata(
+            @Parameter(description = "Media file UUID", required = true, example = "f168fb4a-4ee8-43ab-a323-8395c35c31bf")
+            @PathVariable("mediaFileId") String mediaFileId) {
+        log.info("Manually refreshing metadata - {}", mediaFileId);
+
+        Optional<MediaFile> mediaFile = persistenceService.findByMediaFileId(mediaFileId);
+        if (mediaFile.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            updateService.updateMedia(mediaFile.get().getPath());
+            return ResponseEntity.accepted().build();
+        } catch (InvalidMediaException e) {
+            log.error("Failed to refresh metadata for {}", mediaFileId, e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

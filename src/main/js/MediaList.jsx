@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Media } from './Media.jsx';
 import { SkeletonLoader } from './SkeletonCard.jsx';
 
-export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, topPadding = 150, isLoadingMore = false }) => {
+export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, topPadding = 150, isLoadingMore = false, adminModeEnabled = false }) => {
     const loadMoreTriggerRef = useRef(null);
 
     const mediaListStyle = {
@@ -36,8 +36,8 @@ export const MediaList = ({ media, navigateTo, playMedia, nextPage, hasMore, top
     }, [nextPage, isLoadingMore, hasMore, media.length]);
 
     const mediaList = useMemo(() => media.map(item =>
-        <Media key={item.mediaFileId} media={item} navigateTo={navigateTo} playMedia={playMedia}/>
-    ), [media, navigateTo, playMedia]);
+        <Media key={item.mediaFileId} media={item} navigateTo={navigateTo} playMedia={playMedia} adminModeEnabled={adminModeEnabled}/>
+    ), [media, navigateTo, playMedia, adminModeEnabled]);
 
     return (
         <main style={mediaListStyle} aria-label="Media library">
