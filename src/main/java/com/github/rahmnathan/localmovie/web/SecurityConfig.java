@@ -90,7 +90,9 @@ class SecurityConfig {
                     oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter));
                     oauth2.bearerTokenResolver(resolver);
                 })
-                .oauth2Login(Customizer.withDefaults())
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userAuthoritiesMapper(userAuthoritiesMapper())))
                 .logout(logout -> logout
                         .logoutSuccessHandler(oidcLogoutSuccessHandler())
                         .invalidateHttpSession(true)
