@@ -13,21 +13,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 
 @Configuration
 public class DistributedLocking {
 
     @Bean
     public LockRepository defaultLockRepository(DataSource dataSource){
-        DefaultLockRepository repository = new DefaultLockRepository(dataSource);
-        repository.setTimeToLive((int) Duration.of(1, ChronoUnit.MINUTES).toMillis());
-        return repository;
+        return new DefaultLockRepository(dataSource);
     }
 
     @Bean
     public JdbcLockRegistry jdbcLockRegistry(LockRepository lockRepository){
-        return new JdbcLockRegistry(lockRepository);
+        return new JdbcLockRegistry(lockRepository, Duration.ofMinutes(1));
     }
 
     @Bean
