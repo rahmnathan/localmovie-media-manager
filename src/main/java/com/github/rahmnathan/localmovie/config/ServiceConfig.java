@@ -17,20 +17,26 @@ import java.util.Set;
 @Validated
 @ConfigurationProperties(prefix = "service")
 public class ServiceConfig {
+    @Valid
     private MediaEventMonitorConfig directoryMonitor;
+    @Valid
     private MediaRepositoryMonitorConfig repository;
+    @Valid
     private ConversionServiceConfig conversionService;
     private boolean notificationsEnabled;
     private Set<String> mediaPaths;
     private String jedisHost;
+    @Valid
     private OmdbConfig omdb;
     @Valid
     private OpenSubtitlesConfig opensubtitles;
+    @Valid
     private OllamaConfig ollama;
     private boolean forceConvert;
 
     @Data
     public static class MediaRepositoryMonitorConfig {
+        @Valid
         private Duration updateFrequency = new Duration(ChronoUnit.DAYS, 3L);
         private int updateLimit = 200;
     }

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -193,7 +192,7 @@ public class KubernetesService {
     }
 
     private String getNamespace() throws IOException {
-        Path namespaceFile = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+        Path namespaceFile = Path.of("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
         if (namespaceFile.toFile().exists()) {
             return Files.readString(namespaceFile).trim();
         }

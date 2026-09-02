@@ -10,7 +10,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
@@ -24,7 +24,7 @@ public class MediaStreamingService {
         String mediaName = mediaFile.getPath().replaceAll("[/.]", "-");
         registry.summary("localmovies.streams.requests", "media_name", mediaName).record(1);
 
-        FileSystemResource videoResource = new FileSystemResource(Paths.get(mediaFile.getAbsolutePath()));
+        FileSystemResource videoResource = new FileSystemResource(Path.of(mediaFile.getAbsolutePath()));
         long contentLength = 0L;
         try {
             contentLength = videoResource.contentLength();

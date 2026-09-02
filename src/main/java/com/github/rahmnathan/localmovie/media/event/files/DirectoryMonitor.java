@@ -11,7 +11,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Set;
 
 @Slf4j
@@ -29,7 +29,7 @@ public class DirectoryMonitor {
         FileAlterationMonitor monitor = new FileAlterationMonitor();
         FileAlterationListener listener = new DirectoryMonitorListener(monitor, observers);
 
-        config.getMediaPaths().stream().map(Paths::get).forEach(p -> {
+        config.getMediaPaths().stream().map(Path::of).forEach(p -> {
             try {
                 log.info("registering {} in watcher service", p);
                 FileAlterationObserver observer = FileAlterationObserver.builder()

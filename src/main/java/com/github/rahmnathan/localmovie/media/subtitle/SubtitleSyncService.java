@@ -15,10 +15,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.time.Instant;
@@ -65,7 +63,7 @@ public class SubtitleSyncService {
 
         Instant staleBefore = Instant.now().minus(Duration.ofSeconds(
                 opensubtitles.getSyncTimeoutSeconds() + 600L));
-        serviceConfig.getMediaPaths().forEach(mediaPath -> cleanupStaleSyncArtifacts(Paths.get(mediaPath), staleBefore));
+        serviceConfig.getMediaPaths().forEach(mediaPath -> cleanupStaleSyncArtifacts(Path.of(mediaPath), staleBefore));
     }
 
     /**
@@ -90,7 +88,7 @@ public class SubtitleSyncService {
 
         Path tempDir = null;
         try {
-            Path videoFile = Paths.get(videoPath);
+            Path videoFile = Path.of(videoPath);
             if (videoFile.getParent() == null) {
                 log.warn("Cannot sync subtitle because video path has no parent directory: {}", videoPath);
                 return Optional.empty();
@@ -103,7 +101,7 @@ public class SubtitleSyncService {
             Path outputFile = tempDir.resolve("output.vtt");
 
             var filePermissions = PosixFilePermissions.fromString("rw-rw-rw-");
-            Files.writeString(inputFile, subtitleContent, StandardCharsets.UTF_8);
+            Files.writeString(inputFile, subtitleContent);
             Files.setPosixFilePermissions(inputFile, filePermissions);
             // Pre-create output file with write permissions for the sync job
             Files.createFile(outputFile);
@@ -171,7 +169,7 @@ public class SubtitleSyncService {
      * @return The synced subtitle content, or empty if collection failed
      */
     public Optional<String> collectSyncResult(String jobName, String tempDir) {
-        Path tempDirPath = Paths.get(tempDir);
+        Path tempDirPath = Path.of(tempDir);
         Path outputFile = tempDirPath.resolve("output.vtt");
 
         try {
@@ -181,7 +179,7 @@ public class SubtitleSyncService {
                 return Optional.empty();
             }
 
-            String syncedContent = Files.readString(outputFile, StandardCharsets.UTF_8);
+            String syncedContent = Files.readString(outputFile);
             meterRegistry.counter("localmovies.subtitle-sync.succeeded").increment();
             log.info("Successfully collected synced subtitle from job: {}", jobName);
             return Optional.of(syncedContent);
@@ -211,7 +209,7 @@ public class SubtitleSyncService {
 
         // Clean up temp directory
         if (tempDir != null) {
-            cleanup(Paths.get(tempDir));
+            cleanup(Path.of(tempDir));
         }
     }
 
@@ -304,7 +302,7 @@ public class SubtitleSyncService {
     }
 
     private String getNamespace() throws IOException {
-        Path namespaceFile = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+        Path namespaceFile = Path.of("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
         if (namespaceFile.toFile().exists()) {
             return Files.readString(namespaceFile).trim();
         }

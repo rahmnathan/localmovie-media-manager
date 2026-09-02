@@ -66,7 +66,7 @@ public class MediaEventMonitor implements DirectoryMonitorObserver {
 
                 waitForWriteComplete(file);
                 if (path.isStreamable() && serviceConfig.getConversionService().isEnabled()) {
-                    Path outputPath = Paths.get(path.getDestinationPath());
+                    Path outputPath = Path.of(path.getDestinationPath());
                     if (Files.exists(outputPath)) {
                         log.info("Deleting existing output file: {}", path.getDestinationPath());
                         Files.delete(outputPath);

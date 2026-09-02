@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -131,7 +130,7 @@ public class FfmpegVideoConverter {
     }
 
     private String getNamespace() throws IOException {
-        Path namespaceFile = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+        Path namespaceFile = Path.of("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
         if (namespaceFile.toFile().exists()) {
             return Files.readString(namespaceFile).trim();
         }

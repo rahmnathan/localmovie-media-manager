@@ -17,7 +17,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.List;
@@ -120,7 +123,7 @@ public class MediaInitializer {
     private Stream<String> streamDirectoryTree(String path) {
         Set<String> paths = new HashSet<>();
         try {
-            Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<>() {
+            Files.walkFileTree(Path.of(path), new SimpleFileVisitor<>() {
                 @NonNull
                 @Override
                 public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) {
