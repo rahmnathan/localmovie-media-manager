@@ -101,8 +101,11 @@ public enum MediaPathElement {
                 .map(matcher -> parser.apply(matcher.group()))
                 .findFirst();
 
-        if (value.isEmpty() && !optional) {
-            throw new InvalidMediaException("Failed to extract " + this.name() + " from path: " + path);
+        if (value.isEmpty()) {
+            if (!optional) {
+                throw new InvalidMediaException("Failed to extract " + this.name() + " from path: " + path);
+            }
+            return;
         }
 
         ((BiConsumer<MediaPath.MediaPathBuilder, Object>) setter).accept(builder, value.get());

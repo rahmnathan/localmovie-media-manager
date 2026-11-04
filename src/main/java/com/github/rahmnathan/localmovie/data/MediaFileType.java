@@ -13,6 +13,7 @@ public enum MediaFileType {
     MOVIE(MediaType.MOVIE, false, true,
             Pattern.compile("^Movies/.*\\.(mkv|mp4|avi)$"),
             MediaPathElement.MOVIE_NAME,
+            MediaPathElement.RELEASE_YEAR,
             MediaPathElement.FILE_WITH_EXTENSION
     ),
     MOVIE_FOLDER(null, true, false,

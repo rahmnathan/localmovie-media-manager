@@ -97,6 +97,27 @@ public class MediaPathTest {
         MediaPath mediaPath = MediaPath.parse(testPath);
 
         assertEquals(MediaType.MOVIE, mediaPath.getMediaType());
+        assertEquals(null, mediaPath.getReleaseYear());
+    }
+
+    @Test
+    void moviePath_WithYear() throws InvalidMediaException {
+        String testPath = "Movies/Resident Evil (2026).mp4";
+        MediaPath mediaPath = MediaPath.parse(testPath);
+
+        assertEquals(MediaType.MOVIE, mediaPath.getMediaType());
+        assertEquals("Resident Evil", mediaPath.getTitle());
+        assertEquals("2026", mediaPath.getReleaseYear());
+    }
+
+    @Test
+    void moviePath_WithYear_Nested() throws InvalidMediaException {
+        String testPath = "Movies/Resident Evil (2026)/Resident Evil.mp4";
+        MediaPath mediaPath = MediaPath.parse(testPath);
+
+        assertEquals(MediaType.MOVIE, mediaPath.getMediaType());
+        assertEquals("Resident Evil", mediaPath.getTitle());
+        assertEquals("2026", mediaPath.getReleaseYear());
     }
 
     @Test
