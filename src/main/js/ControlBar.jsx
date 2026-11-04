@@ -109,7 +109,7 @@ const SettingsDropdown = ({ isOpen, onClose, autoplayEnabled, setAutoplayEnabled
     );
 };
 
-export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNavigate, setType, onClearFilters, hasActiveFilters, onAdminModeChange }) => {
+export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNavigate, setType, onClearFilters, hasActiveFilters, onAdminModeChange, searchQuery }) => {
     const [showSettings, setShowSettings] = useState(false);
     const [autoplayEnabled, setAutoplayEnabled] = useState(getAutoplayEnabled);
     const [adminModeEnabled, setAdminModeEnabled] = useState(getAdminModeEnabled);
@@ -145,7 +145,7 @@ export const ControlBar = ({ filterMedia, selectGenre, selectSort, filterMediaNa
     return (
         <nav style={controlBarStyle} aria-label="Media filters and controls">
             <div className="control-bar">
-                <SearchBox filterMedia={filterMedia} filterMediaNavigate={filterMediaNavigate}/>
+                <SearchBox filterMedia={filterMedia} filterMediaNavigate={filterMediaNavigate} initialValue={searchQuery}/>
                 <div className="control-bar__filters">
                     <Category setType={setType}/>
                     <Genre selectGenre={selectGenre}/>

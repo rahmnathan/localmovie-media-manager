@@ -380,6 +380,7 @@ export function MainPage() {
                 onClearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
                 onAdminModeChange={setAdminModeEnabled}
+                searchQuery={navigationState.q || ''}
             />
             {showBreadcrumb && (
                 <Breadcrumb path={navigationPath} onNavigateBack={navigateBack} />
