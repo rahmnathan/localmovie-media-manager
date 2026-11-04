@@ -32,7 +32,7 @@ spec:
 
     tools {
         maven 'Maven'
-        jdk 'Java 21'
+        jdk 'Java 25'
     }
 
     stages {
