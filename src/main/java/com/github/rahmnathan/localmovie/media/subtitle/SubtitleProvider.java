@@ -14,12 +14,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @Component
 public class SubtitleProvider {
     private static final Logger logger = LoggerFactory.getLogger(SubtitleProvider.class);
     private static final String DEFAULT_LANGUAGE = "en";
     private static final String VTT_FORMAT = "webvtt";
+
+    // Pattern to detect featurette/bonus content in release names
+    private static final Pattern FEATURETTE_PATTERN = Pattern.compile(
+            "(?i)(making[.\\-_]of|behind[.\\-_]the[.\\-_]scenes|featurette|bonus|deleted[.\\-_]scenes|bloopers|gag[.\\-_]reel|interview|documentary|bts[.\\-_])"
+    );
 
     private final Client client;
     private final OpenSubtitlesApi openSubtitlesApi;
@@ -87,11 +94,12 @@ public class SubtitleProvider {
             return null;
         }
 
-        // Select best subtitle (highest download count)
+        // Select best subtitle (highest download count), filtering out featurettes
         return searchResponse.getData().stream()
                 .filter(d -> d.getAttributes() != null
                         && d.getAttributes().getFiles() != null
                         && !d.getAttributes().getFiles().isEmpty())
+                .filter(d -> !isFeaturette(d.getAttributes().getRelease()))
                 .max(Comparator.comparingInt(a -> a.getAttributes().getDownloadCount()))
                 .orElse(null);
     }
@@ -171,5 +179,16 @@ public class SubtitleProvider {
 
     private String getApiKey() {
         return serviceConfig.getOpensubtitles().getApiKey();
+    }
+
+    private boolean isFeaturette(String release) {
+        if (release == null || release.isBlank()) {
+            return false;
+        }
+        boolean isFeaturette = FEATURETTE_PATTERN.matcher(release).find();
+        if (isFeaturette) {
+            logger.debug("Skipping featurette subtitle: {}", release);
+        }
+        return isFeaturette;
     }
 }

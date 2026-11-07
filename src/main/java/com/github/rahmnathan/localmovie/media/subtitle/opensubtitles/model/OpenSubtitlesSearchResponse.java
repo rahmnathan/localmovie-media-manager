@@ -28,6 +28,7 @@ public class OpenSubtitlesSearchResponse {
         private String language;
         @JsonProperty("download_count")
         private int downloadCount;
+        private String release;
         private List<SubtitleFile> files;
     }
 
