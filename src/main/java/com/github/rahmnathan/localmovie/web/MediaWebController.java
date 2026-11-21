@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class MediaWebController {
 
+    // Serves index.html for SPA client-side routing.
+    // Excludes /localmovie and /admin API prefixes via regex.
+    // More specific API controller paths take precedence regardless.
     @RequestMapping(
             method = {RequestMethod.GET, RequestMethod.HEAD, RequestMethod.OPTIONS},
-            value = { "/", "/{x:[\\w\\-]+}", "/{x:^(?!localmovie$).*$}/**/{y:[\\w\\-]+}" }
+            value = { "/", "/{segment:(?!localmovie$|admin$)[\\w\\-]+}", "/{segment:(?!localmovie|admin)[\\w\\-]+}/{*path}" }
     )
     public String index() {
         return "index.html";

@@ -62,9 +62,6 @@ spring:
     show-sql: false
   flyway:
     enabled: true
-  mvc:
-    pathmatch:
-      matching-strategy: ant-path-matcher
   data:
     web:
       pageable:

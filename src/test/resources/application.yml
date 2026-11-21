@@ -46,9 +46,6 @@ spring:
       - classpath:db/migration
   profiles:
     active: stub,test
-  mvc:
-    pathmatch:
-      matching-strategy: ant-path-matcher
   security:
     oauth2:
       resourceserver:
